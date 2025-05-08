@@ -15,6 +15,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 const PORT = process.env.PORT;
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 // ===== Test DB Connection =====
 sequelize.authenticate({ alter: true })
   .then(() => console.log('Database connected successfully'))
@@ -32,4 +33,4 @@ app.listen(PORT, async () => {
 });
 // ===== Routes =====
 app.use('/api/v1/auth', authRoutes);
-
+app.use('/api/v1/users',userRoutes);
