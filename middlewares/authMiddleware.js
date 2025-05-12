@@ -1,38 +1,38 @@
-// middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-require('dotenv').config();
 
 exports.protect = async (req, res, next) => {
-  let token;
-
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-
-  if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
-  }
-
   try {
+    let token;
+
+    // Check for token in Authorization header
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      const error = new Error('Not authorized, no token');
+      error.status = 401;
+      throw error;
+    }
+
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findByPk(decoded.id, { attributes: { exclude: ['password'] } });
-    if (!req.user) return res.status(401).json({ message: 'User not found' });
+
+    // Attach user to request object
+    req.user = await User.findByPk(decoded.id, {
+      attributes: ['id', 'name', 'email'], 
+    });
+
+    if (!req.user) {
+      const error = new Error('Not authorized, user not found');
+      error.status = 401;
+      throw error;
+    }
+
     next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Token failed' });
+  } catch (error) {
+    next(error); 
   }
 };
 
-// Optional: Role-based access control
-exports.authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: `User role '${req.user.role}' is not authorized` });
-    }
-    next();
-  };
-};
