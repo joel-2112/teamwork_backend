@@ -32,5 +32,8 @@ app.listen(PORT, async () => {
   }
 });
 // ===== Routes =====
+app.get('/', (req, res) => {
+  res.send('Welcome to teamwork ');
+});
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users',userRoutes);
