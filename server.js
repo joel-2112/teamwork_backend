@@ -35,7 +35,7 @@ app.listen(PORT, async () => {
 });
 // ===== Routes =====
 app.get('/', (req, res) => {
-  res.send('Welcome to teamwork i am working on API at the moment on --> /api/v1/users ');
+  res.send('Welcome to teamwork i am working on API on --> /api/v1/users ');
 });
 // Rate limiting for login
 const loginLimiter = rateLimit({
