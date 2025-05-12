@@ -4,20 +4,21 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const sequelize = require('./config/database');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const { default: rateLimit } = require('express-rate-limit');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
+const PORT = process.env.PORT;
 
 // ===== Middleware =====
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
-const PORT = process.env.PORT;
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const { default: rateLimit } = require('express-rate-limit');
-// ===== Test DB Connection =====
+
+// ===== check DB Connection =====
 sequelize.authenticate({ alter: true })
   .then(() => console.log('Database connected successfully'))
   .catch((err) => console.error('Database connection failed:', err));
@@ -34,7 +35,7 @@ app.listen(PORT, async () => {
 });
 // ===== Routes =====
 app.get('/', (req, res) => {
-  res.send('Welcome to teamwork ');
+  res.send('Welcome to teamwork i am working on API at the moment on --> /api/v1/users ');
 });
 // Rate limiting for login
 const loginLimiter = rateLimit({
