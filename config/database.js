@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false, // Important for Render free tier
+        rejectUnauthorized: false, 
       },
     },
     logging: false, // Optional: disable SQL logs
