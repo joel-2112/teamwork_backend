@@ -5,7 +5,7 @@ const sequelize = new Sequelize(
   process.env.DB_USER,
   process.env.DB_PASSWORD,
   {
-    host: process.env.DB_HOST + process.env.DB_APPEND,
+    host: process.env.DB_HOST + '.oregon-postgres.render.com',
     port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT || 'postgres',
     dialectOptions: {
