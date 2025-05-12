@@ -16,6 +16,7 @@ app.use(express.json());
 const PORT = process.env.PORT;
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const { default: rateLimit } = require('express-rate-limit');
 // ===== Test DB Connection =====
 sequelize.authenticate({ alter: true })
   .then(() => console.log('Database connected successfully'))
@@ -35,5 +36,12 @@ app.listen(PORT, async () => {
 app.get('/', (req, res) => {
   res.send('Welcome to teamwork ');
 });
+// Rate limiting for login
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 5,
+  message: 'Too many login attempts, please try again after 15 minutes',
+});
+app.use('/api/v1/auth/login', loginLimiter);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users',userRoutes);

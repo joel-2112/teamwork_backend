@@ -53,5 +53,19 @@ const logoutUser = async (req, res, next) => {
     next(error); // Pass to error handler
   }
 };
+//refresh token
+const refreshToken = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+    const result = await authService.refreshAccessToken(refreshToken);
 
-module.exports = { registerUser, loginUser, logoutUser };
+    return res.status(200).json({
+      message: 'Token refreshed',
+      user: result.user,
+      token: result.token,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { registerUser, loginUser,refreshToken, logoutUser };
