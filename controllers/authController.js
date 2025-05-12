@@ -68,4 +68,25 @@ const refreshToken = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { registerUser, loginUser,refreshToken, logoutUser };
+const requestPasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const result = await authService.requestPasswordReset(email);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    const result = await authService.resetPassword({ token, newPassword });
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { registerUser, loginUser,refreshToken, logoutUser, requestPasswordReset, resetPassword };

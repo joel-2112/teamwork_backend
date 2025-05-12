@@ -3,6 +3,8 @@ const User = require('../models/User');
 const { generateToken } = require('../utils/generateToken');
 const { v4: uuidv4 } = require('uuid');
 const RefreshToken = require('../models/RefreshToken');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 // Register a new user
 const register = async ({ name, email, password }) => {
   // Check if user exists
@@ -72,5 +74,59 @@ const refreshAccessToken = async (refreshToken) => {
   const newToken = generateToken({ id: user.id, email: user.email });
   return { user: { id: user.id, name: user.name, email: user.email }, token: newToken };
 };
+const requestPasswordReset = async (email) => {
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    const error = new Error('User not found');
+    error.status = 404;
+    throw error;
+  }
 
-module.exports = { register, login, refreshAccessToken };
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
+  await User.update(
+    { resetToken, resetTokenExpiry },
+    { where: { id: user.id } }
+  );
+
+  const transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  await transporter.sendMail({
+    to: email,
+    subject: 'Password Reset',
+    text: `Click this link to reset your password: http://your-frontend-url.com/reset-password?token=${resetToken}`,
+  });
+
+  return { message: 'Password reset email sent' };
+};
+
+const resetPassword = async ({ token, newPassword }) => {
+  const user = await User.findOne({
+    where: {
+      resetToken: token,
+      resetTokenExpiry: { [Op.gt]: Date.now() },
+    },
+  });
+
+  if (!user) {
+    const error = new Error('Invalid or expired reset token');
+    error.status = 400;
+    throw error;
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+  await User.update(
+    { password: hashedPassword, resetToken: null, resetTokenExpiry: null },
+    { where: { id: user.id } }
+  );
+
+  return { message: 'Password reset successful' };
+};
+module.exports = { register, login, refreshAccessToken, requestPasswordReset, resetPassword };
