@@ -6,6 +6,8 @@ const morgan = require('morgan');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const jobRoutes = require('./routes/jobRoute');
+const jobApplicationRoutes = require('./routes/jobApplicationRoute');
 const { default: rateLimit } = require('express-rate-limit');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -31,6 +33,8 @@ const loginLimiter = rateLimit({
 app.use('/api/v1/auth/login', loginLimiter);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users',userRoutes);
+app.use('/api/v1/jobs', jobRoutes);
+app.use('/api/v1/job-applications', jobApplicationRoutes);
 app.use(errorHandler);
 
 // ===== check DB Connection =====

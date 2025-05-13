@@ -68,9 +68,9 @@ const Job = sequelize.define('Job', {
     timestamps: true,
     });
 
-// Define the relationship
-User.hasMany(Job, { foreignKey: 'userId', as: 'jobs' });
-Job.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-
+Job.associate = (models) => {
+  Job.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+//   Job.hasMany(models.JobApplication, { foreignKey: 'jobId', as: 'applications' });
+};
 module.exports = Job;
 // This code defines a Job model using Sequelize ORM. The Job model has fields for title, description, location, salary, and company name. It also establishes a one-to-many relationship with the User model, indicating that a user can have multiple jobs associated with them.
