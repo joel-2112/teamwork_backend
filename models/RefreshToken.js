@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database'); // Your Sequelize instance
+const sequelize = require('../config/database'); 
+const User = require('./User'); 
 
 const RefreshToken = sequelize.define('RefreshToken', {
   token: {
@@ -11,10 +12,14 @@ const RefreshToken = sequelize.define('RefreshToken', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'User',
+      model: User,
       key: 'id',
     },
   },
 });
+
+// Define the relationship
+User.hasMany(RefreshToken, { foreignKey: 'userId', as: 'refreshTokens' });
+RefreshToken.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 module.exports = RefreshToken;

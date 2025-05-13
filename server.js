@@ -18,21 +18,6 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// ===== check DB Connection =====
-sequelize.authenticate({ alter: true })
-  .then(() => console.log('Database connected successfully'))
-  .catch((err) => console.error('Database connection failed:', err));
-// ===== Error Handler =====
-app.use(errorHandler);
-// ===== Start Server =====
-app.listen(PORT, async () => {
-  try {
-    await sequelize.sync(); 
-    console.log(`Server running on port ${PORT}`);
-  } catch (err) {
-    console.error(' Error syncing DB:', err);
-  }
-});
 // ===== Routes =====
 app.get('/', (req, res) => {
   res.send('Welcome to teamwork i am working on API on --> /api/v1/users ');
@@ -46,3 +31,19 @@ const loginLimiter = rateLimit({
 app.use('/api/v1/auth/login', loginLimiter);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users',userRoutes);
+app.use(errorHandler);
+
+// ===== check DB Connection =====
+sequelize.authenticate()
+  .then(() => console.log('Database connected successfully'))
+  .catch((err) => console.error('Database connection failed:', err));
+
+// ===== Start Server =====
+app.listen(PORT, async () => {
+  try {
+    await sequelize.sync({alter: true}); 
+    console.log(`Server running on port ${PORT}`);
+  } catch (err) {
+    console.error(' Error syncing DB:', err);
+  }
+});
