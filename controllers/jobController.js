@@ -8,9 +8,9 @@ const getAllJobs = async (req, res) => {
       data: jobs,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
-      message: 'Server Error',
+      message: error.message || 'Server Error',
     });
   }
 };

@@ -49,17 +49,12 @@ const createJob = async (jobData) => {
   }
 };
 
-const updateJob = async (id, updates, userId) => {
+const updateJob = async (id, updates) => {
   try {
     const job = await Job.findByPk(id);
     if (!job) {
       const err = new Error('Job not found');
       err.status = 404;
-      throw err;
-    }
-    if (job.userId !== userId) {
-      const err = new Error('Unauthorized to update this job');
-      err.status = 403;
       throw err;
     }
     return await job.update(updates);
@@ -70,17 +65,12 @@ const updateJob = async (id, updates, userId) => {
   }
 };
 
-const deleteJob = async (id, userId) => {
+const deleteJob = async (id) => {
   try {
     const job = await Job.findByPk(id);
     if (!job) {
       const err = new Error('Job not found');
       err.status = 404;
-      throw err;
-    }
-    if (job.userId !== userId) {
-      const err = new Error('Unauthorized to delete this job');
-      err.status = 403;
       throw err;
     }
     await job.destroy();
