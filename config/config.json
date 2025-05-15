@@ -1,6 +1,10 @@
 {
     "development": {
-        "url": "postgresql://eyuel:OFpC1sDEuZhyfQUDC3GpchjcXismAsso@dpg-d0e99a15pdvs73asuj70-a.oregon-postgres.render.com/user_api_db_lxj0",
+        "username": "eyuel",
+        "password": "OFpC1sDEuZhyfQUDC3GpchjcXismAsso",
+        "database": "user_api_db_lxj0",
+        "host": "dpg-d0e99a15pdvs73asuj70-a.oregon-postgres.render.com",
+        "port": 5432,
         "dialect": "postgres",
         "dialectOptions": {
             "ssl": {
@@ -11,7 +15,11 @@
         "logging": true
     },
     "production": {
-        "url": "postgresql://eyuel:OFpC1sDEuZhyfQUDC3GpchjcXismAsso@dpg-d0e99a15pdvs73asuj70-a.oregon-postgres.render.com/user_api_db_lxj0",
+        "username": "eyuel",
+        "password": "OFpC1sDEuZhyfQUDC3GpchjcXismAsso",
+        "database": "user_api_db_lxj0",
+        "host": "dpg-d0e99a15pdvs73asuj70-a.oregon-postgres.render.com",
+        "port": 5432,
         "dialect": "postgres",
         "dialectOptions": {
             "ssl": {

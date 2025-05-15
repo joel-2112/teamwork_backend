@@ -4,7 +4,7 @@ const Job = require('./Job');
 const JobApplication = require('./JobApplication');
 const User = require('./User');
 const RefreshToken = require('./RefreshToken');
-
+const Agent = require('./Agent');
 const models = {
     Agent,
     Job,

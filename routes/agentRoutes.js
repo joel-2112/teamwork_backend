@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const agentController = require('../controllers/agentController');
-const { agentDataValidator } = require('../utils/validators');
+const { agentDataValidator } = require('../middlewares/validators/authValidator');
 const protect = require('../middlewares/authMiddleware');
 
 router.get('/', agentController.getAllAgents);
