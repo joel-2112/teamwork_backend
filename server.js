@@ -6,8 +6,8 @@ const morgan = require('morgan');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
-const jobRoutes = require('./routes/jobRoute');
-const jobApplicationRoutes = require('./routes/jobApplicationRoute');
+const jobRoutes = require('./routes/jobRoutes');
+const jobApplicationRoutes = require('./routes/jobApplicationRoutes');
 const { default: rateLimit } = require('express-rate-limit');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -39,15 +39,15 @@ app.use(errorHandler);
 
 // ===== check DB Connection =====
 sequelize.authenticate()
-  .then(() => console.log('Database connected successfully'))
-  .catch((err) => console.error('Database connection failed:', err));
+    .then(() => console.log('Database connected successfully'))
+    .catch((err) => console.error('Database connection failed:', err));
 
 // ===== Start Server =====
 app.listen(PORT, async () => {
-  try {
+    try {
     await sequelize.sync({alter: true}); 
-    console.log(`Server running on port ${PORT}`);
-  } catch (err) {
+        console.log(`Server running on port ${PORT}`);
+    } catch (err) {
     console.error(' Error syncing DB:', err);
-  }
+    }
 });

@@ -1,5 +1,5 @@
-const { JobApplication, Job } = require('../models');
-
+const JobApplication = require('../models/JobApplication');
+const Job = require('../models/Job');
 const submitApplication = async (applicationData) => {
   try {
     const { jobId, resume } = applicationData;

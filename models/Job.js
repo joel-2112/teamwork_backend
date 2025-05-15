@@ -1,7 +1,6 @@
 // models/Job.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database'); 
-const JobApplication = require('./JobApplication');
 
 const Job = sequelize.define('Job', {   
     id: {
@@ -66,6 +65,5 @@ const Job = sequelize.define('Job', {
     timestamps: true,
 });
 
-Job.hasMany(JobApplication, { foreignKey: 'jobId', allowNull: false });
 
 module.exports = Job;

@@ -1,4 +1,3 @@
-// models/JobApplication.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const Job = require('./Job');
@@ -12,7 +11,7 @@ const JobApplication = sequelize.define('JobApplication', {
     status: {
         type: DataTypes.ENUM(['applied', 'interviewed', 'hired', 'rejected']),
         allowNull: false,
-        defaultValue: 'applied', 
+        defaultValue: 'applied',
     },
     applicantFullName: {
         type: DataTypes.STRING,
@@ -27,11 +26,11 @@ const JobApplication = sequelize.define('JobApplication', {
     },
     applicantPhone: {
         type: DataTypes.STRING,
-        allowNull: true, 
+        allowNull: true,
     },
     applicantAddress: {
         type: DataTypes.STRING,
-        allowNull: true, 
+        allowNull: true,
     },
     applicantLinkedIn: {
         type: DataTypes.STRING,
@@ -44,7 +43,7 @@ const JobApplication = sequelize.define('JobApplication', {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
-            isUrl: true, 
+            isUrl: true,
         },
     },
     applicantExperience: {
@@ -59,7 +58,7 @@ const JobApplication = sequelize.define('JobApplication', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Job,
+            model: 'Jobs',
             key: 'id',
         },
     },
@@ -78,12 +77,11 @@ const JobApplication = sequelize.define('JobApplication', {
     updatedAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
-        onUpdate: DataTypes.NOW, 
+        onUpdate: DataTypes.NOW,
     },
 }, {
-    timestamps: true, 
+    timestamps: true,
 });
-
-JobApplication.belongsTo(Job, { foreignKey: 'jobId', allowNull: false });
-
+// Export first to avoid circular dependency
 module.exports = JobApplication;
+
