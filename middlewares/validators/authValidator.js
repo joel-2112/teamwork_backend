@@ -55,7 +55,64 @@ const jobDataValidator = (isUpdate = false) => [
         .withMessage('Company name is required')
         .isLength({ max: 100 })
         .withMessage('Company name must not exceed 100 characters'),
+    body('deadline')
+        .if(() => !isUpdate)
+        .isISO8601()
+        .withMessage('Deadline must be a valid ISO8601 date')
+        .custom((value) => {
+            if (new Date(value) <= new Date()) {
+                throw new Error('Deadline must be in the future');
+            }
+            return true;
+        }),
+    body('description')
+        .if(() => !isUpdate)
+        .trim()
+        .notEmpty()
+        .withMessage('Description is required'),
+    body('location')
+        .if(() => !isUpdate)
+        .trim()
+        .notEmpty()
+        .withMessage('Location is required')
+        .isLength({ max: 100 })
+        .withMessage('Location must not exceed 100 characters'),
+    body('salary')
+        .if(() => !isUpdate)
+        .isFloat({ min: 0 })
+        .withMessage('Salary must be a positive number'),
+    body('requirements')
+        .if(() => !isUpdate)
+        .trim()
+        .notEmpty()
+        .withMessage('Requirements are required'),
+    body('skills')
+        .if(() => !isUpdate)
+        .trim()
+        .notEmpty()
+        .withMessage('Skills are required'),
+    body('jobType')
+        .if(() => !isUpdate)
+        .isIn(['full-time', 'part-time', 'contract', 'remote', 'internship'])
+        .withMessage('Invalid job type'),
+    body('category')
+        .if(() => !isUpdate)
+        .isIn(['engineering', 'marketing', 'sales', 'design', 'hr'])
+        .withMessage('Invalid category'),
+    body('benefits')
+        .optional()
+        .trim(),
+    body('jobStatus')
+        .optional()
+        .isIn(['open', 'closed'])
+        .withMessage('Invalid job status'),
+    body('experience')
+        .if(() => !isUpdate)
+        .trim()
+        .notEmpty()
+        .withMessage('Experience is required'),
 ];
+
 const agentDataValidator = (isUpdate = false) => [
     body('name')
         .if(() => !isUpdate)

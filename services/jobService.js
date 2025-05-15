@@ -1,10 +1,14 @@
-const Job = require('../models/Job');
-const JobApplication = require('../models/JobApplication');
+const { Job, JobApplication } = require('../models');
+
 const getAllOpenJobsService = async (options = {}) => {
     try {
-        console.log('Fetching all jobs with options:', options);
+        console.log('Fetching open jobs with options:', options);
         const jobs = await Job.findAll({
-            attributes: ['id', 'title', 'companyName'],
+            where: { jobStatus: 'open' },
+            attributes: [
+                'id', 'title', 'companyName', 'description', 'deadline',
+                'location', 'salary', 'jobType', 'category', 'benefits', 'experience'
+            ],
             include: options.include ? [{
                 model: JobApplication,
                 as: 'JobApplications',
@@ -14,7 +18,7 @@ const getAllOpenJobsService = async (options = {}) => {
         console.log('Fetched jobs:', jobs.length);
         return jobs;
     } catch (error) {
-        console.error('Error in getAllOpenJobs:', error.message, error.stack);
+        console.error('Error in getAllOpenJobsService:', error.message, error.stack);
         const err = new Error(`Failed to fetch jobs: ${error.message}`);
         err.status = 500;
         throw err;
@@ -25,7 +29,11 @@ const getJobByIdService = async (id, options = {}) => {
     try {
         console.log('Fetching job with ID:', id);
         const job = await Job.findByPk(id, {
-            attributes: ['id', 'title', 'companyName'],
+            attributes: [
+                'id', 'title', 'companyName', 'description', 'deadline',
+                'location', 'salary', 'jobType', 'category', 'benefits',
+                'requirements', 'skills', 'experience', 'jobStatus'
+            ],
             include: options.include ? [{
                 model: JobApplication,
                 as: 'JobApplications',
@@ -41,7 +49,7 @@ const getJobByIdService = async (id, options = {}) => {
         console.log('Fetched job:', job.toJSON());
         return job;
     } catch (error) {
-        console.error('Error in getJobById:', error.message, error.stack);
+        console.error('Error in getJobByIdService:', error.message, error.stack);
         const err = error.status ? error : new Error(`Failed to fetch job: ${error.message}`);
         err.status = err.status || 500;
         throw err;
@@ -59,7 +67,7 @@ const createJobService = async (jobData) => {
         console.log('Job created successfully:', job.toJSON());
         return job;
     } catch (error) {
-        console.error('Error in createJob:', error.message, error.stack);
+        console.error('Error in createJobService:', error.message, error.stack);
         const err = new Error(`Failed to create job: ${error.message}`);
         err.status = 500;
         throw err;
@@ -80,7 +88,7 @@ const updateJobService = async (id, updates) => {
         console.log('Job updated successfully:', updatedJob.toJSON());
         return updatedJob;
     } catch (error) {
-        console.error('Error in updateJob:', error.message, error.stack);
+        console.error('Error in updateJobService:', error.message, error.stack);
         const err = error.status ? error : new Error(`Failed to update job: ${error.message}`);
         err.status = err.status || 500;
         throw err;
@@ -101,7 +109,7 @@ const deleteJobService = async (id) => {
         console.log('Job deleted successfully:', id);
         return true;
     } catch (error) {
-        console.error('Error in deleteJob:', error.message, error.stack);
+        console.error('Error in deleteJobService:', error.message, error.stack);
         const err = error.status ? error : new Error(`Failed to delete job: ${error.message}`);
         err.status = err.status || 500;
         throw err;

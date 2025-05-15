@@ -63,6 +63,7 @@ const Job = sequelize.define('Job', {
 }, 
 {
     timestamps: true,
+    tableName: 'Jobs',
 });
 
 

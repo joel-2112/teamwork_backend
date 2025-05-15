@@ -5,13 +5,13 @@ const getAllJobs = async (req, res) => {
     try {
         console.log('Handling getAllJobs request');
         const jobs = await jobService.getAllOpenJobsService({ include: ['JobApplications'] });
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             data: jobs,
         });
     } catch (error) {
         console.error('Error in getAllJobs:', error.message, error.stack);
-        return res.status(error.status || 500).json({
+        res.status(error.status || 500).json({
             success: false,
             message: error.message || 'Server Error',
         });
@@ -28,13 +28,13 @@ const getJobById = async (req, res) => {
                 message: 'Job not found',
             });
         }
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             data: job,
         });
     } catch (error) {
         console.error('Error in getJobById:', error.message, error.stack);
-        return res.status(error.status || 500).json({
+        res.status(error.status || 500).json({
             success: false,
             message: error.message || 'Server Error',
         });
@@ -54,13 +54,16 @@ const createJob = async (req, res) => {
             });
         }
         const job = await jobService.createJobService(req.body);
-        return res.status(201).json({
+        if (!job || !job.id) {
+            throw new Error('Failed to create job: No job returned');
+        }
+        res.status(201).json({
             success: true,
             data: job,
         });
     } catch (error) {
         console.error('Error in createJob:', error.message, error.stack);
-        return res.status(error.status || 500).json({
+        res.status(error.status || 500).json({
             success: false,
             message: error.message || 'Server Error',
         });
@@ -86,13 +89,13 @@ const updateJob = async (req, res) => {
                 message: 'Job not found',
             });
         }
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             data: job,
         });
     } catch (error) {
         console.error('Error in updateJob:', error.message, error.stack);
-        return res.status(error.status || 500).json({
+        res.status(error.status || 500).json({
             success: false,
             message: error.message || 'Server Error',
         });
@@ -109,13 +112,13 @@ const deleteJob = async (req, res) => {
                 message: 'Job not found',
             });
         }
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: 'Job deleted',
         });
     } catch (error) {
         console.error('Error in deleteJob:', error.message, error.stack);
-        return res.status(error.status || 500).json({
+        res.status(error.status || 500).json({
             success: false,
             message: error.message || 'Server Error',
         });
