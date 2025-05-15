@@ -1,22 +1,21 @@
+
 const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST + '.oregon-postgres.render.com',
-    port: process.env.DB_PORT,
-    dialect: process.env.DB_DIALECT || 'postgres',
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false, 
-      },
+const sequelize = new Sequelize(process.env.DB_RENDER_URL, {
+  dialect: 'postgres', 
+  dialectOptions: {
+    ssl: {
+      require: true, 
+      rejectUnauthorized: false, 
     },
-    logging: false
   },
+  pool: {
+    max: 5, 
+    min: 0,
+    acquire: 30000, 
+  },
+  logging: process.env.NODE_ENV === 'development' ? console.log : false, 
+});
 
-);
 
 module.exports = sequelize;

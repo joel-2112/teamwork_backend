@@ -1,8 +1,6 @@
-//models/JobApplication
-
+// models/JobApplication.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const User = require('./User');
 const Job = require('./Job');
 
 const JobApplication = sequelize.define('JobApplication', {
@@ -12,24 +10,50 @@ const JobApplication = sequelize.define('JobApplication', {
         primaryKey: true,
     },
     status: {
-        type: DataTypes.ENUM('applied', 'interviewed', 'hired', 'rejected'),
+        type: DataTypes.ENUM(['applied', 'interviewed', 'hired', 'rejected']),
         allowNull: false,
+        defaultValue: 'applied', 
     },
-    coverLetter: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    resume: {
+    applicantFullName: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    userId: {
-        type: DataTypes.INTEGER,
+    applicantEmail: {
+        type: DataTypes.STRING,
         allowNull: false,
-        references: {
-            model: User,
-            key: 'id',
+        validate: {
+            isEmail: true,
         },
+    },
+    applicantPhone: {
+        type: DataTypes.STRING,
+        allowNull: true, 
+    },
+    applicantAddress: {
+        type: DataTypes.STRING,
+        allowNull: true, 
+    },
+    applicantLinkedIn: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+            isUrl: true,
+        },
+    },
+    applicantPortfolio: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+            isUrl: true, 
+        },
+    },
+    applicantExperience: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    applicantEducation: {
+        type: DataTypes.TEXT,
+        allowNull: true,
     },
     jobId: {
         type: DataTypes.INTEGER,
@@ -39,10 +63,27 @@ const JobApplication = sequelize.define('JobApplication', {
             key: 'id',
         },
     },
+    coverLetter: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    resume: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    appliedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        onUpdate: DataTypes.NOW, 
+    },
+}, {
+    timestamps: true, 
 });
 
-// Define the relationships
-User.hasMany(JobApplication, { foreignKey: 'userId', as: 'jobApplications' });
-Job.hasMany(JobApplication, { foreignKey: 'jobId', as: 'jobApplications' });
-JobApplication.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-JobApplication.belongsTo(Job, { foreignKey: 'jobId', as: 'job' });
+JobApplication.belongsTo(Job, { foreignKey: 'jobId', allowNull: false });
+
+module.exports = JobApplication;
