@@ -1,0 +1,24 @@
+{
+    "development": {
+        "url": "postgresql://eyuel:OFpC1sDEuZhyfQUDC3GpchjcXismAsso@dpg-d0e99a15pdvs73asuj70-a.oregon-postgres.render.com/user_api_db_lxj0",
+        "dialect": "postgres",
+        "dialectOptions": {
+            "ssl": {
+                "require": true,
+                "rejectUnauthorized": false
+            }
+        },
+        "logging": true
+    },
+    "production": {
+        "url": "postgresql://eyuel:OFpC1sDEuZhyfQUDC3GpchjcXismAsso@dpg-d0e99a15pdvs73asuj70-a.oregon-postgres.render.com/user_api_db_lxj0",
+        "dialect": "postgres",
+        "dialectOptions": {
+            "ssl": {
+                "require": true,
+                "rejectUnauthorized": false
+            }
+        },
+        "logging": false
+    }
+}

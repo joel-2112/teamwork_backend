@@ -4,50 +4,57 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const sequelize = require('./config/database');
+const errorHandler = require('./middlewares/errorHandler');
+
+// Routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const jobApplicationRoutes = require('./routes/jobApplicationRoutes');
-const { default: rateLimit } = require('express-rate-limit');
-const errorHandler = require('./middlewares/errorHandler');
+const agentRoutes = require('./routes/agentRoutes');
 
+// Initialize Express
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
-// ===== Middleware =====
-app.use(cors());
+// Middleware
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || '*',
+}));
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ===== Routes =====
+// Routes
 app.get('/', (req, res) => {
-  res.send('Welcome to teamwork i am working on API on --> /api/v1/users ');
+    res.json({
+        message: 'Welcome to Teamwork API',
+        version: '1.0',
+        endpoints: '/api/v1/{auth,users,jobs,job-applications}',
+    });
 });
-// Rate limiting for login
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 5,
-  message: 'Too many login attempts, please try again after 15 minutes',
-});
-app.use('/api/v1/auth/login', loginLimiter);
+
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users',userRoutes);
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/jobs', jobRoutes);
 app.use('/api/v1/job-applications', jobApplicationRoutes);
+app.use('/api/v1/agents', agentRoutes);
+// Error handling middleware
 app.use(errorHandler);
 
-// ===== check DB Connection =====
-sequelize.authenticate()
-    .then(() => console.log('Database connected successfully'))
-    .catch((err) => console.error('Database connection failed:', err));
-
-// ===== Start Server =====
-app.listen(PORT, async () => {
+// Start server
+const startServer = async () => {
     try {
-    await sequelize.sync({alter: true}); 
-        console.log(`Server running on port ${PORT}`);
+        await sequelize.authenticate();
+        console.log('Database connected successfully');
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
     } catch (err) {
-    console.error(' Error syncing DB:', err);
+        console.error('Failed to start server:', err);
+        process.exit(1);
     }
-});
+};
+
+startServer();
