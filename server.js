@@ -12,6 +12,7 @@ const userRoutes = require('./routes/userRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const jobApplicationRoutes = require('./routes/jobApplicationRoutes');
 const agentRoutes = require('./routes/agentRoutes');
+const regionRoutes = require('./routes/regionRoutes');
 const zoneRoutes = require('./routes/zoneRoutes');
 const woredaRoutes = require('./routes/woredaRoutes');
 
@@ -42,6 +43,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/jobs', jobRoutes);
 app.use('/api/v1/job-applications', jobApplicationRoutes);
 app.use('/api/v1/agents', agentRoutes);
+app.use('/api/v1/regions', regionRoutes);
 app.use('/api/v1/zones', zoneRoutes);
 app.use('/api/v1/woredas', woredaRoutes);
 
