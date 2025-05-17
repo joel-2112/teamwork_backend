@@ -1,113 +1,77 @@
-const agentService = require('../services/agentService');
-const { validationResult } = require('express-validator');
+const AgentService = require('../services/agentService');
 
-const getAllAgents = async (req, res) => {
+class AgentController {
+  async createAgent(req, res) {
     try {
-        console.log('Handling getAllAgents request');
-        const agents = await agentService.getAllAgentsService();
-        return res.status(200).json({
-            success: true,
-            data: agents,
-        });
+      const agent = await AgentService.createAgent(req.body);
+      res.status(201).json(agent);
     } catch (error) {
-        console.error('Error in getAllAgents:', error.message, error.stack);
-        return res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(400).json({ error: error.message });
     }
-};
+  }
 
-const getAgentById = async (req, res) => {
+  async getAllAgents(req, res) {
     try {
-        console.log('Handling getAgentById request for ID:', req.params.id);
-        const agent = await agentService.getAgentByIdService(req.params.id);
-        return res.status(200).json({
-            success: true,
-            data: agent,
-        });
+      const agents = await AgentService.getAllAgents();
+      res.status(200).json(agents);
     } catch (error) {
-        console.error('Error in getAgentById:', error.message, error.stack);
-        return res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(500).json({ error: error.message });
     }
-};
+  }
 
-const createAgent = async (req, res) => {
+  async getAgentById(req, res) {
     try {
-        console.log('Handling createAgent request with body:', req.body);
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            console.log('Validation errors:', errors.array());
-            return res.status(400).json({
-                success: false,
-                message: 'Validation failed',
-                errors: errors.array(),
-            });
-        }
-        const agent = await agentService.createAgentService(req.body);
-        return res.status(201).json({
-            success: true,
-            data: agent,
-        });
+      const agent = await AgentService.getAgentById(req.params.id);
+      res.status(200).json(agent);
     } catch (error) {
-        console.error('Error in createAgent:', error.message, error.stack);
-        return res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(404).json({ error: error.message });
     }
-};
+  }
 
-const updateAgent = async (req, res) => {
+  async updateAgent(req, res) {
     try {
-        console.log('Handling updateAgent request for ID:', req.params.id);
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            console.log('Validation errors:', errors.array());
-            return res.status(400).json({
-                success: false,
-                message: 'Validation failed',
-                errors: errors.array(),
-            });
-        }
-        const agent = await agentService.updateAgentService(req.params.id, req.body);
-        return res.status(200).json({
-            success: true,
-            data: agent,
-        });
+      const agent = await AgentService.updateAgent(req.params.id, req.body);
+      res.status(200).json(agent);
     } catch (error) {
-        console.error('Error in updateAgent:', error.message, error.stack);
-        return res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(400).json({ error: error.message });
     }
-};
+  }
 
-const deleteAgent = async (req, res) => {
+  async deleteAgent(req, res) {
     try {
-        console.log('Handling deleteAgent request for ID:', req.params.id);
-        const deleted = await agentService.deleteAgentService(req.params.id);
-        return res.status(200).json({
-            success: true,
-            message: 'Agent deleted',
-        });
+      await AgentService.deleteAgent(req.params.id);
+      res.status(204).send();
     } catch (error) {
-        console.error('Error in deleteAgent:', error.message, error.stack);
-        return res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(400).json({ error: error.message });
     }
-};
+  }
 
-module.exports = {
-    getAllAgents,
-    getAgentById,
-    createAgent,
-    updateAgent,
-    deleteAgent,
-};
+  async getRegionHierarchy(req, res) {
+    try {
+      const hierarchy = await AgentService.getRegionHierarchy();
+      res.status(200).json(hierarchy);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async getZonesByRegion(req, res) {
+    try {
+      const zones = await AgentService.getZonesByRegion(req.params.regionId);
+      res.status(200).json(zones);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  async getWoredasByZone(req, res) {
+    try {
+      const woredas = await AgentService.getWoredasByZone(req.params.zoneId);
+      res.status(200).json(woredas);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+}
+
+module.exports = new AgentController();
