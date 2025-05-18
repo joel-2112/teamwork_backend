@@ -33,7 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.get('/', (req, res) => {
     res.json({
-        message: 'Welcome to teamwork system development',
+        message: 'Welcome to teamwork software!!',
         version: '1.0',
         endpoints: '/api/v1/{...version1}',
     });
