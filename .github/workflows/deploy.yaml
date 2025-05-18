@@ -12,7 +12,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'
+          node-version: '22' 
       - name: Install dependencies
         run: npm install
       - name: Deploy to cPanel
@@ -28,7 +28,8 @@ jobs:
             **/.git*/**
             **/node_modules/**
             **/.github/**
-      - name: Restart Node.js app via cPanel API
+      - name: Install dependencies and restart via SSH
         run: |
-          curl -X POST -H "Authorization: cpanel ${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}" \
-          "https://${{ secrets.FTP_SERVER }}:5000/execute/Nodejs/restart_application?name=backend"
+          sudo apt-get update && sudo apt-get install -y sshpass
+          sshpass -p "${{ secrets.FTP_PASSWORD }}" ssh ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }} \
+          "cd ~/public_html/backend && npm install && npm run start"
