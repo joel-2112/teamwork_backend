@@ -31,4 +31,4 @@ jobs:
       - name: Restart Node.js app via cPanel API
         run: |
           curl -X POST -H "Authorization: cpanel ${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}" \
-          "https://${{ secrets.FTP_SERVER }}:2083/execute/Nodejs/restart_application?name=backend"
+          "https://${{ secrets.FTP_SERVER }}:5000/execute/Nodejs/restart_application?name=backend"
