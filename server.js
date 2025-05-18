@@ -33,7 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.get('/', (req, res) => {
     res.json({
-        message: 'Welcome to Teamwork API cpanel integration for dployment',
+        message: 'Welcome to teamwork software company API',
         version: '1.0',
         endpoints: '/api/v1/{auth,users,jobs,job-applications}',
     });
