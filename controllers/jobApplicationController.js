@@ -1,5 +1,4 @@
-const JobApplicationService = require('../services/JobApplicationService');
-
+const JobApplicationService = require('../services/jobApplicationSevice');
 class JobApplicationController {
   async createJobApplication(req, res) {
     try {

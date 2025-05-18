@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const Job = require('./Job');
-
 const JobApplication = sequelize.define('JobApplication', {
   id: {
     type: DataTypes.INTEGER,
@@ -77,15 +75,8 @@ const JobApplication = sequelize.define('JobApplication', {
     },
   },
 }, {
-  tableName: 'job_applications',
+  tableName: 'job-applications',
   timestamps: true,
-  indexes: [
-    {
-      unique: true,
-      fields: ['applicantEmail', 'jobId'],
-      name: 'unique_email_per_job',
-    },
-  ],
 });
 
 

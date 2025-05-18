@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const sequelize = require('./config/database');
 const errorHandler = require('./middlewares/errorHandler');
 
-// Routes
+// import Routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const jobRoutes = require('./routes/jobRoutes');
@@ -17,6 +17,7 @@ const zoneRoutes = require('./routes/zoneRoutes');
 const woredaRoutes = require('./routes/woredaRoutes');
 const newsRoutes = require('./routes/newsRoutes');
 const eventRoutes = require('./routes/eventRoutes');
+
 // Initialize Express
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,7 +39,7 @@ app.get('/', (req, res) => {
         endpoints: '/api/v1/{...version1}',
     });
 });
-//this is the main entry point for the API
+//main routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/jobs', jobRoutes);
