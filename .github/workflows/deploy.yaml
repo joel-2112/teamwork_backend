@@ -21,25 +21,9 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          server-dir: /public_html/backend/
+          protocol: ftps
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
             **/.github/**
-      - name: Setup SSH key with password
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          eval $(ssh-agent -s)
-          ssh-add ~/.ssh/id_rsa <<< "${{ secrets.SSH_KEY_PASSWORD }}"
-      - name: Debug SSH connection
-        run: |
-          echo "Attempting SSH to ${{ secrets.SSH_SERVER }}"
-          ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} "whoami" || echo "SSH connection failed"
-      - name: Install dependencies and restart via SSH
-        run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} \
-          "cd ~/public_html/backend && npm install && npm run start"
