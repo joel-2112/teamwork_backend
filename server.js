@@ -38,7 +38,7 @@ app.get('/', (req, res) => {
         endpoints: '/api/v1/{...version1}',
     });
 });
-
+//this is the main entry point for the API
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/jobs', jobRoutes);
