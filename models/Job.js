@@ -1,70 +1,94 @@
-// models/Job.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database'); 
+const sequelize = require('../config/database');
 
-const Job = sequelize.define('Job', {   
-    id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
+const Job = sequelize.define('Job', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false,
+  },
+  companyName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
-    companyName: {
-        type: DataTypes.STRING,
-        allowNull: false,
+  },
+  deadline: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
-    deadline: {
-        type: DataTypes.DATE,
-        allowNull: false,
+  },
+  location: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
-    description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
+  },
+  salary: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    validate: {
+      isFloat: { min: 0 },
     },
-    location: {
-        type: DataTypes.STRING,
-        allowNull: false,
+  },
+  requirements: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
-    salary: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
+  },
+  skills: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
-    requirements: {
-        type: DataTypes.TEXT,
-        allowNull: false,
+  },
+  jobType: {
+    type: DataTypes.ENUM(['full-time', 'part-time', 'contract', 'remote', 'internship']),
+    allowNull: false,
+  },
+  category: {
+    type: DataTypes.ENUM(['engineering', 'marketing', 'sales', 'design', 'hr']),
+    allowNull: false,
+  },
+  benefits: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  jobStatus: {
+    type: DataTypes.ENUM(['open', 'closed']),
+    allowNull: false,
+    defaultValue: 'open',
+  },
+  experience: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
-    skills: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-    },
-    jobType: {
-        type: DataTypes.ENUM(['full-time', 'part-time', 'contract', 'remote', 'internship']),
-        allowNull: false,
-    },
-    category: {
-        type: DataTypes.ENUM(['engineering', 'marketing', 'sales', 'design', 'hr']),
-        allowNull: false,
-    },
-    benefits: { 
-        type: DataTypes.TEXT,
-        allowNull: true, 
-    },
-    jobStatus: {
-        type: DataTypes.ENUM(['open', 'closed']),
-        allowNull: false,
-    },
-    experience: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-}, 
-{
-    timestamps: true,
-    tableName: 'Jobs',
+  },
+}, {
+  tableName: 'jobs',
+  timestamps: true,
 });
+
 
 
 module.exports = Job;

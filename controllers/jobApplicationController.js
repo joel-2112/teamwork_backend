@@ -1,82 +1,50 @@
-const jobApplicationService = require('../services/jobApplicationSevice');
+const JobApplicationService = require('../services/JobApplicationService');
 
-const submitApplication = async (req, res) => {
-  try {
-    const { jobId, fullName, phoneNumber, email, positionAppliedFor } = req.body;
-    const resume = req.files?.resume ? req.files.resume[0].path : null;
-    const coverLetter = req.files?.coverLetter ? req.files.coverLetter[0].path : null;
-
-    const applicationData = {
-      jobId,
-      fullName,
-      phoneNumber,
-      email,
-      positionAppliedFor,
-      resume,
-      coverLetter,
-    };
-    const application = await jobApplicationService.submitApplication(applicationData);
-    res.status(201).json({
-      success: true,
-      data: application,
-    });
-  } catch (error) {
-    res.status(error.status || 500).json({
-      success: false,
-      message: error.message || 'Server Error',
-    });
+class JobApplicationController {
+  async createJobApplication(req, res) {
+    try {
+      const application = await JobApplicationService.createJobApplication(req.body);
+      res.status(201).json(application);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
   }
-};
 
-const getAllApplications = async (req, res) => {
-  try {
-    const applications = await jobApplicationService.getAllApplications();
-    res.status(200).json({
-      success: true,
-      data: applications,
-    });
-  } catch (error) {
-    res.status(error.status || 500).json({
-      success: false,
-      message: error.message || 'Server Error',
-    });
+  async getAllJobApplications(req, res) {
+    try {
+      const applications = await JobApplicationService.getAllJobApplications();
+      res.status(200).json(applications);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   }
-};
 
-const getApplicationById = async (req, res) => {
-  try {
-    const application = await jobApplicationService.getApplicationById(req.params.id);
-    res.status(200).json({
-      success: true,
-      data: application,
-    });
-  } catch (error) {
-    res.status(error.status || 500).json({
-      success: false,
-      message: error.message || 'Server Error',
-    });
+  async getJobApplicationById(req, res) {
+    try {
+      const application = await JobApplicationService.getJobApplicationById(req.params.id);
+      res.status(200).json(application);
+    } catch (error) {
+      res.status(404).json({ error: error.message });
+    }
   }
-};
 
-const updateApplicationStatus = async (req, res) => {
-  try {
-    const { status } = req.body;
-    const application = await jobApplicationService.updateApplicationStatus(req.params.id, status);
-    res.status(200).json({
-      success: true,
-      data: application,
-    });
-  } catch (error) {
-    res.status(error.status || 500).json({
-      success: false,
-      message: error.message || 'Server Error',
-    });
+  async updateJobApplication(req, res) {
+    try {
+      const application = await JobApplicationService.updateJobApplication(req.params.id, req.body);
+      res.status(200).json(application);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
   }
-};
 
-module.exports = {
-  submitApplication,
-  getAllApplications,
-  getApplicationById,
-  updateApplicationStatus,
-};
+  async deleteJobApplication(req, res) {
+    try {
+      await JobApplicationService.deleteJobApplication(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+}
+
+module.exports = new JobApplicationController();

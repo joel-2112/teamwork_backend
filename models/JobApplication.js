@@ -3,85 +3,91 @@ const sequelize = require('../config/database');
 const Job = require('./Job');
 
 const JobApplication = sequelize.define('JobApplication', {
-    id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  status: {
+    type: DataTypes.ENUM(['applied', 'interviewed', 'hired', 'rejected']),
+    allowNull: false,
+    defaultValue: 'applied',
+  },
+  applicantFullName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
-    status: {
-        type: DataTypes.ENUM(['applied', 'interviewed', 'hired', 'rejected']),
-        allowNull: false,
-        defaultValue: 'applied',
+  },
+  applicantEmail: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      isEmail: true,
     },
-    applicantFullName: {
-        type: DataTypes.STRING,
-        allowNull: false,
+  },
+  applicantPhone: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  applicantAddress: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  applicantLinkedIn: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      isUrl: { msg: 'Must be a valid URL' },
     },
-    applicantEmail: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-            isEmail: true,
-        },
+  },
+  applicantPortfolio: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      isUrl: { msg: 'Must be a valid URL' },
     },
-    applicantPhone: {
-        type: DataTypes.STRING,
-        allowNull: true,
+  },
+  applicantExperience: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  applicantEducation: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  jobId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'jobs',
+      key: 'id',
     },
-    applicantAddress: {
-        type: DataTypes.STRING,
-        allowNull: true,
+  },
+  coverLetter: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  resume: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      isUrl: { msg: 'Must be a valid URL' },
     },
-    applicantLinkedIn: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            isUrl: true,
-        },
-    },
-    applicantPortfolio: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            isUrl: true,
-        },
-    },
-    applicantExperience: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    applicantEducation: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    jobId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'Jobs',
-            key: 'id',
-        },
-    },
-    coverLetter: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    resume: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    appliedAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-        onUpdate: DataTypes.NOW,
-    },
+  },
 }, {
-    timestamps: true,
+  tableName: 'job_applications',
+  timestamps: true,
+  indexes: [
+    {
+      unique: true,
+      fields: ['applicantEmail', 'jobId'],
+      name: 'unique_email_per_job',
+    },
+  ],
 });
-// Export first to avoid circular dependency
-module.exports = JobApplication;
 
+
+
+module.exports = JobApplication;

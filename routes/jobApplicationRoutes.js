@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const jobApplicationConroller = require('../controllers/jobApplicationController');
-// router.post('/', upload.fields([{ name: 'resume', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), jobApplicationConroller.submitApplication);
-router.get('/',  jobApplicationConroller.getAllApplications);
-router.get('/:id',  jobApplicationConroller.getApplicationById);
-router.patch('/:id/status',  jobApplicationConroller.updateApplicationStatus);
+const JobApplicationController = require('../controllers/JobApplicationController');
+
+router.post('/', JobApplicationController.createJobApplication);
+router.get('/', JobApplicationController.getAllJobApplications);
+router.get('/:id', JobApplicationController.getJobApplicationById);
+router.put('/:id', JobApplicationController.updateJobApplication);
+router.delete('/:id', JobApplicationController.deleteJobApplication);
 
 module.exports = router;

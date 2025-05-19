@@ -1,134 +1,50 @@
-const jobService = require('../services/jobService');
-const { validationResult } = require('express-validator');
+const JobService = require('../services/JobService');
 
-const getAllJobs = async (req, res) => {
+class JobController {
+  async createJob(req, res) {
     try {
-        console.log('Handling getAllJobs request');
-        const jobs = await jobService.getAllOpenJobsService({ include: ['JobApplications'] });
-        res.status(200).json({
-            success: true,
-            data: jobs,
-        });
+      const job = await JobService.createJob(req.body);
+      res.status(201).json(job);
     } catch (error) {
-        console.error('Error in getAllJobs:', error.message, error.stack);
-        res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(400).json({ error: error.message });
     }
-};
+  }
 
-const getJobById = async (req, res) => {
+  async getAllJobs(req, res) {
     try {
-        console.log('Handling getJobById request for ID:', req.params.id);
-        const job = await jobService.getJobByIdService(req.params.id, { include: ['JobApplications'] });
-        if (!job) {
-            return res.status(404).json({
-                success: false,
-                message: 'Job not found',
-            });
-        }
-        res.status(200).json({
-            success: true,
-            data: job,
-        });
+      const jobs = await JobService.getAllJobs();
+      res.status(200).json(jobs);
     } catch (error) {
-        console.error('Error in getJobById:', error.message, error.stack);
-        res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(500).json({ error: error.message });
     }
-};
+  }
 
-const createJob = async (req, res) => {
+  async getJobById(req, res) {
     try {
-        console.log('Handling createJob request with body:', req.body);
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            console.log('Validation errors:', errors.array());
-            return res.status(400).json({
-                success: false,
-                message: 'Validation failed',
-                errors: errors.array(),
-            });
-        }
-        const job = await jobService.createJobService(req.body);
-        if (!job || !job.id) {
-            throw new Error('Failed to create job: No job returned');
-        }
-        res.status(201).json({
-            success: true,
-            data: job,
-        });
+      const job = await JobService.getJobById(req.params.id);
+      res.status(200).json(job);
     } catch (error) {
-        console.error('Error in createJob:', error.message, error.stack);
-        res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(404).json({ error: error.message });
     }
-};
+  }
 
-const updateJob = async (req, res) => {
+  async updateJob(req, res) {
     try {
-        console.log('Handling updateJob request for ID:', req.params.id);
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            console.log('Validation errors:', errors.array());
-            return res.status(400).json({
-                success: false,
-                message: 'Validation failed',
-                errors: errors.array(),
-            });
-        }
-        const job = await jobService.updateJobService(req.params.id, req.body);
-        if (!job) {
-            return res.status(404).json({
-                success: false,
-                message: 'Job not found',
-            });
-        }
-        res.status(200).json({
-            success: true,
-            data: job,
-        });
+      const job = await JobService.updateJob(req.params.id, req.body);
+      res.status(200).json(job);
     } catch (error) {
-        console.error('Error in updateJob:', error.message, error.stack);
-        res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(400).json({ error: error.message });
     }
-};
+  }
 
-const deleteJob = async (req, res) => {
+  async deleteJob(req, res) {
     try {
-        console.log('Handling deleteJob request for ID:', req.params.id);
-        const deleted = await jobService.deleteJobService(req.params.id);
-        if (!deleted) {
-            return res.status(404).json({
-                success: false,
-                message: 'Job not found',
-            });
-        }
-        res.status(200).json({
-            success: true,
-            message: 'Job deleted',
-        });
+      await JobService.deleteJob(req.params.id);
+      res.status(204).send();
     } catch (error) {
-        console.error('Error in deleteJob:', error.message, error.stack);
-        res.status(error.status || 500).json({
-            success: false,
-            message: error.message || 'Server Error',
-        });
+      res.status(400).json({ error: error.message });
     }
-};
+  }
+}
 
-module.exports = {
-    getAllJobs,
-    getJobById,
-    createJob,
-    updateJob,
-    deleteJob,
-};
+module.exports = new JobController();

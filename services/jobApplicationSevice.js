@@ -1,84 +1,48 @@
 const JobApplication = require('../models/JobApplication');
 const Job = require('../models/Job');
-const submitApplication = async (applicationData) => {
-  try {
-    const { jobId, resume } = applicationData;
-    if (!resume) {
-      const err = new Error('Resume is required');
-      err.status = 400;
-      throw err;
-    }
-    const job = await Job.findByPk(jobId);
-    if (!job || job.jobStatus !== 'open') {
-      const err = new Error('Invalid or closed job');
-      err.status = 400;
-      throw err;
-    }
-    return await JobApplication.create(applicationData);
-  } catch (error) {
-    const err = error.status ? error : new Error('Failed to submit application');
-    err.status = err.status || 500;
-    throw err;
-  }
-};
 
-const getAllApplications = async () => {
-  try {
+class JobApplicationService {
+  async createJobApplication(data) {
+    const { jobId } = data;
+    const job = await Job.findByPk(jobId);
+    if (!job) throw new Error('Invalid Job');
+    if (job.jobStatus === 'closed') throw new Error('Job is closed');
+    if (job.deadline < new Date()) throw new Error('Application deadline has passed');
+    return await JobApplication.create(data);
+  }
+
+  async getAllJobApplications() {
     return await JobApplication.findAll({
-      include: [{ model: Job, as: 'job', attributes: ['title'] }],
+      include: [Job],
       order: [['createdAt', 'DESC']],
     });
-  } catch (error) {
-    const err = new Error('Failed to fetch applications');
-    err.status = 500;
-    throw err;
   }
-};
 
-const getApplicationById = async (id) => {
-  try {
+  async getJobApplicationById(id) {
     const application = await JobApplication.findByPk(id, {
-      include: [{ model: Job, as: 'job', attributes: ['title'] }],
+      include: [Job],
     });
-    if (!application) {
-      const err = new Error('Application not found');
-      err.status = 404;
-      throw err;
-    }
+    if (!application) throw new Error('Job Application not found');
     return application;
-  } catch (error) {
-    const err = error.status ? error : new Error('Failed to fetch application');
-    err.status = err.status || 500;
-    throw err;
   }
-};
 
-const updateApplicationStatus = async (id, status) => {
-  try {
-    const validStatuses = ['Pending', 'Submitted', 'Reviewed', 'Accepted', 'Rejected'];
-    if (!validStatuses.includes(status)) {
-      const err = new Error('Invalid status');
-      err.status = 400;
-      throw err;
-    }
+  async updateJobApplication(id, data) {
     const application = await JobApplication.findByPk(id);
-    if (!application) {
-      const err = new Error('Application not found');
-      err.status = 404;
-      throw err;
+    if (!application) throw new Error('Job Application not found');
+    if (data.jobId) {
+      const job = await Job.findByPk(data.jobId);
+      if (!job) throw new Error('Invalid Job');
+      if (job.jobStatus === 'closed') throw new Error('Job is closed');
+      if (job.deadline < new Date()) throw new Error('Application deadline has passed');
     }
-    application.submissionStatus = status;
-    return await application.save();
-  } catch (error) {
-    const err = error.status ? error : new Error('Failed to update application status');
-    err.status = err.status || 500;
-    throw err;
+    return await application.update(data);
   }
-};
 
-module.exports = {
-  submitApplication,
-  getAllApplications,
-  getApplicationById,
-  updateApplicationStatus,
-};
+  async deleteJobApplication(id) {
+    const application = await JobApplication.findByPk(id);
+    if (!application) throw new Error('Job Application not found');
+    return await application.destroy();
+  }
+}
+
+module.exports = new JobApplicationService();
