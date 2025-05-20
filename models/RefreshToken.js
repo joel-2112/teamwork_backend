@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-
-const RefreshToken = sequelize.define('RefreshToken', {
+const db = require('../config/database');
+module.exports = (db, DataTypes) => {
+const RefreshToken = db.define('RefreshToken', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -27,5 +27,5 @@ const RefreshToken = sequelize.define('RefreshToken', {
     timestamps: true,
     tableName: 'RefreshTokens',
 });
-
-module.exports = RefreshToken;
+return RefreshToken
+}

@@ -1,8 +1,5 @@
-const Agent = require('../models/Agent');
-const Woreda = require('../models/Woreda');
-const Zone = require('../models/Zone');
-const Region = require('../models/Region');
 
+const {Agent, Woreda, Zone, Region} = require('../models/index');
 class AgentService {
   async createAgent(data) {
     const { woredaId } = data;

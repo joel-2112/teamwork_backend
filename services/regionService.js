@@ -1,7 +1,4 @@
-const Region = require('../models/Region');
-const Zone = require('../models/Zone');
-const Woreda = require('../models/Woreda');
-
+const {Region, Zone, Woreda} = require('../models'); 
 class RegionService {
   async createRegion(data) {
     const { name } = data;

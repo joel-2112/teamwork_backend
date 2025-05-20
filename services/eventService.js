@@ -1,5 +1,4 @@
-const Event = require('../models/Event');
-
+const {Event} = require('../models');
 class EventService {
   async createEvent(data) {
     return await Event.create(data);

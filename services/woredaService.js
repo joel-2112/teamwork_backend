@@ -1,6 +1,4 @@
-const Woreda = require('../models/Woreda');
-const Zone = require('../models/Zone');
-
+const {Woreda, Zone} = require('../models'); 
 class WoredaService {
   async createWoreda(data) {
     const { name, zoneId } = data;

@@ -1,15 +1,16 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../config/database');
-const Job = require('./Job');
-const JobApplication = require('./JobApplication');
-const User = require('./User');
-const RefreshToken = require('./RefreshToken');
-const Agent = require('./Agent');
-const Region = require('./Region');
-const Zone = require('./Zone');
-const Woreda = require('./Woreda');
-const News = require('./News');
-const Event = require('./Event');
+const { Sequelize, DataTypes } = require('sequelize');
+const db = require('../config/database');
+
+const Job = require('./Job')(db, DataTypes);
+const JobApplication = require('./JobApplication')(db, DataTypes);
+const User = require('./User')(db, DataTypes);
+const RefreshToken = require('./RefreshToken')(db, DataTypes);
+const Agent = require('./Agent')(db, DataTypes);
+const Region = require('./Region')(db, DataTypes);
+const Zone = require('./Zone')(db, DataTypes);
+const Woreda = require('./Woreda')(db, DataTypes);
+const News = require('./News')(db, DataTypes);
+const Event = require('./Event')(db, DataTypes);
 
 const models = {
   Event,
@@ -24,7 +25,6 @@ const models = {
   RefreshToken,
 };
 
-// Define associations
 Job.hasMany(JobApplication, { as: 'JobApplications', foreignKey: 'jobId', onDelete: 'CASCADE' });
 JobApplication.belongsTo(Job, { foreignKey: 'jobId' });
 
@@ -41,7 +41,7 @@ Agent.belongsTo(Woreda, { foreignKey: 'woredaId' });
 Woreda.hasMany(Agent, { foreignKey: 'woredaId' });
 
 module.exports = {
-  sequelize,
+  db,
   Sequelize,
   ...models,
 };

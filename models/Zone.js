@@ -1,8 +1,7 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Region = require('./Region');
 
-const Zone = sequelize.define('Zone', {
+module.exports = (db, DataTypes) => {
+
+const Zone = db.define('Zone', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -24,6 +23,6 @@ const Zone = sequelize.define('Zone', {
   tableName: 'zones',
   timestamps: false,
 });
+return Zone;
+}
 
-
-module.exports = Zone;

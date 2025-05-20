@@ -1,6 +1,4 @@
-const JobApplication = require('../models/JobApplication');
-const Job = require('../models/Job');
-
+const { Job, JobApplication } = require('../models'); // Adjust the path as necessary
 class JobApplicationService {
   async createJobApplicationService(data) {
     const job = await Job.findByPk(data.jobId);

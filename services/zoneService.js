@@ -1,6 +1,5 @@
-const Zone = require('../models/Zone');
-const Region = require('../models/Region');
 
+const {Zone, Region} = require('../models');
 class ZoneService {
   async createZone(data) {
     const { name, regionId } = data;

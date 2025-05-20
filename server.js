@@ -3,9 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const sequelize = require('./config/database');
+const db = require('./config/database');
 const errorHandler = require('./middlewares/errorHandler');
-
 // import Routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -20,7 +19,7 @@ const eventRoutes = require('./routes/eventRoutes');
 
 // Initialize Express
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
@@ -57,7 +56,7 @@ app.use(errorHandler);
 // Start server
 const startServer = async () => {
     try {
-        await sequelize.authenticate();
+        await db.authenticate();
         console.log('Database connected successfully');
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);

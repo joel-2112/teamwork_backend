@@ -1,8 +1,7 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Zone = require('./Zone');
 
-const Woreda = sequelize.define('Woreda', {
+module.exports = (db, DataTypes) => {
+
+const Woreda = db.define('Woreda', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -24,5 +23,6 @@ const Woreda = sequelize.define('Woreda', {
   tableName: 'woredas',
   timestamps: false,
 });
+return Woreda;
+}
 
-module.exports = Woreda;

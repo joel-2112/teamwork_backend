@@ -1,7 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-
-const Agent = sequelize.define('Agent', {
+module.exports = (db, DataTypes) => {
+const Agent = db.define('Agent', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -56,5 +54,5 @@ const Agent = sequelize.define('Agent', {
   tableName: 'agents',
   timestamps: true,
 });
-
-module.exports = Agent;
+return Agent;
+}

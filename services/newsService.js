@@ -1,5 +1,4 @@
-const News = require('../models/News');
-
+const {News} = require('../models');
 class NewsService {
   async createNews(data) {
     return await News.create(data);
