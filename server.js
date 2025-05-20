@@ -16,7 +16,7 @@ const zoneRoutes = require('./routes/zoneRoutes');
 const woredaRoutes = require('./routes/woredaRoutes');
 const newsRoutes = require('./routes/newsRoutes');
 const eventRoutes = require('./routes/eventRoutes');
-
+const partnershipRoutes = require('./routes/partnershipRoutes');
 // Initialize Express
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -49,6 +49,7 @@ app.use('/api/v1/zones', zoneRoutes);
 app.use('/api/v1/woredas', woredaRoutes);
 app.use('/api/v1/news', newsRoutes);
 app.use('/api/v1/events', eventRoutes);
+app.use('/api/v1/partnerships', partnershipRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -11,7 +11,7 @@ const Zone = require('./Zone')(db, DataTypes);
 const Woreda = require('./Woreda')(db, DataTypes);
 const News = require('./News')(db, DataTypes);
 const Event = require('./Event')(db, DataTypes);
-
+const Partnership = require('./Partnership')(db, DataTypes);
 const models = {
   Event,
   News,
@@ -23,6 +23,7 @@ const models = {
   JobApplication,
   User,
   RefreshToken,
+  Partnership,
 };
 
 Job.hasMany(JobApplication, { as: 'JobApplications', foreignKey: 'jobId', onDelete: 'CASCADE' });
