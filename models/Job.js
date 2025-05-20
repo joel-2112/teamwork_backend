@@ -10,16 +10,10 @@ const Job = sequelize.define('Job', {
   title: {
     type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
   companyName: {
     type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
   deadline: {
     type: DataTypes.DATE,
@@ -28,37 +22,22 @@ const Job = sequelize.define('Job', {
   description: {
     type: DataTypes.TEXT,
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
   location: {
     type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
   salary: {
     type: DataTypes.FLOAT,
     allowNull: false,
-    validate: {
-      isFloat: { min: 0 },
-    },
   },
   requirements: {
     type: DataTypes.TEXT,
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
   skills: {
-    type: DataTypes.TEXT,
+    type: DataTypes.JSON, 
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
   jobType: {
     type: DataTypes.ENUM(['full-time', 'part-time', 'contract', 'remote', 'internship']),
@@ -80,15 +59,10 @@ const Job = sequelize.define('Job', {
   experience: {
     type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
 }, {
   tableName: 'jobs',
   timestamps: true,
 });
-
-
 
 module.exports = Job;

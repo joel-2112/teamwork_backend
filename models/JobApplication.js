@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+
 const JobApplication = sequelize.define('JobApplication', {
   id: {
     type: DataTypes.INTEGER,
@@ -14,16 +15,10 @@ const JobApplication = sequelize.define('JobApplication', {
   applicantFullName: {
     type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
   applicantEmail: {
     type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      isEmail: true,
-    },
   },
   applicantPhone: {
     type: DataTypes.STRING,
@@ -36,16 +31,10 @@ const JobApplication = sequelize.define('JobApplication', {
   applicantLinkedIn: {
     type: DataTypes.STRING,
     allowNull: true,
-    validate: {
-      isUrl: { msg: 'Must be a valid URL' },
-    },
   },
   applicantPortfolio: {
     type: DataTypes.STRING,
     allowNull: true,
-    validate: {
-      isUrl: { msg: 'Must be a valid URL' },
-    },
   },
   applicantExperience: {
     type: DataTypes.TEXT,
@@ -70,15 +59,10 @@ const JobApplication = sequelize.define('JobApplication', {
   resume: {
     type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      isUrl: { msg: 'Must be a valid URL' },
-    },
   },
 }, {
   tableName: 'job-applications',
   timestamps: true,
 });
-
-
 
 module.exports = JobApplication;

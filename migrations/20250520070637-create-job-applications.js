@@ -1,13 +1,12 @@
 'use strict';
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('job_applications', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('job-applications', {
       id: {
-        allowNull: false,
+        type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
       },
       status: {
         type: Sequelize.ENUM('applied', 'interviewed', 'hired', 'rejected'),
@@ -66,20 +65,19 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
     });
 
-    await queryInterface.addIndex('job_applications', ['applicantEmail', 'jobId'], {
-      unique: true,
-      name: 'unique_email_per_job',
-    });
+
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('job_applications');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('job-applications');
   },
 };
