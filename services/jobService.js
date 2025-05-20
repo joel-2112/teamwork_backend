@@ -8,14 +8,14 @@ class JobService {
 
   async getAllJobs() {
     return await Job.findAll({
-      include: [JobApplication],
+      include: [{ model: JobApplication, as: 'JobApplications' }],
       order: [['createdAt', 'DESC']],
     });
   }
 
   async getJobById(id) {
     const job = await Job.findByPk(id, {
-      include: [JobApplication],
+      include: [{ model: JobApplication, as: 'JobApplications' }],
     });
     if (!job) throw new Error('Job not found');
     return job;
@@ -34,6 +34,29 @@ class JobService {
     if (applicationCount > 0) throw new Error('Job has associated applications');
     return await job.destroy();
   }
+  async getOpenJobs({ page = 1, limit = 10, category, location, jobType } = {}) {
+  const offset = (page - 1) * limit;
+  const where = { jobStatus: 'open' };
+  if (category) where.category = category;
+  if (location) where.location = { [Sequelize.Op.like]: `%${location}%` };
+  if (jobType) where.jobType = jobType;
+
+  const { count, rows } = await Job.findAndCountAll({
+    where,
+    include: [{ model: JobApplication, as: 'JobApplications' }],
+    order: [['createdAt', 'DESC']],
+    limit: parseInt(limit),
+    offset: parseInt(offset),
+  });
+
+  return {
+    total: count,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    jobs: rows,
+  };
 }
+}
+
 
 module.exports = new JobService();
