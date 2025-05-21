@@ -1,92 +1,64 @@
-const { validationResult } = require('express-validator');
-const authService = require('../services/authService');
+// controllers/authController.js
+const {
+  registerService,
+  loginService,
+  refreshTokenService,
+  logoutService,
+} = require('../services/authService');
 
-// Register User
-const registerUser = async (req, res, next) => {
+const register = async (req, res) => {
   try {
-    // Validate request body
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    // Log request body for debugging
+    console.log('Register request body:', req.body);
 
-    const { name, email, password } = req.body;
-    const result = await authService.register({ name, email, password });
-
-    return res.status(201).json({
-      message: 'User registered successfully',
-      user: result.user,
-      token: result.token,
-    });
+    const result = await registerService(req.body);
+    res.status(201).json({ success: true, data: result });
   } catch (error) {
-    next(error); 
+    console.error('Register error:', error.message);
+    res.status(400).json({ success: false, error: error.message });
   }
 };
 
-// Login User
-const loginUser = async (req, res, next) => {
+const login = async (req, res) => {
   try {
-    // Validate request body
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    // Log request body for debugging
+    console.log('Login request body:', req.body);
 
-    const { email, password } = req.body;
-    const result = await authService.login({ email, password });
-
-    return res.status(200).json({
-      message: 'Login successful',
-      user: result.user,
-      token: result.token,
-    });
+    const result = await loginService(req.body);
+    res.status(200).json({ success: true, data: result });
   } catch (error) {
-    next(error); // Pass to error handler
+    console.error('Login error:', error.message);
+    res.status(401).json({ success: false, error: error.message });
   }
 };
 
-// Logout User (client-side token invalidation)
-const logoutUser = async (req, res, next) => {
-  try {
-    return res.status(200).json({ message: 'Logout successful' });
-  } catch (error) {
-    next(error); // Pass to error handler
-  }
-};
-//refresh token
-const refreshToken = async (req, res, next) => {
+const refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
-    const result = await authService.refreshAccessToken(refreshToken);
-
-    return res.status(200).json({
-      message: 'Token refreshed',
-      user: result.user,
-      token: result.token,
-    });
+    if (!refreshToken) throw new Error('Refresh token is required');
+    const result = await refreshTokenService(refreshToken);
+    res.status(200).json({ success: true, data: result });
   } catch (error) {
-    next(error);
+    console.error('Refresh token error:', error.message);
+    res.status(401).json({ success: false, error: error.message });
   }
 };
-const requestPasswordReset = async (req, res, next) => {
+
+const logout = async (req, res) => {
   try {
-    const { email } = req.body;
-    const result = await authService.requestPasswordReset(email);
-
-    return res.status(200).json(result);
+    const { refreshToken } = req.body;
+    if (!refreshToken) throw new Error('Refresh token is required');
+    await logoutService(refreshToken);
+    res.status(204).json({ success: true });
   } catch (error) {
-    next(error);
+    console.error('Logout error:', error.message);
+    res.status(400).json({ success: false, error: error.message });
   }
 };
 
-const resetPassword = async (req, res, next) => {
-  try {
-    const { token, newPassword } = req.body;
-    const result = await authService.resetPassword({ token, newPassword });
-
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+module.exports = {
+  register,
+  login,
+  refreshToken,
+  logout,
 };
-module.exports = { registerUser, loginUser,refreshToken, logoutUser, requestPasswordReset, resetPassword };

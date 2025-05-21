@@ -1,130 +1,71 @@
-const bcrypt = require('bcryptjs');
-const User = require('../models/User');
-const { generateToken } = require('../utils/generateToken');
-const { v4: uuidv4 } = require('uuid');
-const RefreshToken = require('../models/RefreshToken');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-// Register a new user
-const register = async ({ name, email, password }) => {
-  // Check if user exists
-  const userExists = await User.findOne({ where: { email } });
-  if (userExists) {
-    const error = new Error('User already exists');
-    error.status = 400;
-    throw error;
-  }
-  // Hash the password
-  const hashedPassword = await bcrypt.hash(password, 12);
-  // Create user
-  const newUser = await User.create({ name, email, password: hashedPassword });
+// services/authService.js
+const jwt = require('jsonwebtoken');
+const { User, RefreshToken } = require('../models');
+const { generateToken } = require('../utils/generateToken'); // Adjust path
 
-  // Generate JWT token
-  const token = generateToken({ id: newUser.id, email: newUser.email });
+const registerService = async ({ name, email, password }) => {
+  // Validate required fields
+  if (!email) throw new Error('Missing required field: email');
+  if (!password) throw new Error('Missing required field: password');
 
-  return {
-    user: { id: newUser.id, name: newUser.name, email: newUser.email },
-    token,
-  };
-};
+  // Check for existing user
+  const existingUser = await User.findOne({ where: { email } });
+  if (existingUser) throw new Error('Email already exists');
 
-const login = async ({ email, password }) => {
-  const user = await User.findOne({ where: { email } });
-  if (!user) {
-    const error = new Error('User not found');
-    error.status = 404;
-    throw error;
-  }
+  // Create user (name is optional)
+  const user = await User.create({ name, email, password });
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    const error = new Error('Invalid credentials');
-    error.status = 401;
-    throw error;
-  }
+  // Generate tokens
+  const accessToken = generateToken({ userId: user.id });
+  const refreshToken = jwt.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
-  const token = generateToken({ id: user.id, email: user.email });
-  const refreshToken = uuidv4();
+  // Store refresh token
   await RefreshToken.create({ token: refreshToken, userId: user.id });
 
-  return {
-    user: { id: user.id, name: user.name, email: user.email },
-    token,
-    refreshToken,
-  };
+  return { user: { id: user.id, name: user.name, email: user.email }, accessToken, refreshToken };
 };
 
-const refreshAccessToken = async (refreshToken) => {
-  const tokenRecord = await RefreshToken.findOne({ where: { token: refreshToken } });
-  if (!tokenRecord) {
-    const error = new Error('Invalid refresh token');
-    error.status = 401;
-    throw error;
-  }
+const loginService = async ({ email, password }) => {
+  if (!email) throw new Error('Missing required field: email');
+  if (!password) throw new Error('Missing required field: password');
 
-  const user = await User.findByPk(tokenRecord.userId);
-  if (!user) {
-    const error = new Error('User not found');
-    error.status = 401;
-    throw error;
-  }
-
-  const newToken = generateToken({ id: user.id, email: user.email });
-  return { user: { id: user.id, name: user.name, email: user.email }, token: newToken };
-};
-const requestPasswordReset = async (email) => {
   const user = await User.findOne({ where: { email } });
-  if (!user) {
-    const error = new Error('User not found');
-    error.status = 404;
-    throw error;
-  }
+  if (!user) throw new Error('Invalid email or password');
 
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+  const isValid = await user.validatePassword(password);
+  if (!isValid) throw new Error('Invalid email or password');
 
-  await User.update(
-    { resetToken, resetTokenExpiry },
-    { where: { id: user.id } }
-  );
+  const accessToken = generateToken({ userId: user.id });
+  const refreshToken = jwt.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
-  const transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  await RefreshToken.create({ token: refreshToken, userId: user.id });
 
-  await transporter.sendMail({
-    to: email,
-    subject: 'Password Reset',
-    text: `Click this link to reset your password: http://your-frontend-url.com/reset-password?token=${resetToken}`,
-  });
-
-  return { message: 'Password reset email sent' };
+  return { user: { id: user.id, name: user.name, email: user.email }, accessToken, refreshToken };
 };
 
-const resetPassword = async ({ token, newPassword }) => {
-  const user = await User.findOne({
-    where: {
-      resetToken: token,
-      resetTokenExpiry: { [Op.gt]: Date.now() },
-    },
-  });
+const refreshTokenService = async (refreshToken) => {
+  if (!refreshToken) throw new Error('Refresh token is required');
 
-  if (!user) {
-    const error = new Error('Invalid or expired reset token');
-    error.status = 400;
-    throw error;
+  const token = await RefreshToken.findOne({ where: { token: refreshToken } });
+  if (!token) throw new Error('Invalid refresh token');
+
+  try {
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const accessToken = generateToken({ userId: payload.userId });
+    return { accessToken };
+  } catch (err) {
+    throw new Error('Invalid refresh token');
   }
-
-  const hashedPassword = await bcrypt.hash(newPassword, 12);
-  await User.update(
-    { password: hashedPassword, resetToken: null, resetTokenExpiry: null },
-    { where: { id: user.id } }
-  );
-
-  return { message: 'Password reset successful' };
 };
-module.exports = { register, login, refreshAccessToken, requestPasswordReset, resetPassword };
+
+const logoutService = async (refreshToken) => {
+  if (!refreshToken) throw new Error('Refresh token is required');
+  await RefreshToken.destroy({ where: { token: refreshToken } });
+};
+
+module.exports = {
+  registerService,
+  loginService,
+  refreshTokenService,
+  logoutService,
+};

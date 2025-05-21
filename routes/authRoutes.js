@@ -1,18 +1,16 @@
+// routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, logoutUser,refreshToken, resetPassword, requestPasswordReset } = require('../controllers/authController');
-const { registerValidator, loginValidator, resetPasswordValidator, requestPasswordResetValidator } = require('../middlewares/validators/authValidator');
-const  protect  = require('../middlewares/authMiddleware');
+const {
+  register,
+  login,
+  refreshToken,
+  logout,
+} = require('../controllers/authController');
 
-router.post('/register', registerValidator, registerUser);
-router.post('/login', loginValidator, loginUser);
-router.post('/request-password-reset', requestPasswordResetValidator, requestPasswordReset);
-router.post('/reset-password', resetPasswordValidator, resetPassword);
-router.post('/logout', logoutUser);
+router.post('/register', register);
+router.post('/login', login);
 router.post('/refresh-token', refreshToken);
-// Example protected route
-router.get('/profile', protect, (req, res) => {
-  res.json({ user: req.user });
-});
+router.post('/logout', logout);
 
 module.exports = router;

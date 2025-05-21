@@ -10,9 +10,10 @@ module.exports = (db, DataTypes) => {
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       validate: {
-        len: [1, 100],
+        notEmpty: true,
+        len: [2, 100],
       },
     },
     email: {
@@ -27,17 +28,13 @@ module.exports = (db, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
+        notEmpty: true,
         len: [8, 255],
       },
     },
-    role: {
-      type: DataTypes.ENUM(['user', 'admin']),
-      allowNull: false,
-      defaultValue: 'user',
-    },
   }, {
+    tableName: 'users',
     timestamps: true,
-    tableName: 'Users',
     hooks: {
       beforeSave: async (user) => {
         if (user.changed('password')) {
@@ -45,16 +42,12 @@ module.exports = (db, DataTypes) => {
         }
       },
     },
-    indexes: [
-      { fields: ['email'] },
-      { fields: ['role'] },
-    ],
   });
 
-  // Instance method to compare passwords
-  User.prototype.matchPassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
+  User.prototype.validatePassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
   };
+
 
   return User;
 };
