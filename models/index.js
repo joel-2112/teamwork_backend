@@ -13,6 +13,7 @@ const News = require("./News")(db, DataTypes);
 const Event = require("./Event")(db, DataTypes);
 const Partnership = require("./Partnership")(db, DataTypes);
 const CustomerOrder = require("./CustomerOrder")(db, DataTypes);
+const UserFeedback= require("./UserFeadback")(db, DataTypes);
 const models = {
   Event,
   News,
@@ -26,6 +27,7 @@ const models = {
   RefreshToken,
   Partnership,
   CustomerOrder,
+  UserFeedback,
 };
 
 Job.hasMany(JobApplication, {
