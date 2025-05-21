@@ -13,10 +13,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      imageUrl: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
+ 
       sex: {
         type: Sequelize.ENUM("Male", "Female", "Other"),
         allowNull: false,

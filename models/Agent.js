@@ -11,10 +11,7 @@ module.exports = (db, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      imageUrl: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
+
       sex: {
         type: DataTypes.ENUM("Male", "Female", "Other"),
         allowNull: false,
