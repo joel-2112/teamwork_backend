@@ -17,6 +17,7 @@ const woredaRoutes = require('./routes/woredaRoutes');
 const newsRoutes = require('./routes/newsRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const partnershipRoutes = require('./routes/partnershipRoutes');
+const customerOrderRoutes = require('./routes/customerOrderRoutes');
 // Initialize Express
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,9 +36,10 @@ app.get('/', (req, res) => {
     res.json({
         message: 'Welcome to teamwork the main api gateway',
         version: '1.0',
-        endpoints: '/api/v1/{...version1}',
+        endpoints: '/api/v1/{agents,jobs, regions, zones, woredas, news, events, partnerships}',
     });
 });
+
 //main routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
@@ -50,6 +52,7 @@ app.use('/api/v1/woredas', woredaRoutes);
 app.use('/api/v1/news', newsRoutes);
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/partnerships', partnershipRoutes);
+app.use('/api/v1/customer-orders', customerOrderRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
