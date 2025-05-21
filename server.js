@@ -19,6 +19,8 @@ const eventRoutes = require('./routes/eventRoutes');
 const partnershipRoutes = require('./routes/partnershipRoutes');
 const customerOrderRoutes = require('./routes/customerOrderRoutes');
 const userFeedbackRoutes = require('./routes/userFeadbackRoutes');
+const aboutRoutes = require('./routes/aboutRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
 // Initialize Express
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -55,6 +57,8 @@ app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/partnerships', partnershipRoutes);
 app.use('/api/v1/customer-orders', customerOrderRoutes);
 app.use('/api/v1/user-feedbacks', userFeedbackRoutes);
+app.use('/api/v1/abouts', aboutRoutes);
+app.use('/api/v1/services', serviceRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -7,7 +7,6 @@ class AgentService {
     if (!woreda) throw new Error('Invalid Woreda');
     return await Agent.create(data);
   }
-
   async getAllAgents() {
     return await Agent.findAll({
       include: [

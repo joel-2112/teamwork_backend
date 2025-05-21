@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('agents', {
+    await queryInterface.createTable("agents", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -13,8 +13,12 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      imageUrl: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       sex: {
-        type: Sequelize.ENUM('Male', 'Female', 'Other'),
+        type: Sequelize.ENUM("Male", "Female", "Other"),
         allowNull: false,
       },
       profession: {
@@ -26,7 +30,7 @@ module.exports = {
         allowNull: false,
       },
       agentType: {
-        type: Sequelize.ENUM('Region', 'Zone', 'Woreda'),
+        type: Sequelize.ENUM("Region", "Zone", "Woreda"),
         allowNull: false,
       },
       languages: {
@@ -47,10 +51,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'woredas',
-          key: 'id',
+          model: "woredas",
+          key: "id",
         },
-        onDelete: 'CASCADE',
+        onDelete: "CASCADE",
       },
       createdAt: {
         allowNull: false,
@@ -64,6 +68,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('agents');
+    await queryInterface.dropTable("agents");
   },
 };

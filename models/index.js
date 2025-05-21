@@ -14,6 +14,8 @@ const Event = require("./Event")(db, DataTypes);
 const Partnership = require("./Partnership")(db, DataTypes);
 const CustomerOrder = require("./CustomerOrder")(db, DataTypes);
 const UserFeedback= require("./UserFeadback")(db, DataTypes);
+const About = require('./About')(db, DataTypes);
+const Service = require('./Service')(db, DataTypes);
 const models = {
   Event,
   News,
@@ -28,6 +30,8 @@ const models = {
   Partnership,
   CustomerOrder,
   UserFeedback,
+  About,
+  Service,
 };
 
 Job.hasMany(JobApplication, {

@@ -14,10 +14,8 @@ const register = async ({ name, email, password }) => {
     error.status = 400;
     throw error;
   }
-
   // Hash the password
   const hashedPassword = await bcrypt.hash(password, 12);
-
   // Create user
   const newUser = await User.create({ name, email, password: hashedPassword });
 
