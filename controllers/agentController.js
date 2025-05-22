@@ -12,8 +12,15 @@ class AgentController {
 
   async getAllAgents(req, res) {
     try {
-      const agents = await AgentService.getAllAgents();
-      res.status(200).json(agents);
+      const { page = 1, limit = 10, search, agentType, sex } = req.query;
+      const filters = { search, agentType, sex };
+      const result = await AgentService.getAllAgents(parseInt(page), parseInt(limit), filters);
+      res.status(200).json({
+        data: result.rows,
+        total: result.count,
+        page: parseInt(page),
+        totalPages: Math.ceil(result.count / limit)
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -41,33 +48,6 @@ class AgentController {
     try {
       await AgentService.deleteAgent(req.params.id);
       res.status(204).send();
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  async getRegionHierarchy(req, res) {
-    try {
-      const hierarchy = await AgentService.getRegionHierarchy();
-      res.status(200).json(hierarchy);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  async getZonesByRegion(req, res) {
-    try {
-      const zones = await AgentService.getZonesByRegion(req.params.regionId);
-      res.status(200).json(zones);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  async getWoredasByZone(req, res) {
-    try {
-      const woredas = await AgentService.getWoredasByZone(req.params.zoneId);
-      res.status(200).json(woredas);
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
