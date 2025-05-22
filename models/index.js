@@ -13,9 +13,9 @@ const News = require("./News")(db, DataTypes);
 const Event = require("./Event")(db, DataTypes);
 const Partnership = require("./Partnership")(db, DataTypes);
 const CustomerOrder = require("./CustomerOrder")(db, DataTypes);
-const UserFeedback= require("./UserFeadback")(db, DataTypes);
-const About = require('./About')(db, DataTypes);
-const Service = require('./Service')(db, DataTypes);
+const UserFeedback = require("./UserFeadback")(db, DataTypes);
+const About = require("./About")(db, DataTypes);
+const Service = require("./Service")(db, DataTypes);
 const models = {
   Event,
   News,
@@ -54,8 +54,19 @@ Region.hasMany(Zone, { foreignKey: "regionId" });
 Woreda.belongsTo(Zone, { foreignKey: "zoneId" });
 Zone.hasMany(Woreda, { foreignKey: "zoneId" });
 
-Agent.belongsTo(Woreda, { foreignKey: "woredaId" });
-Woreda.hasMany(Agent, { foreignKey: "woredaId" });
+
+Agent.belongsTo(models.Region, {
+  foreignKey: "regionId",
+  as: "Region",
+});
+Agent.belongsTo(models.Zone, {
+  foreignKey: "zoneId",
+  as: "Zone",
+});
+Agent.belongsTo(models.Woreda, {
+  foreignKey: "woredaId",
+  as: "Woreda",
+});
 
 CustomerOrder.belongsTo(db.models.Region, {
   foreignKey: "regionId",
