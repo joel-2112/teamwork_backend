@@ -10,7 +10,7 @@ class AgentController {
     }
   }
 
-  async getAllAgents(req, res) {
+ async getAllAgents(req, res) {
     try {
       const { page = 1, limit = 10, search, agentType, sex } = req.query;
       const filters = { search, agentType, sex };
@@ -22,6 +22,7 @@ class AgentController {
         totalPages: Math.ceil(result.count / limit)
       });
     } catch (error) {
+      console.error('Controller error in getAllAgents:', error);
       res.status(500).json({ error: error.message });
     }
   }

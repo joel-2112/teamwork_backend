@@ -1,4 +1,5 @@
-const { Agent, Woreda, Zone, Region } = require('../models/index');
+const { Agent, Woreda, Zone, Region } = require('../models');
+const { Op } = require('sequelize');
 
 class AgentService {
   async createAgent(data) {
@@ -17,42 +18,48 @@ class AgentService {
   }
 
   async getAllAgents(page = 1, limit = 10, filters = {}) {
+    console.log('getAllAgents filters:', filters);
     const { search } = filters;
     const where = {};
     
     if (search) {
-      where[Sequelize.Op.or] = [
-        { fullName: { [Sequelize.Op.iLike]: `%${search}%` } },
-        { profession: { [Sequelize.Op.iLike]: `%${search}%` } },
-        { educationLevel: { [Sequelize.Op.iLike]: `%${search}%` } },
-        { phoneNumber: { [Sequelize.Op.iLike]: `%${search}%` } },
-        { email: { [Sequelize.Op.iLike]: `%${search}%` } },
+      where[Op.or] = [
+        { fullName: { [Op.like]: `%${search}%` } },
+        { profession: { [Op.like]: `%${search}%` } },
+        { educationLevel: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } }
       ];
     }
     
     if (filters.agentType) where.agentType = filters.agentType;
     if (filters.sex) where.sex = filters.sex;
     
+    console.log('Where clause:', where);
     const offset = (page - 1) * limit;
     
-    return await Agent.findAndCountAll({
-      where,
-      limit,
-      offset,
-      include: [
-        { model: Region, as: 'Region' },
-        { model: Zone, as: 'Zone' },
-        { model: Woreda, as: 'Woreda' }
-      ]
-    });
+    try {
+      return await Agent.findAndCountAll({
+        where,
+        limit,
+        offset,
+        include: [
+          { model: Region, as: 'Region', required: false },
+          { model: Zone, as: 'Zone', required: false },
+          { model: Woreda, as: 'Woreda', required: false }
+        ]
+      });
+    } catch (error) {
+      console.error('Error in getAllAgents:', error);
+      throw error;
+    }
   }
 
   async getAgentById(id) {
     const agent = await Agent.findByPk(id, {
       include: [
-        { model: Region, as: 'Region' },
-        { model: Zone, as: 'Zone' },
-        { model: Woreda, as: 'Woreda' }
+        { model: Region, as: 'Region', required: false },
+        { model: Zone, as: 'Zone', required: false },
+        { model: Woreda, as: 'Woreda', required: false }
       ]
     });
     if (!agent) throw new Error('Agent not found');
