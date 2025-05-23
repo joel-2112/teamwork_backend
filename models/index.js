@@ -67,16 +67,18 @@ Agent.belongsTo(models.Woreda, {
   foreignKey: "woredaId",
   as: "Woreda",
 });
-
-CustomerOrder.belongsTo(db.models.Region, {
-  foreignKey: "regionId",
-  as: "Region",
-});
-CustomerOrder.belongsTo(db.models.Zone, { foreignKey: "zoneId", as: "Zone" });
-CustomerOrder.belongsTo(db.models.Woreda, {
-  foreignKey: "woredaId",
-  as: "Woreda",
-});
+CustomerOrder.belongsTo(models.Region, {
+    foreignKey: 'regionId',
+    as: 'Region',
+  });
+  CustomerOrder.belongsTo(models.Zone, {
+    foreignKey: 'zoneId',
+    as: 'Zone',
+  });
+  CustomerOrder.belongsTo(models.Woreda, {
+    foreignKey: 'woredaId',
+    as: 'Woreda',
+  });
 
 module.exports = {
   db,

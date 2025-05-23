@@ -127,7 +127,7 @@ module.exports = (db, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
       validate: {
-        isUrl: true, // Assuming file is stored as a URL
+        isUrl: true,
       },
     },
     status: {

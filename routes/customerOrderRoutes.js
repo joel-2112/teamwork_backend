@@ -1,20 +1,12 @@
-// routes/customerOrderRoutes.js
 const express = require('express');
 const router = express.Router();
-const {
-  createCustomerOrder,
-  getAllCustomerOrders,
-  getCustomerOrderById,
-  updateCustomerOrder,
-  deleteCustomerOrder,
-  updateCustomerOrderStatus,
-} = require('../controllers/customerOrderController');
+const CustomerOrderController = require('../controllers/customerOrderController');
 
-router.post('/', createCustomerOrder);
-router.get('/', getAllCustomerOrders);
-router.get('/:id', getCustomerOrderById);
-router.put('/:id', updateCustomerOrder);
-router.delete('/:id', deleteCustomerOrder);
-router.put('/:id/status', updateCustomerOrderStatus);
+router.get('/', CustomerOrderController.getAllOrders);
+router.get('/:id', CustomerOrderController.getOrderById);
+router.post('/', CustomerOrderController.createOrder);
+router.put('/:id', CustomerOrderController.updateOrder);
+router.delete('/:id', CustomerOrderController.deleteOrder);
+router.patch('/:id/status', CustomerOrderController.updateCustomerOrderStatus);
 
 module.exports = router;

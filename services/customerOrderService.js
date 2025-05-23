@@ -1,116 +1,117 @@
-// services/customerOrderService.js
+const { CustomerOrder, Region, Zone, Woreda } = require('../models/index');
 const { Op } = require('sequelize');
-const { CustomerOrder, Region, Zone, Woreda } = require('../models');
 
-const createCustomerOrderService = async (data) => {
-  const requiredFields = [
-    'country',
-    'sector',
-    'orderTitle',
-    'fullName',
-    'sex',
-    'roleInSector',
-    'phoneNumber1',
-    'shortDescription',
-  ];
-  for (const field of requiredFields) {
-    if (!data[field]) throw new Error(`Missing required field: ${field}`);
+class CustomerOrderService {
+  async getAllOrders(page = 1, limit = 10, filters = {}) {
+    const { search, status } = filters;
+    const where = {};
+
+    if (search) {
+      where[Op.or] = [
+        { orderTitle: { [Op.like]: `%${search}%` } },
+        { fullName: { [Op.like]: `%${search}%` } },
+        { sector: { [Op.like]: `%${search}%` } },
+        { roleInSector: { [Op.like]: `%${search}%` } },
+        { phoneNumber1: { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    if (status) where.status = status;
+
+    const offset = (page - 1) * limit;
+
+    try {
+      return await CustomerOrder.findAndCountAll({
+        where,
+        limit,
+        offset,
+        include: [
+          { model: Region, as: 'Region', required: false },
+          { model: Zone, as: 'Zone', required: false },
+          { model: Woreda, as: 'Woreda', required: false },
+        ],
+      });
+    } catch (error) {
+      console.error('Error in getAllOrders:', error);
+      throw error;
+    }
   }
 
-  if (data.country === 'Ethiopia') {
-    if (!data.regionId || !data.zoneId || !data.woredaId) {
-      throw new Error('Region, Zone, and Woreda are required for Ethiopian customers');
-    }
-    const region = await Region.findByPk(data.regionId);
-    const zone = await Zone.findByPk(data.zoneId);
-    const woreda = await Woreda.findByPk(data.woredaId);
-    if (!region || !zone || !woreda) throw new Error('Invalid Region, Zone, or Woreda');
-  } else {
-    if (!data.manualRegion || !data.manualZone || !data.manualWoreda) {
-      throw new Error('Manual Region, Zone, and Woreda are required for non-Ethiopian customers');
-    }
+  async getOrderById(id) {
+    const order = await CustomerOrder.findByPk(id, {
+      include: [
+        { model: Region, as: 'Region', required: false },
+        { model: Zone, as: 'Zone', required: false },
+        { model: Woreda, as: 'Woreda', required: false },
+      ],
+    });
+    if (!order) throw new Error('Order not found');
+    return order;
   }
 
-  return await CustomerOrder.create(data);
-};
+  async createOrder(data) {
+    const { country, regionId, zoneId, woredaId, manualRegion, manualZone, manualWoreda } = data;
 
-const getAllCustomerOrdersService = async ({ page = 1, limit = 10, status, country } = {}) => {
-  const offset = (page - 1) * limit;
-  const where = {};
-  if (status) where.status = status;
-  if (country) where.country = country;
-
-  const { count, rows } = await CustomerOrder.findAndCountAll({
-    where,
-    include: [
-      { model: Region, as: 'Region', attributes: ['id', 'name'] },
-      { model: Zone, as: 'Zone', attributes: ['id', 'name'] },
-      { model: Woreda, as: 'Woreda', attributes: ['id', 'name'] },
-    ],
-    order: [['createdAt', 'DESC']],
-    limit: parseInt(limit),
-    offset: parseInt(offset),
-  });
-
-  return {
-    total: count,
-    page: parseInt(page),
-    limit: parseInt(limit),
-    orders: rows,
-  };
-};
-
-const getCustomerOrderByIdService = async (id) => {
-  const order = await CustomerOrder.findByPk(id, {
-    include: [
-      { model: Region, as: 'Region', attributes: ['id', 'name'] },
-      { model: Zone, as: 'Zone', attributes: ['id', 'name'] },
-      { model: Woreda, as: 'Woreda', attributes: ['id', 'name'] },
-    ],
-  });
-  if (!order) throw new Error('Customer order not found');
-  return order;
-};
-
-const updateCustomerOrderService = async (id, data) => {
-  const order = await CustomerOrder.findByPk(id);
-  if (!order) throw new Error('Customer order not found');
-
-  if (data.country === 'Ethiopia') {
-    if (data.regionId || data.zoneId || data.woredaId) {
-      const region = data.regionId ? await Region.findByPk(data.regionId) : order.regionId;
-      const zone = data.zoneId ? await Zone.findByPk(data.zoneId) : order.zoneId;
-      const woreda = data.woredaId ? await Woreda.findByPk(data.woredaId) : order.woredaId;
-      if (!region || !zone || !woreda) throw new Error('Invalid Region, Zone, or Woreda');
-    }
-  } else {
-    if (data.manualRegion || data.manualZone || data.manualWoreda) {
-      if (!data.manualRegion || !data.manualZone || !data.manualWoreda) {
-        throw new Error('Manual Region, Zone, and Woreda are required for non-Ethiopian customers');
+    if (country === 'Ethiopia') {
+      if (regionId) {
+        const region = await Region.findByPk(regionId);
+        if (!region) throw new Error('Invalid Region');
+      }
+      if (zoneId) {
+        const zone = await Zone.findByPk(zoneId);
+        if (!zone) throw new Error('Invalid Zone');
+      }
+      if (woredaId) {
+        const woreda = await Woreda.findByPk(woredaId);
+        if (!woreda) throw new Error('Invalid Woreda');
       }
     }
+
+    return await CustomerOrder.create(data);
   }
 
-  return await order.update(data);
-};
+  async updateOrder(id, data) {
+    const order = await CustomerOrder.findByPk(id);
+    if (!order) throw new Error('Order not found');
 
-const deleteCustomerOrderService = async (id) => {
-  const order = await CustomerOrder.findByPk(id);
-  if (!order) throw new Error('Customer order not found');
-  return await order.destroy();
-};
+    const { country, regionId, zoneId, woredaId, manualRegion, manualZone, manualWoreda } = data;
 
-const updateCustomerOrderStatusService = async (id, status) => {
-  const order = await CustomerOrder.findByPk(id);
-  if (!order) throw new Error('Customer order not found');
-  return await order.update({ status });
-};
+    if (country === 'Ethiopia') {
+      if (regionId) {
+        const region = await Region.findByPk(regionId);
+        if (!region) throw new Error('Invalid Region');
+      }
+      if (zoneId) {
+        const zone = await Zone.findByPk(zoneId);
+        if (!zone) throw new Error('Invalid Zone');
+      }
+      if (woredaId) {
+        const woreda = await Woreda.findByPk(woredaId);
+        if (!woreda) throw new Error('Invalid Woreda');
+      }
+    }
 
-module.exports = {
-  createCustomerOrderService,
-  getAllCustomerOrdersService,
-  getCustomerOrderByIdService,
-  updateCustomerOrderService,
-  deleteCustomerOrderService,
-  updateCustomerOrderStatusService,
-};
+    return await order.update(data);
+  }
+
+  async deleteOrder(id) {
+    const order = await CustomerOrder.findByPk(id);
+    if (!order) throw new Error('Order not found');
+    return await order.destroy();
+  }
+
+  async updateOrderStatus(id, status) {
+    const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      throw new Error('Invalid status value');
+    }
+
+    const order = await CustomerOrder.findByPk(id);
+    if (!order) throw new Error('Order not found');
+
+    await order.update({ status });
+    return order;
+  }
+}
+
+module.exports = new CustomerOrderService();
