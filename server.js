@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.get('/', (req, res) => {
     res.json({
-        message: 'Welcome to teamwork IT solution PLC ',
+        message: 'Welcome to teamwork IT solution ',
         version: '1.0',
         endpoints: '/api/v1/{agents,jobs, regions, zones, woredas, news, events, partnerships}',
     });
