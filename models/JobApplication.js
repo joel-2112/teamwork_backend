@@ -59,7 +59,8 @@ module.exports = (db, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-  }, {
+  },
+   {
     tableName: 'job-applications',
     timestamps: true,
     indexes: [
