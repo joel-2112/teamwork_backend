@@ -41,10 +41,24 @@ module.exports = (db, DataTypes) => {
       type: DataTypes.ENUM(['full-time', 'part-time', 'contract', 'remote', 'internship']),
       allowNull: false,
     },
-    category: {
-      type: DataTypes.ENUM(['engineering', 'marketing', 'sales', 'design', 'hr']),
-      allowNull: false,
-    },
+ category: {
+  type: DataTypes.ENUM([
+    'engineering', 
+    'marketing', 
+    'sales', 
+    'design', 
+    'hr',
+    'it',
+    'software_development',
+    'data_science',
+    'finance',
+    'operations',
+    'customer_support',
+    'content_writing',
+    'legal'
+  ]),
+  allowNull: false,
+},
     benefits: {
       type: DataTypes.TEXT,
       allowNull: true,
