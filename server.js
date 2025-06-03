@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
     res.json({
         message: 'Welcome to teamwork IT solution PLC',
         version: '1.0',
-        endpoints: '/api/v1/{agents,jobs, regions, zones, woredas, news, events, partnerships}',
+        endpoints: '/api/v1 => the first version API',
     });
 });
 
