@@ -4,7 +4,7 @@ class ZoneService {
   async createZone(data) {
     const { name, regionId } = data;
     const region = await Region.findByPk(regionId);
-    if (!region) throw new Error('Invalid Region');
+    if (!region) throw new Error('Invalid region ID');
     return await Zone.create({ name, regionId });
   }
 
