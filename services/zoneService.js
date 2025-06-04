@@ -27,7 +27,7 @@ class ZoneService {
     if (!zone) throw new Error('Zone not found');
     if (data.regionId) {
       const region = await Region.findByPk(data.regionId);
-      if (!region) throw new Error('Invalid Region');
+      if (!region) throw new Error('Invalid Region ID');
     }
     return await zone.update(data);
   }
