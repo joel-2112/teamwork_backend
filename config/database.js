@@ -5,7 +5,7 @@ const config = require('./config.json')[process.env.NODE_ENV || 'development'];
 const db = new Sequelize({
   database: config.database,
   username: config.username,
-  password: String(config.password), // Ensure password is a string
+  password: String(config.password), 
   host: config.host,
   port: config.port,
   dialect: config.dialect,
