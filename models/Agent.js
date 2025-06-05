@@ -108,20 +108,5 @@ module.exports = (db, DataTypes) => {
     }
   );
 
-  Agent.associate = (models) => {
-    Agent.belongsTo(models.Region, {
-      foreignKey: "regionId",
-      as: "Region"
-    });
-    Agent.belongsTo(models.Zone, {
-      foreignKey: "zoneId",
-      as: "Zone"
-    });
-    Agent.belongsTo(models.Woreda, {
-      foreignKey: "woredaId",
-      as: "Woreda"
-    });
-  };
-
   return Agent;
 };
