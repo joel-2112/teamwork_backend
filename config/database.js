@@ -1,7 +1,7 @@
 // config/database.js
 const { Sequelize } = require('sequelize');
 const config = require('./config.json')[process.env.NODE_ENV || 'development'];
-
+//database
 const db = new Sequelize({
   database: config.database,
   username: config.username,
