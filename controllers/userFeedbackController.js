@@ -1,14 +1,13 @@
-// controllers/userFeedbackController.js
-const {
+import {
   createUserFeedbackService,
   getAllUserFeedbacksService,
   getUserFeedbackByIdService,
   updateUserFeedbackService,
   deleteUserFeedbackService,
   updateUserFeedbackStatusService,
-} = require('../services/userFeadbackService');
+} from '../services/userFeadbackService.js';
 
-const createUserFeedback = async (req, res) => {
+export const createUserFeedback = async (req, res) => {
   try {
     const feedback = await createUserFeedbackService(req.body);
     res.status(201).json({ success: true, data: feedback });
@@ -17,7 +16,7 @@ const createUserFeedback = async (req, res) => {
   }
 };
 
-const getAllUserFeedbacks = async (req, res) => {
+export const getAllUserFeedbacks = async (req, res) => {
   try {
     const { page, limit, status, feedbackType } = req.query;
     const feedbacks = await getAllUserFeedbacksService({ page, limit, status, feedbackType });
@@ -27,7 +26,7 @@ const getAllUserFeedbacks = async (req, res) => {
   }
 };
 
-const getUserFeedbackById = async (req, res) => {
+export const getUserFeedbackById = async (req, res) => {
   try {
     const feedback = await getUserFeedbackByIdService(req.params.id);
     res.status(200).json({ success: true, data: feedback });
@@ -36,7 +35,7 @@ const getUserFeedbackById = async (req, res) => {
   }
 };
 
-const updateUserFeedback = async (req, res) => {
+export const updateUserFeedback = async (req, res) => {
   try {
     const feedback = await updateUserFeedbackService(req.params.id, req.body);
     res.status(200).json({ success: true, data: feedback });
@@ -45,7 +44,7 @@ const updateUserFeedback = async (req, res) => {
   }
 };
 
-const deleteUserFeedback = async (req, res) => {
+export const deleteUserFeedback = async (req, res) => {
   try {
     await deleteUserFeedbackService(req.params.id);
     res.status(204).json({ success: true });
@@ -54,7 +53,7 @@ const deleteUserFeedback = async (req, res) => {
   }
 };
 
-const updateUserFeedbackStatus = async (req, res) => {
+export const updateUserFeedbackStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const feedback = await updateUserFeedbackStatusService(req.params.id, status);
@@ -62,13 +61,4 @@ const updateUserFeedbackStatus = async (req, res) => {
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
-};
-
-module.exports = {
-  createUserFeedback,
-  getAllUserFeedbacks,
-  getUserFeedbackById,
-  updateUserFeedback,
-  deleteUserFeedback,
-  updateUserFeedbackStatus,
 };

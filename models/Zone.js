@@ -1,5 +1,5 @@
 
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
 
 const Zone = db.define('Zone', {
   id: {

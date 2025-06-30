@@ -1,21 +1,40 @@
-const { Sequelize, DataTypes } = require("sequelize");
-const db = require("../config/database");
+import { Sequelize, DataTypes } from "sequelize";
+import db from "../config/database.js";
 
-const Job = require("./Job")(db, DataTypes);
-const JobApplication = require("./JobApplication")(db, DataTypes);
-const User = require("./User")(db, DataTypes);
-const RefreshToken = require("./RefreshToken")(db, DataTypes);
-const Agent = require("./Agent")(db, DataTypes);
-const Region = require("./Region")(db, DataTypes);
-const Zone = require("./Zone")(db, DataTypes);
-const Woreda = require("./Woreda")(db, DataTypes);
-const News = require("./News")(db, DataTypes);
-const Event = require("./Event")(db, DataTypes);
-const Partnership = require("./Partnership")(db, DataTypes);
-const CustomerOrder = require("./CustomerOrder")(db, DataTypes);
-const UserFeedback = require("./UserFeadback")(db, DataTypes);
-const About = require("./About")(db, DataTypes);
-const Service = require("./Service")(db, DataTypes);
+// Import models using ESM import syntax
+import JobModel from "./Job.js";
+import JobApplicationModel from "./JobApplication.js";
+import UserModel from "./User.js";
+import RefreshTokenModel from "./RefreshToken.js";
+import AgentModel from "./Agent.js";
+import RegionModel from "./Region.js";
+import ZoneModel from "./Zone.js";
+import WoredaModel from "./Woreda.js";
+import NewsModel from "./News.js";
+import EventModel from "./Event.js";
+import PartnershipModel from "./Partnership.js";
+import CustomerOrderModel from "./CustomerOrder.js";
+import UserFeedbackModel from "./UserFeadback.js";
+import AboutModel from "./About.js";
+import ServiceModel from "./Service.js";
+
+// Initialize models by passing db and DataTypes
+const Job = JobModel(db, DataTypes);
+const JobApplication = JobApplicationModel(db, DataTypes);
+const User = UserModel(db, DataTypes);
+const RefreshToken = RefreshTokenModel(db, DataTypes);
+const Agent = AgentModel(db, DataTypes);
+const Region = RegionModel(db, DataTypes);
+const Zone = ZoneModel(db, DataTypes);
+const Woreda = WoredaModel(db, DataTypes);
+const News = NewsModel(db, DataTypes);
+const Event = EventModel(db, DataTypes);
+const Partnership = PartnershipModel(db, DataTypes);
+const CustomerOrder = CustomerOrderModel(db, DataTypes);
+const UserFeedback = UserFeedbackModel(db, DataTypes);
+const About = AboutModel(db, DataTypes);
+const Service = ServiceModel(db, DataTypes);
+
 const models = {
   Event,
   News,
@@ -34,6 +53,7 @@ const models = {
   Service,
 };
 
+// Define associations
 Job.hasMany(JobApplication, {
   as: "JobApplications",
   foreignKey: "jobId",
@@ -54,34 +74,34 @@ Region.hasMany(Zone, { foreignKey: "regionId" });
 Woreda.belongsTo(Zone, { foreignKey: "zoneId" });
 Zone.hasMany(Woreda, { foreignKey: "zoneId" });
 
-
-Agent.belongsTo(models.Region, {
+Agent.belongsTo(Region, {
   foreignKey: "regionId",
   as: "Region",
 });
-Agent.belongsTo(models.Zone, {
+Agent.belongsTo(Zone, {
   foreignKey: "zoneId",
   as: "Zone",
 });
-Agent.belongsTo(models.Woreda, {
+Agent.belongsTo(Woreda, {
   foreignKey: "woredaId",
   as: "Woreda",
 });
-CustomerOrder.belongsTo(models.Region, {
-    foreignKey: 'regionId',
-    as: 'Region',
-  });
-  CustomerOrder.belongsTo(models.Zone, {
-    foreignKey: 'zoneId',
-    as: 'Zone',
-  });
-  CustomerOrder.belongsTo(models.Woreda, {
-    foreignKey: 'woredaId',
-    as: 'Woreda',
-  });
 
-module.exports = {
-  db,
+CustomerOrder.belongsTo(Region, {
+  foreignKey: "regionId",
+  as: "Region",
+});
+CustomerOrder.belongsTo(Zone, {
+  foreignKey: "zoneId",
+  as: "Zone",
+});
+CustomerOrder.belongsTo(Woreda, {
+  foreignKey: "woredaId",
+  as: "Woreda",
+});
+
+export default {
+  sequelize: db,
   Sequelize,
   ...models,
 };

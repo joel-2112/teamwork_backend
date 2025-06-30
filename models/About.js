@@ -1,5 +1,5 @@
 // models/About.js
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const About = db.define('About', {
     id: {
       type: DataTypes.INTEGER,

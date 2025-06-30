@@ -1,6 +1,6 @@
-const { DataTypes } = require('sequelize');
-const db = require('../config/database');
-module.exports = (db, DataTypes) => {
+import { DataTypes } from 'sequelize';
+import db from '../config/database.js';
+export default (db, DataTypes) => {
 
 const Event = db.define('Event', {
   id: {

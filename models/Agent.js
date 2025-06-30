@@ -1,4 +1,4 @@
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const Agent = db.define(
     "Agent",
     {

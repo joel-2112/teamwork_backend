@@ -1,11 +1,17 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const ZoneController = require('../controllers/zoneController');
+import  {
+    createZoneController,
+    getAllZonesController,
+    getZoneByIdController,
+    updateZoneController,
+    deleteZoneController
+} from '../controllers/zoneController.js';
 
-router.post('/', ZoneController.createZone);
-router.get('/', ZoneController.getAllZones);
-router.get('/:id', ZoneController.getZoneById);
-router.put('/:id', ZoneController.updateZone);
-router.delete('/:id', ZoneController.deleteZone);
+router.post('/', createZoneController);
+router.get('/', getAllZonesController);
+router.get('/:id', getZoneByIdController);
+router.put('/:id', updateZoneController);
+router.delete('/:id', deleteZoneController);
 
-module.exports = router;
+export default router;

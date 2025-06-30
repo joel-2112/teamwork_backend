@@ -1,11 +1,17 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const JobApplicationController = require('../controllers/jobApplicationController');
+import  {
+    createJobApplication,
+    getApplicationsByJobId,
+    getJobApplicationById,
+    updateApplicationStatus,
+    deleteJobApplication,
+} from '../controllers/jobApplicationController.js';
 
-router.post('/', JobApplicationController.createJobApplication);
-router.get('/job/:jobId', JobApplicationController.getApplicationsByJobId);
-router.get('/:id', JobApplicationController.getJobApplicationById);
-router.put('/:id/status', JobApplicationController.updateApplicationStatus);
-router.delete('/:id', JobApplicationController.deleteJobApplication);
+router.post('/', createJobApplication);
+router.get('/job/:jobId', getApplicationsByJobId);
+router.get('/:id', getJobApplicationById);
+router.put('/:id/status', updateApplicationStatus);
+router.delete('/:id', deleteJobApplication);
 
-module.exports = router;
+export default router;

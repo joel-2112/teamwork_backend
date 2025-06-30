@@ -1,6 +1,6 @@
-const { body, validationResult } = require('express-validator');
+import { body, validationResult } from 'express-validator';
 
-const validateJobData = (isUpdate = false) => {
+export const validateJobData = (isUpdate = false) => {
     const validations = [
         body('title')
             .if(() => !isUpdate)
@@ -121,5 +121,3 @@ const validateJobData = (isUpdate = false) => {
         },
     ];
 };
-
-module.exports = { validateJobData };

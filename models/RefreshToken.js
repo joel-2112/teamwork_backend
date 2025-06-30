@@ -1,7 +1,7 @@
 // models/RefreshToken.js
-const { DataTypes } = require('sequelize');
+import { DataTypes } from 'sequelize';
 
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const RefreshToken = db.define('RefreshToken', {
     id: {
       type: DataTypes.INTEGER,

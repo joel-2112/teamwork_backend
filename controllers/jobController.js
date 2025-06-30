@@ -1,13 +1,13 @@
-const {
+import {
   createJobService,
   getAllJobsService,
   getJobByIdService,
   updateJobService,
   deleteJobService,
   getOpenJobsService,
-} = require('../services/jobService');
+} from '../services/jobService.js';
 
-const createJob = async (req, res) => {
+export const createJob = async (req, res) => {
   try {
     const job = await createJobService(req.body);
     res.status(201).json({ success: true, data: job });
@@ -16,7 +16,7 @@ const createJob = async (req, res) => {
   }
 };
 
-const getAllJobs = async (req, res) => {
+export const getAllJobs = async (req, res) => {
   try {
     const { page, limit } = req.query;
     const jobs = await getAllJobsService({ page, limit });
@@ -26,7 +26,7 @@ const getAllJobs = async (req, res) => {
   }
 };
 
-const getJobById = async (req, res) => {
+export const getJobById = async (req, res) => {
   try {
     const job = await getJobByIdService(req.params.id);
     res.status(200).json({ success: true, data: job });
@@ -35,7 +35,7 @@ const getJobById = async (req, res) => {
   }
 };
 
-const updateJob = async (req, res) => {
+export const updateJob = async (req, res) => {
   try {
     const job = await updateJobService(req.params.id, req.body);
     res.status(200).json({ success: true, data: job });
@@ -44,7 +44,7 @@ const updateJob = async (req, res) => {
   }
 };
 
-const deleteJob = async (req, res) => {
+export const deleteJob = async (req, res) => {
   try {
     await deleteJobService(req.params.id);
     res.status(204).json({ success: true });
@@ -53,7 +53,7 @@ const deleteJob = async (req, res) => {
   }
 };
 
-const getOpenJobs = async (req, res) => {
+export const getOpenJobs = async (req, res) => {
   try {
     const { page, limit, category, location, jobType, search } = req.query;
     const jobs = await getOpenJobsService({
@@ -68,13 +68,4 @@ const getOpenJobs = async (req, res) => {
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
-};
-
-module.exports = {
-  createJob,
-  getAllJobs,
-  getJobById,
-  updateJob,
-  deleteJob,
-  getOpenJobs,
 };

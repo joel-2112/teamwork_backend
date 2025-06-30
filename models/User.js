@@ -1,7 +1,7 @@
 // models/User.js
-const bcrypt = require('bcryptjs');
+import bcrypt from 'bcryptjs';
 
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const User = db.define('User', {
     id: {
       type: DataTypes.INTEGER,
@@ -30,6 +30,14 @@ module.exports = (db, DataTypes) => {
       validate: {
         notEmpty: true,
         len: [8, 255],
+      },
+    },
+    role: {
+      type: DataTypes.ENUM('user', 'admin'),
+      defaultValue: 'user',
+      allowNull: false,
+      validate: {
+        isIn: [['user', 'admin']],
       },
     },
   }, {

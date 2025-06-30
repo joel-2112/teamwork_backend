@@ -1,5 +1,5 @@
 
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
 
 const Woreda = db.define('Woreda', {
   id: {

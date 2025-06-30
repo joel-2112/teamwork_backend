@@ -1,13 +1,12 @@
-// controllers/serviceController.js
-const {
+import {
   createServiceService,
   getAllServicesService,
   getServiceByIdService,
   updateServiceService,
   deleteServiceService,
-} = require('../services/serviceService');
+} from '../services/serviceService.js';
 
-const createService = async (req, res) => {
+export const createService = async (req, res) => {
   try {
     const service = await createServiceService(req.body);
     res.status(201).json({ success: true, data: service });
@@ -16,7 +15,7 @@ const createService = async (req, res) => {
   }
 };
 
-const getAllServices = async (req, res) => {
+export const getAllServices = async (req, res) => {
   try {
     const { page, limit, title } = req.query;
     const services = await getAllServicesService({ page, limit, title });
@@ -26,7 +25,7 @@ const getAllServices = async (req, res) => {
   }
 };
 
-const getServiceById = async (req, res) => {
+export const getServiceById = async (req, res) => {
   try {
     const service = await getServiceByIdService(req.params.id);
     res.status(200).json({ success: true, data: service });
@@ -35,7 +34,7 @@ const getServiceById = async (req, res) => {
   }
 };
 
-const updateService = async (req, res) => {
+export const updateService = async (req, res) => {
   try {
     const service = await updateServiceService(req.params.id, req.body);
     res.status(200).json({ success: true, data: service });
@@ -44,19 +43,11 @@ const updateService = async (req, res) => {
   }
 };
 
-const deleteService = async (req, res) => {
+export const deleteService = async (req, res) => {
   try {
     await deleteServiceService(req.params.id);
     res.status(204).json({ success: true });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
-};
-
-module.exports = {
-  createService,
-  getAllServices,
-  getServiceById,
-  updateService,
-  deleteService,
 };

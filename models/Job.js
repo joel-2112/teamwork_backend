@@ -1,4 +1,4 @@
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const Job = db.define('Job', {
     id: {
       type: DataTypes.INTEGER,

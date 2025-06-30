@@ -1,11 +1,18 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const NewsController = require('../controllers/newsController');
-//the news routes
-router.post('/', NewsController.createNews);
-router.get('/', NewsController.getAllNews);
-router.get('/:id', NewsController.getNewsById);
-router.put('/:id', NewsController.updateNews);
-router.delete('/:id', NewsController.deleteNews);
+import {
+    createNewsController,
+    getAllNewsController,
+    getNewsByIdController,
+    updateNewsController,
+    deleteNewsController
+} from '../controllers/newsController.js';
 
-module.exports = router;
+//the news routes
+router.post('/', createNewsController);
+router.get('/', getAllNewsController);
+router.get('/:id', getNewsByIdController);
+router.put('/:id', updateNewsController);
+router.delete('/:id', deleteNewsController);
+
+export default router;
