@@ -1,16 +1,36 @@
-// services/userService.js
-const { Op } = require('sequelize');
-const { User } = require('../models');
+import { Op } from "sequelize";
+import db from "../models/index.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+const { User } = db;
 
-const getAllUsersService = async ({ page = 1, limit = 10, name } = {}) => {
+
+export const createUser = async ({ name, email, password, role }) => {
+  const existingUser = await User.findOne({ where: { email } });
+  if (existingUser) {
+    throw new Error("User already exists");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+    role,
+  });
+
+  return user;
+};
+
+export const getAllUsersService = async ({ page = 1, limit = 10, name } = {}) => {
   const offset = (page - 1) * limit;
   const where = {};
   if (name) where.name = { [Op.iLike]: `%${name}%` };
 
   const { count, rows } = await User.findAndCountAll({
     where,
-    attributes: { exclude: ['password'] },
-    order: [['createdAt', 'DESC']],
+    attributes: { exclude: ["password"] },
+    order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
     offset: parseInt(offset),
   });
@@ -23,31 +43,26 @@ const getAllUsersService = async ({ page = 1, limit = 10, name } = {}) => {
   };
 };
 
-const getUserByIdService = async (id) => {
-  const user = await User.findByPk(id, { attributes: { exclude: ['password'] } });
-  if (!user) throw new Error('User not found');
+export const getUserByIdService = async (id) => {
+  const user = await User.findByPk(id, {
+    attributes: { exclude: ["password"] },
+  });
+  if (!user) throw new Error("User not found");
   return user;
 };
 
-const updateUserService = async (id, data) => {
+export const updateUserService = async (id, data) => {
   const user = await User.findByPk(id);
-  if (!user) throw new Error('User not found');
+  if (!user) throw new Error("User not found");
   if (data.email && data.email !== user.email) {
     const existingUser = await User.findOne({ where: { email: data.email } });
-    if (existingUser) throw new Error('Email already exists');
+    if (existingUser) throw new Error("Email already exists");
   }
   return await user.update(data);
 };
 
-const deleteUserService = async (id) => {
+export const deleteUserService = async (id) => {
   const user = await User.findByPk(id);
-  if (!user) throw new Error('User not found');
+  if (!user) throw new Error("User not found");
   return await user.destroy();
-};
-
-module.exports = {
-  getAllUsersService,
-  getUserByIdService,
-  updateUserService,
-  deleteUserService,
 };

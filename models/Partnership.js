@@ -1,5 +1,5 @@
 // models/Partnership.js
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const Partnership = db.define('Partnership', {
     id: {
       type: DataTypes.INTEGER,

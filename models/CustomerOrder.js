@@ -1,5 +1,5 @@
 // models/CustomerOrder.js
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const CustomerOrder = db.define('CustomerOrder', {
     id: {
       type: DataTypes.INTEGER,

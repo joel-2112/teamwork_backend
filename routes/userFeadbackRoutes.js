@@ -1,14 +1,14 @@
 // routes/userFeedbackRoutes.js
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
   createUserFeedback,
   getAllUserFeedbacks,
   getUserFeedbackById,
   updateUserFeedback,
   deleteUserFeedback,
   updateUserFeedbackStatus,
-} = require('../controllers/userFeedbackController');
+} from '../controllers/userFeedbackController.js';
 
 router.post('/', createUserFeedback);
 router.get('/', getAllUserFeedbacks);
@@ -17,4 +17,4 @@ router.put('/:id', updateUserFeedback);
 router.delete('/:id', deleteUserFeedback);
 router.put('/:id/status', updateUserFeedbackStatus);
 
-module.exports = router;
+export default router;

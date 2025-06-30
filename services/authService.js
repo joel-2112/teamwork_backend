@@ -1,71 +1,127 @@
-// services/authService.js
-const jwt = require('jsonwebtoken');
-const { User, RefreshToken } = require('../models');
-const { generateToken } = require('../utils/generateToken'); // Adjust path
+import jwt from "jsonwebtoken";
+import db from "../models/index.js";
+import { generateToken } from "../utils/generateToken.js";
+import { generateOtp } from "../utils/generateOtp.js";
+import { sendOtpEMail } from "../utils/sendOTP.js";
+import redisClient from "../config/redisClient.js";
+import dotenv from "dotenv";
+const { User, RefreshToken } = db;
+dotenv.config();
 
-const registerService = async ({ name, email, password }) => {
-  // Validate required fields
-  if (!email) throw new Error('Missing required field: email');
-  if (!password) throw new Error('Missing required field: password');
+// // user registration service
+// export const registerService = async ({ name, email, password }) => {
+//   if (!email) throw new Error("Missing required field: email");
+//   if (!password) throw new Error("Missing required field: password");
 
-  // Check for existing user
+//   const existingUser = await User.findOne({ where: { email } });
+//   if (existingUser) throw new Error("Email already exists");
+
+//   const user = await User.create({ name, email, password });
+
+//   return {
+//     user: { id: user.id, name: user.name, email: user.email },
+//   };
+// };
+
+export const sendOtpService = async ({ name, email, password }) => {
+  if (!email) throw new Error("Email is required");
+  if (!password) throw new Error("Password is required");
+  if (!name) throw new Error("Name is required");
+
+  // Check if user already exists in DB
   const existingUser = await User.findOne({ where: { email } });
-  if (existingUser) throw new Error('Email already exists');
+  if (existingUser) throw new Error("Email already exists");
 
-  // Create user (name is optional)
+  // Generate OTP
+  const otp = generateOtp();
+
+  // Store OTP in Redis (expires in 5 mins)
+  await redisClient.set(`otp:${email}`, otp, { EX: 300 });
+  console.log(`Stored OTP for ${email}: ${otp}`);
+
+
+  // Store the user data temporarily in Redis (also expire in 5 mins)
+  const tempUserData = JSON.stringify({ name, email, password });
+  await redisClient.set(`pendingUser:${email}`, tempUserData, { EX: 1200 });
+
+  // Send OTP email
+  await sendOtpEMail(otp, email);
+
+  return { message: "OTP sent to your email." };
+};
+
+export const verifyOtpService = async (email, inputOtp) => {
+  const storedOtp = await redisClient.get(`otp:${email}`);
+  console.log("Stored OTP:", storedOtp, "Input OTP:", inputOtp);
+
+  if (!storedOtp) throw new Error("OTP expired or not found");
+  if (storedOtp !== inputOtp) throw new Error("Invalid OTP");
+
+  // OTP is valid, delete OTP key to prevent reuse
+  await redisClient.del(`otp:${email}`);
+
+  // Get the pending user data
+  const tempUserData = await redisClient.get(`pendingUser:${email}`);
+  if (!tempUserData) throw new Error("User data expired. Please sign up again.");
+
+  const { name, password } = JSON.parse(tempUserData);
+
+  // Create user in DB now
   const user = await User.create({ name, email, password });
 
-  // Generate tokens
-  const accessToken = generateToken({ userId: user.id });
-  const refreshToken = jwt.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  // Clean up pending user data from Redis
+  await redisClient.del(`pendingUser:${email}`);
 
-  // Store refresh token
-  await RefreshToken.create({ token: refreshToken, userId: user.id });
-
-  return { user: { id: user.id, name: user.name, email: user.email }, accessToken, refreshToken };
+  return {
+    message: "OTP verified successfully. User registered.",
+    user: { id: user.id, name: user.name, email: user.email },
+  };
 };
 
-const loginService = async ({ email, password }) => {
-  if (!email) throw new Error('Missing required field: email');
-  if (!password) throw new Error('Missing required field: password');
+
+// log in service
+export const loginService = async ({ email, password }) => {
+  if (!email) throw new Error("Missing required field: email");
+  if (!password) throw new Error("Missing required field: password");
 
   const user = await User.findOne({ where: { email } });
-  if (!user) throw new Error('Invalid email or password');
+  if (!user) throw new Error("Invalid email or password");
 
   const isValid = await user.validatePassword(password);
-  if (!isValid) throw new Error('Invalid email or password');
+  if (!isValid) throw new Error("Invalid email or password");
 
   const accessToken = generateToken({ userId: user.id });
-  const refreshToken = jwt.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  const refreshToken = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
 
   await RefreshToken.create({ token: refreshToken, userId: user.id });
 
-  return { user: { id: user.id, name: user.name, email: user.email }, accessToken, refreshToken };
+  return {
+    user: { id: user.id, name: user.name, email: user.email },
+    accessToken,
+    refreshToken,
+  };
 };
 
-const refreshTokenService = async (refreshToken) => {
-  if (!refreshToken) throw new Error('Refresh token is required');
+export const refreshTokenService = async (refreshToken) => {
+  if (!refreshToken) throw new Error("Refresh token is required");
 
   const token = await RefreshToken.findOne({ where: { token: refreshToken } });
-  if (!token) throw new Error('Invalid refresh token');
+  if (!token) throw new Error("Invalid refresh token");
 
   try {
     const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     const accessToken = generateToken({ userId: payload.userId });
     return { accessToken };
   } catch (err) {
-    throw new Error('Invalid refresh token');
+    throw new Error("Invalid refresh token");
   }
 };
 
-const logoutService = async (refreshToken) => {
-  if (!refreshToken) throw new Error('Refresh token is required');
+export const logoutService = async (refreshToken) => {
+  if (!refreshToken) throw new Error("Refresh token is required");
   await RefreshToken.destroy({ where: { token: refreshToken } });
-};
-
-module.exports = {
-  registerService,
-  loginService,
-  refreshTokenService,
-  logoutService,
 };

@@ -1,5 +1,5 @@
 // models/UserFeedback.js
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const UserFeedback = db.define('UserFeedback', {
     id: {
       type: DataTypes.INTEGER,

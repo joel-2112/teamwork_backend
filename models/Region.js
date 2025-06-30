@@ -1,5 +1,5 @@
 
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
 
 const Region = db.define('Region', {
   id: {

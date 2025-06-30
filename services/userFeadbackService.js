@@ -1,8 +1,9 @@
-// services/userFeedbackService.js
-const { Op } = require('sequelize');
-const { UserFeedback } = require('../models');
+import { Op } from 'sequelize';
+import db from '../models/index.js';
+const { UserFeedback } = db;
 
-const createUserFeedbackService = async (data) => {
+
+export const createUserFeedbackService = async (data) => {
   const requiredFields = ['fullName', 'email', 'feedbackType', 'message'];
   for (const field of requiredFields) {
     if (!data[field]) throw new Error(`Missing required field: ${field}`);
@@ -13,7 +14,7 @@ const createUserFeedbackService = async (data) => {
   return await UserFeedback.create(data);
 };
 
-const getAllUserFeedbacksService = async ({ page = 1, limit = 10, status, feedbackType } = {}) => {
+export const getAllUserFeedbacksService = async ({ page = 1, limit = 10, status, feedbackType } = {}) => {
   const offset = (page - 1) * limit;
   const where = {};
   if (status) where.status = status;
@@ -34,13 +35,13 @@ const getAllUserFeedbacksService = async ({ page = 1, limit = 10, status, feedba
   };
 };
 
-const getUserFeedbackByIdService = async (id) => {
+export const getUserFeedbackByIdService = async (id) => {
   const feedback = await UserFeedback.findByPk(id);
   if (!feedback) throw new Error('Feedback not found');
   return feedback;
 };
 
-const updateUserFeedbackService = async (id, data) => {
+export const updateUserFeedbackService = async (id, data) => {
   const feedback = await UserFeedback.findByPk(id);
   if (!feedback) throw new Error('Feedback not found');
   if (data.rating && (data.rating < 1 || data.rating > 5)) {
@@ -49,23 +50,14 @@ const updateUserFeedbackService = async (id, data) => {
   return await feedback.update(data);
 };
 
-const deleteUserFeedbackService = async (id) => {
+export const deleteUserFeedbackService = async (id) => {
   const feedback = await UserFeedback.findByPk(id);
   if (!feedback) throw new Error('Feedback not found');
   return await feedback.destroy();
 };
 
-const updateUserFeedbackStatusService = async (id, status) => {
+export const updateUserFeedbackStatusService = async (id, status) => {
   const feedback = await UserFeedback.findByPk(id);
   if (!feedback) throw new Error('Feedback not found');
   return await feedback.update({ status });
-};
-
-module.exports = {
-  createUserFeedbackService,
-  getAllUserFeedbacksService,
-  getUserFeedbackByIdService,
-  updateUserFeedbackService,
-  deleteUserFeedbackService,
-  updateUserFeedbackStatusService,
 };

@@ -1,32 +1,31 @@
-const {News} = require('../models');
-class NewsService {
-  async createNews(data) {
-    return await News.create(data);
-  }
+import db from '../models/index.js';
 
-  async getAllNews() {
-    return await News.findAll({
-      order: [['publishDate', 'DESC']],
-    });
-  }
+const { News } = db
 
-  async getNewsById(id) {
-    const news = await News.findByPk(id);
-    if (!news) throw new Error('News not found');
-    return news;
-  }
+export const createNews = async (data) => {
+  return await News.create(data);
+};
 
-  async updateNews(id, data) {
-    const news = await News.findByPk(id);
-    if (!news) throw new Error('News not found');
-    return await news.update(data);
-  }
+export const getAllNews = async () => {
+  return await News.findAll({
+    order: [['publishDate', 'DESC']],
+  });
+};
 
-  async deleteNews(id) {
-    const news = await News.findByPk(id);
-    if (!news) throw new Error('News not found');
-    return await news.destroy();
-  }
-}
+export const getNewsById = async (id) => {
+  const news = await News.findByPk(id);
+  if (!news) throw new Error('News not found');
+  return news;
+};
 
-module.exports = new NewsService();
+export const updateNews = async (id, data) => {
+  const news = await News.findByPk(id);
+  if (!news) throw new Error('News not found');
+  return await news.update(data);
+};
+
+export const deleteNews = async (id) => {
+  const news = await News.findByPk(id);
+  if (!news) throw new Error('News not found');
+  return await news.destroy();
+};

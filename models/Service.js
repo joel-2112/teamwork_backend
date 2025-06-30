@@ -1,5 +1,5 @@
 // models/Service.js
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const Service = db.define('Service', {
     id: {
       type: DataTypes.INTEGER,

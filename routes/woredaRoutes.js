@@ -1,11 +1,17 @@
-const express = require('express');
+import  express from 'express';
 const router = express.Router();
-const WoredaController = require('../controllers/woredaController');
+import {
+    createWoredaController,
+    getAllWoredasController,
+    getWoredaByIdController,
+    updateWoredaController,
+    deleteWoredaController
+} from '../controllers/woredaController.js';
 
-router.post('/', WoredaController.createWoreda);
-router.get('/', WoredaController.getAllWoredas);
-router.get('/:id', WoredaController.getWoredaById);
-router.put('/:id', WoredaController.updateWoreda);
-router.delete('/:id', WoredaController.deleteWoreda);
+router.post('/', createWoredaController);
+router.get('/', getAllWoredasController);
+router.get('/:id', getWoredaByIdController);
+router.put('/:id', updateWoredaController);
+router.delete('/:id', deleteWoredaController);
 
-module.exports = router;
+export default router;

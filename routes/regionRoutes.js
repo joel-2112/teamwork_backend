@@ -1,11 +1,17 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const RegionController = require('../controllers/regionController');
+import  {
+    createRegionController,
+    getAllRegionsController,
+    getRegionByIdController,
+    updateRegionController,
+    deleteRegionController
+} from '../controllers/regionController.js';
 
-router.post('/', RegionController.createRegion);
-router.get('/', RegionController.getAllRegions);
-router.get('/:id', RegionController.getRegionById);
-router.put('/:id', RegionController.updateRegion);
-router.delete('/:id', RegionController.deleteRegion);
+router.post('/', createRegionController);
+router.get('/', getAllRegionsController);
+router.get('/:id', getRegionByIdController);
+router.put('/:id', updateRegionController);
+router.delete('/:id', deleteRegionController);
 
-module.exports = router;
+export default router;

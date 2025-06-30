@@ -1,8 +1,8 @@
-// services/serviceService.js
-const { Op } = require('sequelize');
-const { Service } = require('../models');
+import { Op } from 'sequelize';
+import db from '../models/index.js';
+const { Service } = db
 
-const createServiceService = async (data) => {
+export const createServiceService = async (data) => {
   const requiredFields = ['title', 'description'];
   for (const field of requiredFields) {
     if (!data[field]) throw new Error(`Missing required field: ${field}`);
@@ -10,7 +10,7 @@ const createServiceService = async (data) => {
   return await Service.create(data);
 };
 
-const getAllServicesService = async ({ page = 1, limit = 10, title } = {}) => {
+export const getAllServicesService = async ({ page = 1, limit = 10, title } = {}) => {
   const offset = (page - 1) * limit;
   const where = {};
   if (title) where.title = { [Op.iLike]: `%${title}%` };
@@ -30,28 +30,20 @@ const getAllServicesService = async ({ page = 1, limit = 10, title } = {}) => {
   };
 };
 
-const getServiceByIdService = async (id) => {
+export const getServiceByIdService = async (id) => {
   const service = await Service.findByPk(id);
   if (!service) throw new Error('Service not found');
   return service;
 };
 
-const updateServiceService = async (id, data) => {
+export const updateServiceService = async (id, data) => {
   const service = await Service.findByPk(id);
   if (!service) throw new Error('Service not found');
   return await service.update(data);
 };
 
-const deleteServiceService = async (id) => {
+export const deleteServiceService = async (id) => {
   const service = await Service.findByPk(id);
   if (!service) throw new Error('Service not found');
   return await service.destroy();
-};
-
-module.exports = {
-  createServiceService,
-  getAllServicesService,
-  getServiceByIdService,
-  updateServiceService,
-  deleteServiceService,
 };

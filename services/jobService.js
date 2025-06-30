@@ -1,12 +1,12 @@
-// services/jobService.js
-const { Op } = require('sequelize');
-const { Job, JobApplication } = require('../models'); // Import from index.js
+import { Op } from 'sequelize';
+import db from '../models/index.js'; // ensure index.js uses ESM exports
+const { Job, JobApplication } = db;
 
-const createJobService = async (data) => {
+export const createJobService = async (data) => {
   return await Job.create(data);
 };
 
-const getAllJobsService = async ({ page = 1, limit = 10 } = {}) => {
+export const getAllJobsService = async ({ page = 1, limit = 10 } = {}) => {
   const offset = (page - 1) * limit;
   const { count, rows } = await Job.findAndCountAll({
     include: [{
@@ -28,7 +28,7 @@ const getAllJobsService = async ({ page = 1, limit = 10 } = {}) => {
   };
 };
 
-const getJobByIdService = async (id) => {
+export const getJobByIdService = async (id) => {
   const job = await Job.findByPk(id, {
     include: [{
       model: JobApplication,
@@ -41,13 +41,13 @@ const getJobByIdService = async (id) => {
   return job;
 };
 
-const updateJobService = async (id, data) => {
+export const updateJobService = async (id, data) => {
   const job = await Job.findByPk(id);
   if (!job) throw new Error('Job not found');
   return await job.update(data);
 };
 
-const deleteJobService = async (id) => {
+export const deleteJobService = async (id) => {
   const job = await Job.findByPk(id);
   if (!job) throw new Error('Job not found');
   const applicationCount = await JobApplication.count({ where: { jobId: id } });
@@ -55,7 +55,14 @@ const deleteJobService = async (id) => {
   return await job.destroy();
 };
 
-const getOpenJobsService = async ({ page = 1, limit = 10, category, location, jobType, search } = {}) => {
+export const getOpenJobsService = async ({
+  page = 1,
+  limit = 10,
+  category,
+  location,
+  jobType,
+  search
+} = {}) => {
   const offset = (page - 1) * limit;
   const where = { jobStatus: 'open' };
 
@@ -89,13 +96,4 @@ const getOpenJobsService = async ({ page = 1, limit = 10, category, location, jo
     limit: parseInt(limit),
     jobs: rows,
   };
-};
-
-module.exports = {
-  createJobService,
-  getAllJobsService,
-  getJobByIdService,
-  updateJobService,
-  deleteJobService,
-  getOpenJobsService,
 };

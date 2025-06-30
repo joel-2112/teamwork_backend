@@ -1,14 +1,14 @@
 // routes/partnershipRoutes.js
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import  {
   createPartnership,
   getAllPartnerships,
   getPartnershipById,
   updatePartnership,
   deletePartnership,
   updatePartnershipStatus,
-} = require('../controllers/partnershipController');
+} from '../controllers/partnershipController.js';
 
 router.post('/', createPartnership);
 router.get('/', getAllPartnerships);
@@ -17,4 +17,4 @@ router.put('/:id', updatePartnership);
 router.delete('/:id', deletePartnership);
 router.put('/:id/status', updatePartnershipStatus);
 
-module.exports = router;
+export default router;

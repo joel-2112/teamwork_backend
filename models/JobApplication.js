@@ -1,5 +1,5 @@
 // models/JobApplication.js
-module.exports = (db, DataTypes) => {
+export default (db, DataTypes) => {
   const JobApplication = db.define('JobApplication', {
     id: {
       type: DataTypes.INTEGER,

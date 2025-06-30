@@ -1,32 +1,31 @@
-const {Event} = require('../models');
-class EventService {
-  async createEvent(data) {
-    return await Event.create(data);
-  }
+import db from '../models/index.js';
+const { Event } = db;
 
-  async getAllEvents() {
-    return await Event.findAll({
-      order: [['eventDate', 'ASC']],
-    });
-  }
 
-  async getEventById(id) {
-    const event = await Event.findByPk(id);
-    if (!event) throw new Error('Event not found');
-    return event;
-  }
+export const createEvent = async (data) => {
+  return await Event.create(data);
+};
 
-  async updateEvent(id, data) {
-    const event = await Event.findByPk(id);
-    if (!event) throw new Error('Event not found');
-    return await event.update(data);
-  }
+export const getAllEvents = async () => {
+  return await Event.findAll({
+    order: [['eventDate', 'ASC']],
+  });
+};
 
-  async deleteEvent(id) {
-    const event = await Event.findByPk(id);
-    if (!event) throw new Error('Event not found');
-    return await event.destroy();
-  }
-}
+export const getEventById = async (id) => {
+  const event = await Event.findByPk(id);
+  if (!event) throw new Error('Event not found');
+  return event;
+};
 
-module.exports = new EventService();
+export const updateEvent = async (id, data) => {
+  const event = await Event.findByPk(id);
+  if (!event) throw new Error('Event not found');
+  return await event.update(data);
+};
+
+export const deleteEvent = async (id) => {
+  const event = await Event.findByPk(id);
+  if (!event) throw new Error('Event not found');
+  return await event.destroy();
+};
