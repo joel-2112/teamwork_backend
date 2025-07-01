@@ -7,9 +7,13 @@ import {
   login,
   refreshToken,
   logout,
-  createAdminUser
+  createAdminUser,
+  checkAuth
 } from '../controllers/authController.js';
-import { createRoleValidator, createUserValidator, loginValidator } from "../middlewares/validators/authValidator.js";
+import {  
+  createUserValidator, 
+  loginValidator 
+} from "../middlewares/validators/authValidator.js";
 import { validateRequest } from '../middlewares/validators/validateRequest.js';
 import { protect, requireRole } from '../middlewares/authMiddleware.js';
 
@@ -21,5 +25,6 @@ router.post('/verify-otp', verifyOtp);
 router.post('/login', loginValidator, validateRequest, login);
 router.post('/refresh-token', refreshToken);
 router.post('/logout', logout);
+router.get('/check-auth', protect, checkAuth);
 
 export default router;

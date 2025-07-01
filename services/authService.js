@@ -31,7 +31,7 @@ export const sendOtpService = async ({ name, email, password }) => {
   // Send OTP email
   await sendOtpEMail(otp, email);
 
-  return { message: "OTP sent to your email." };
+  return { message: "OTP sent to your email.", email };
 };
 
 export const verifyOtpService = async (email, inputOtp) => {
@@ -143,4 +143,19 @@ export const createAdminUserService = async ({ name, email, password }) => {
   } catch (err) {
     throw new Error("Failed to create or update admin.");
   }
+};
+
+
+
+export const checkAuthService = async (email) => {
+  const user = await User.findOne({ where: { email } });
+
+  if (!user) throw new Error("User not found");
+
+  const accessToken = generateToken({ userId: user.id });
+
+  return {
+    user: { id: user.id, name: user.name, email: user.email },
+    accessToken,
+  };
 };

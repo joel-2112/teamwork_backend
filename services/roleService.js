@@ -4,7 +4,7 @@ const { Role } = db;
 
 export const createRoleService = async (name) => {
   const existingRole = await Role.findOne({ where: { name } });
-  if(existingRole){
+  if (existingRole) {
     throw new Error("role already exist.");
   }
 
@@ -13,4 +13,18 @@ export const createRoleService = async (name) => {
   });
 
   return role;
+};
+
+export const updateRoleByIdService = async ({ id, name }) => {
+  try {
+    const existingRole = await Role.findByPk(id);
+
+    if(!existingRole){
+      throw new Error("Role not found.")
+    }
+
+    
+  } catch (err) {
+    throw new Error("failed to update role.");
+  }
 };
