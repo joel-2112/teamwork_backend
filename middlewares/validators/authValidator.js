@@ -2,7 +2,21 @@ import { body } from 'express-validator';
 
 export const registerValidator = [
   body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().normalizeEmail().withMessage('Invalid email format'),
+  body('email')
+  .isEmail()
+  .normalizeEmail()
+  .withMessage('Invalid email format')
+  .custom((email) => {
+    const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com'];
+    const domain = email.split('@')[1]?.toLowerCase();
+
+    if (!allowedDomains.includes(domain)) {
+      throw new Error(`Only ${allowedDomains.join(', ')} emails are allowed`);
+    }
+
+    return true;
+  }),
+
   body('password')
     .isLength({ min: 4 })
     .withMessage('Password must be at least 4 characters long')
@@ -14,6 +28,17 @@ export const registerValidator = [
     .withMessage('Password must contain at least one number')
     .matches(/[!@#$%^&*(),.?":{}|<>]/)
     .withMessage('Password must contain at least one special character'),
+];
+
+export const createRoleValidator = [
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Role name is required')
+    .isString()
+    .withMessage('Role name must be a string')
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Role name must be between 2 and 50 characters'),
 ];
 
 export const loginValidator = [

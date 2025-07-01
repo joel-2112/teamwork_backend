@@ -7,7 +7,8 @@ export const createServiceService = async (data) => {
   for (const field of requiredFields) {
     if (!data[field]) throw new Error(`Missing required field: ${field}`);
   }
-  return await Service.create(data);
+  const service = await Service.create(data)
+  return service;
 };
 
 export const getAllServicesService = async ({ page = 1, limit = 10, title } = {}) => {

@@ -32,14 +32,7 @@ export default (db, DataTypes) => {
         len: [8, 255],
       },
     },
-    role: {
-      type: DataTypes.ENUM('user', 'admin'),
-      defaultValue: 'user',
-      allowNull: false,
-      validate: {
-        isIn: [['user', 'admin']],
-      },
-    },
+    
   }, {
     tableName: 'users',
     timestamps: true,

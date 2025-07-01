@@ -6,16 +6,7 @@ import {
   verifyOtpService
 } from '../services/authService.js';
 
-// export const register = async (req, res) => {
-//   try {
-//     console.log('Register request body:', req.body);
-//     const result = await registerService(req.body);
-//     res.status(201).json({ success: true, data: result });
-//   } catch (error) {
-//     console.error('Register error:', error.message);
-//     res.status(400).json({ success: false, error: error.message });
-//   }
-// };
+
 
 
 export const sendOtp = async (req, res) => {

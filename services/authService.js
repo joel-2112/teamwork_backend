@@ -8,21 +8,6 @@ import dotenv from "dotenv";
 const { User, RefreshToken } = db;
 dotenv.config();
 
-// // user registration service
-// export const registerService = async ({ name, email, password }) => {
-//   if (!email) throw new Error("Missing required field: email");
-//   if (!password) throw new Error("Missing required field: password");
-
-//   const existingUser = await User.findOne({ where: { email } });
-//   if (existingUser) throw new Error("Email already exists");
-
-//   const user = await User.create({ name, email, password });
-
-//   return {
-//     user: { id: user.id, name: user.name, email: user.email },
-//   };
-// };
-
 export const sendOtpService = async ({ name, email, password }) => {
   if (!email) throw new Error("Email is required");
   if (!password) throw new Error("Password is required");
@@ -38,7 +23,6 @@ export const sendOtpService = async ({ name, email, password }) => {
   // Store OTP in Redis (expires in 5 mins)
   await redisClient.set(`otp:${email}`, otp, { EX: 300 });
   console.log(`Stored OTP for ${email}: ${otp}`);
-
 
   // Store the user data temporarily in Redis (also expire in 5 mins)
   const tempUserData = JSON.stringify({ name, email, password });
@@ -62,7 +46,8 @@ export const verifyOtpService = async (email, inputOtp) => {
 
   // Get the pending user data
   const tempUserData = await redisClient.get(`pendingUser:${email}`);
-  if (!tempUserData) throw new Error("User data expired. Please sign up again.");
+  if (!tempUserData)
+    throw new Error("User data expired. Please sign up again.");
 
   const { name, password } = JSON.parse(tempUserData);
 
@@ -77,7 +62,6 @@ export const verifyOtpService = async (email, inputOtp) => {
     user: { id: user.id, name: user.name, email: user.email },
   };
 };
-
 
 // log in service
 export const loginService = async ({ email, password }) => {
