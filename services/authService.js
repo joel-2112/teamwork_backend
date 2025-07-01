@@ -5,7 +5,7 @@ import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpEMail } from "../utils/sendOTP.js";
 import redisClient from "../config/redisClient.js";
 import dotenv from "dotenv";
-const { User, RefreshToken } = db;
+const { User, RefreshToken, Role } = db;
 dotenv.config();
 
 export const sendOtpService = async ({ name, email, password }) => {
@@ -41,20 +41,26 @@ export const verifyOtpService = async (email, inputOtp) => {
   if (!storedOtp) throw new Error("OTP expired or not found");
   if (storedOtp !== inputOtp) throw new Error("Invalid OTP");
 
-  // OTP is valid, delete OTP key to prevent reuse
   await redisClient.del(`otp:${email}`);
 
-  // Get the pending user data
   const tempUserData = await redisClient.get(`pendingUser:${email}`);
   if (!tempUserData)
     throw new Error("User data expired. Please sign up again.");
 
   const { name, password } = JSON.parse(tempUserData);
 
-  // Create user in DB now
-  const user = await User.create({ name, email, password });
+  // Get the "user" role ID
+  const defaultRole = await db.Role.findOne({ where: { name: "user" } });
+  if (!defaultRole) throw new Error("Default role 'user' not found.");
 
-  // Clean up pending user data from Redis
+  // Create user with roleId
+  const user = await db.User.create({
+    name,
+    email,
+    password,
+    roleId: defaultRole.id,
+  });
+
   await redisClient.del(`pendingUser:${email}`);
 
   return {
@@ -108,4 +114,33 @@ export const refreshTokenService = async (refreshToken) => {
 export const logoutService = async (refreshToken) => {
   if (!refreshToken) throw new Error("Refresh token is required");
   await RefreshToken.destroy({ where: { token: refreshToken } });
+};
+
+export const createAdminUserService = async ({ name, email, password }) => {
+  try {
+    const adminRole = await db.Role.findOne({ where: { name: "admin" } });
+    if (!adminRole) throw new Error("Admin role not found");
+
+    const existingUser = await db.User.findOne({ where: { email } });
+
+    if (existingUser) {
+      // Update their role to admin and save
+      existingUser.roleId = adminRole.id;
+      await existingUser.save();
+      return existingUser;
+    }
+
+    // Create a new admin user
+    const newUser = await db.User.create({
+      name,
+      email,
+      password,
+      roleId: adminRole.id
+    });
+
+    return newUser;
+
+  } catch (err) {
+    throw new Error("Failed to create or update admin.");
+  }
 };

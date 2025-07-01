@@ -3,7 +3,8 @@ import {
   refreshTokenService,
   logoutService,
   sendOtpService,
-  verifyOtpService
+  verifyOtpService,
+  createAdminUserService
 } from '../services/authService.js';
 
 
@@ -69,3 +70,15 @@ export const logout = async (req, res) => {
     res.status(400).json({ success: false, error: error.message });
   }
 };
+
+export const createAdminUser = async(req, res) =>{
+  try{
+    const {name, email, password } = req.body;
+
+    const newAdmin = await createAdminUserService({name, email, password});
+    res.status(200).json({success: true, data: newAdmin});
+  }catch(error){
+    console.error('create admin error', error.message);
+    res.status(400).json({ success: false, error: error.message});
+  }
+}

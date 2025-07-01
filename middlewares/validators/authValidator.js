@@ -1,6 +1,6 @@
 import { body } from 'express-validator';
 
-export const registerValidator = [
+export const createUserValidator = [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email')
   .isEmail()
@@ -42,7 +42,20 @@ export const createRoleValidator = [
 ];
 
 export const loginValidator = [
-  body('email').isEmail().normalizeEmail().withMessage('Invalid email format'),
+body('email')
+  .isEmail()
+  .normalizeEmail()
+  .withMessage('Invalid email format')
+  .custom((email) => {
+    const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com'];
+    const domain = email.split('@')[1]?.toLowerCase();
+
+    if (!allowedDomains.includes(domain)) {
+      throw new Error(`Only ${allowedDomains.join(', ')} emails are allowed`);
+    }
+
+    return true;
+  }),
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
