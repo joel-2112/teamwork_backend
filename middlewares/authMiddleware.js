@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/index.js";
+import db from "../models/index.js";
+const { User, Role } = db;
 
 export const protect = async (req, res, next) => {
   try {
@@ -23,8 +24,12 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Attach user to request object
-    req.user = await User.findByPk(decoded.id, {
-      attributes: ["id", "name", "email", "role"],
+    req.user = await User.findByPk(decoded.userId, {
+      attributes: ["id", "name", "email", "roleId"],
+      include: {
+        model: db.Role,
+        attributes: ["name"],
+      },
     });
 
     if (!req.user) {
@@ -34,10 +39,26 @@ export const protect = async (req, res, next) => {
     }
 
     next();
-  } catch (error) {
-    res.status(error.status || 401).json({
+  } catch (err) {
+    console.error("Authorization error:", err.message);
+
+    res.status(401).json({
       success: false,
-      message: error.message || "Not authorized",
+      error: err.message || "Unauthorized access",
     });
   }
+};
+
+// Check user role to access protected route
+export const requireRole = (roleName) => {
+  return async (req, res, next) => {
+    if (!req.user || !req.user.Role || req.user.Role.name !== roleName) {
+      return res.status(403).json({
+        success: false,
+        error: `Requires ${roleName} role`,
+      });
+    }
+
+    next();
+  };
 };

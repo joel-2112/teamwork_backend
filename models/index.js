@@ -17,6 +17,7 @@ import CustomerOrderModel from "./CustomerOrder.js";
 import UserFeedbackModel from "./UserFeadback.js";
 import AboutModel from "./About.js";
 import ServiceModel from "./Service.js";
+import RoleModel from "./role.js";
 
 // Initialize models by passing db and DataTypes
 const Job = JobModel(db, DataTypes);
@@ -34,6 +35,7 @@ const CustomerOrder = CustomerOrderModel(db, DataTypes);
 const UserFeedback = UserFeedbackModel(db, DataTypes);
 const About = AboutModel(db, DataTypes);
 const Service = ServiceModel(db, DataTypes);
+const Role = RoleModel(db, DataTypes);
 
 const models = {
   Event,
@@ -51,7 +53,12 @@ const models = {
   UserFeedback,
   About,
   Service,
+  Role,
 };
+
+// user and role relation
+Role.hasMany(User, { foreignKey: "roleId" });
+User.belongsTo(Role, { foreignKey: "roleId" });
 
 // Define associations
 Job.hasMany(JobApplication, {

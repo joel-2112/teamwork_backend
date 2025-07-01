@@ -4,7 +4,7 @@ import {
   getServiceByIdService,
   updateServiceService,
   deleteServiceService,
-} from '../services/serviceService.js';
+} from "../services/serviceService.js";
 
 export const createService = async (req, res) => {
   try {

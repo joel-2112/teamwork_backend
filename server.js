@@ -25,6 +25,7 @@ import customerOrderRoutes from "./routes/customerOrderRoutes.js";
 import userFeedbackRoutes from "./routes/userFeadbackRoutes.js";
 import aboutRoutes from "./routes/aboutRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
+import roleRouote from "./routes/roleRoute.js"
 
 // Initialize Express
 const app = express();
@@ -52,6 +53,7 @@ app.get("/", (req, res) => {
 
 // Main routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/roles", roleRouote);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/job-applications", jobApplicationRoutes);
