@@ -1,32 +1,42 @@
-import db from '../models/index.js';
+import db from "../models/index.js";
 import fs from "fs";
 import path from "path";
+const { News } = db;
 
-const { News } = db
+export const createNews = async (data, checkOnly = false) => {
+  const existingNews = await News.findOne({
+    where: {
+      title: data.title,
+      content: data.content,
+    },
+  });
 
-export const createNews = async (data) => {
+  if (existingNews) {
+    throw new Error("News with the same title and content already exists");
+  }
+
+  if (checkOnly) return null;
+
   return await News.create(data);
 };
 
 export const getAllNews = async () => {
   return await News.findAll({
-    order: [['publishDate', 'DESC']],
+    order: [["publishDate", "DESC"]],
   });
 };
 
 export const getNewsById = async (id) => {
   const news = await News.findByPk(id);
-  if (!news) throw new Error('News not found');
+  if (!news) throw new Error("News not found");
   return news;
 };
 
 export const updateNews = async (id, data) => {
   const news = await News.findByPk(id);
-  if (!news) throw new Error('News not found');
+  if (!news) throw new Error("News not found");
   return await news.update(data);
 };
-
-
 
 export const deleteNews = async (id) => {
   const news = await News.findByPk(id);
@@ -34,7 +44,11 @@ export const deleteNews = async (id) => {
 
   // Delete associated image if it exists
   if (news.imageUrl) {
-    const imagePath = path.join(process.cwd(), "uploads/assets", path.basename(news.imageUrl));
+    const imagePath = path.join(
+      process.cwd(),
+      "uploads/assets",
+      path.basename(news.imageUrl)
+    );
     try {
       await fs.promises.unlink(imagePath);
       console.log(`Deleted image file: ${imagePath}`);
@@ -46,4 +60,3 @@ export const deleteNews = async (id) => {
   // Delete the news record from DB
   return await news.destroy();
 };
-
