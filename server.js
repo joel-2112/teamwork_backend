@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
+import path from 'path';
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -40,6 +41,7 @@ app.use(
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
+app.use('/uploads', express.static(path.join('uploads')));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
