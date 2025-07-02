@@ -5,24 +5,39 @@ import {
   updateNews,
   deleteNews,
 } from '../services/newsService.js';
+import { saveImageToDisk } from "../utils/saveImage.js";
+import fs from 'fs';
+import path from 'path';
+
 
 export const createNewsController = async (req, res) => {
   try {
     const { title, content } = req.body;
 
-    const imageUrl = req.file ? `/uploads/news-images/${req.file.filename}` : null;
+    // Duplicate check
+    const existingNews = await createNews({ title, content }, true); 
 
-    const news = await createNews({
-      title,
-      content,
-      imageUrl,
+    // Save image to disk only if file exists and news is valid
+    let imageUrl = null;
+    if (req.file) {
+      const uniqueName = `picture-${Date.now()}${path.extname(req.file.originalname)}`;
+      const savedPath = saveImageToDisk(req.file.buffer, uniqueName);
+      imageUrl = `/uploads/assets/${uniqueName}`;
+    }
+
+    // Now create the news
+    const news = await createNews({ title, content, imageUrl });
+
+    res.status(201).json({
+      success: true,
+      message: "News created successfully.",
+      news,
     });
-
-    res.status(201).json({success: true, message: "News created successfully.", news});
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
+
 
 export const getAllNewsController = async (req, res) => {
   try {
