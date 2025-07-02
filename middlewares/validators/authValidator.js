@@ -1,4 +1,7 @@
 import { body } from 'express-validator';
+import { param } from 'express-validator';
+
+
 
 export const createUserValidator = [
   body('name').trim().notEmpty().withMessage('Name is required'),
@@ -63,6 +66,16 @@ export const requestPasswordResetValidator = [
   body('email').isEmail().withMessage('Invalid email format'),
 ];
 
+export const validateParamId = [
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('ID parameter is required')
+    .isInt({ min: 1 })
+    .withMessage('ID must be a valid positive integer'),
+];
+
+
 export const resetPasswordValidator = [
   body('token').notEmpty().withMessage('Reset token is required'),
   body('newPassword')
@@ -76,6 +89,29 @@ export const resetPasswordValidator = [
     .withMessage('Password must contain at least one number')
     .matches(/[!@#$%^&*]/)
     .withMessage('Password must contain at least one special character'),
+];
+
+export const createNewsValidator = [
+  body('title')
+    .trim()
+    .notEmpty()
+    .withMessage('Title is required')
+    .isLength({ min: 5, max: 300 })
+    .withMessage('Title must be between 5 and 150 characters'),
+
+  body('content')
+    .trim()
+    .notEmpty()
+    .withMessage('Content is required')
+    .isLength({ min: 50 })
+    .withMessage('Content must be at least 10 characters long'),
+
+  body('publishDate')
+    .optional()
+    .isISO8601()
+    .withMessage('Publish date must be a valid ISO8601 date'),
+
+
 ];
 
 export const jobDataValidator = (isUpdate = false) => [
