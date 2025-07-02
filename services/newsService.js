@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 const { News } = db;
 
+// service to create news
 export const createNews = async (data, checkOnly = false) => {
   const existingNews = await News.findOne({
     where: {
@@ -20,6 +21,7 @@ export const createNews = async (data, checkOnly = false) => {
   return await News.create(data);
 };
 
+// Service to get all news
 export const getAllNews = async () => {
   return await News.findAll({
     order: [["publishDate", "DESC"]],
@@ -32,12 +34,14 @@ export const getNewsById = async (id) => {
   return news;
 };
 
+// Service to update news by id
 export const updateNews = async (id, data) => {
   const news = await News.findByPk(id);
   if (!news) throw new Error("News not found");
   return await news.update(data);
 };
 
+// Service to delete news by id
 export const deleteNews = async (id) => {
   const news = await News.findByPk(id);
   if (!news) throw new Error("News not found");
