@@ -65,21 +65,27 @@ export const verifyOtpService = async (email, inputOtp) => {
 
   return {
     message: "OTP verified successfully. User registered.",
-    user: { id: user.id, name: user.name, email: user.email },
+    user: { id: user.id, name: user.name, email: user.email, role: defaultRole.name },
   };
 };
 
-// log in service
+// login services
 export const loginService = async ({ email, password }) => {
   if (!email) throw new Error("Missing required field: email");
   if (!password) throw new Error("Missing required field: password");
 
-  const user = await User.findOne({ where: { email } });
+  // Fetch user and include their role
+  const user = await User.findOne({
+    where: { email },
+    include: [{ model: Role, attributes: ["name"] }],
+  });
+
   if (!user) throw new Error("Invalid email or password");
 
   const isValid = await user.validatePassword(password);
   if (!isValid) throw new Error("Invalid email or password");
 
+  // Generate tokens
   const accessToken = generateToken({ userId: user.id });
   const refreshToken = jwt.sign(
     { userId: user.id },
@@ -87,10 +93,17 @@ export const loginService = async ({ email, password }) => {
     { expiresIn: "7d" }
   );
 
+  // Save refresh token (optional)
   await RefreshToken.create({ token: refreshToken, userId: user.id });
 
   return {
-    user: { id: user.id, name: user.name, email: user.email },
+    message: "Login successful",
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.Role.name, // <-- Include role name here
+    },
     accessToken,
     refreshToken,
   };
@@ -135,17 +148,14 @@ export const createAdminUserService = async ({ name, email, password }) => {
       name,
       email,
       password,
-      roleId: adminRole.id
+      roleId: adminRole.id,
     });
 
     return newUser;
-
   } catch (err) {
     throw new Error("Failed to create or update admin.");
   }
 };
-
-
 
 export const checkAuthService = async (email) => {
   const user = await User.findOne({ where: { email } });

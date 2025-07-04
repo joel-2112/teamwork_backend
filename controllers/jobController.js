@@ -5,7 +5,7 @@ import {
   updateJobService,
   deleteJobService,
   getOpenJobsService,
-} from '../services/jobService.js';
+} from "../services/jobService.js";
 
 export const createJob = async (req, res) => {
   try {
