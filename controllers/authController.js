@@ -32,22 +32,19 @@ export const verifyOtp = async (req, res) => {
   }
 };
 
+
+
 export const login = async (req, res) => {
   try {
-    console.log("Login request body:", req.body);
-    const result = await loginService(req.body);
-    res
-      .status(200)
-      .json({ 
-        success: true, 
-        message: "login successfully.", 
-        ...result 
-      });
+    const { email, password } = req.body;
+    const result = await loginService({ email, password });
+    res.status(200).json({ success: true, ...result });
   } catch (error) {
     console.error("Login error:", error.message);
     res.status(401).json({ success: false, message: error.message });
   }
 };
+
 
 export const refreshToken = async (req, res) => {
   try {
