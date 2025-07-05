@@ -1,19 +1,55 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
 import {
-    createJob,
-    getOpenJobs,
-    getAllJobs,
-    getJobById,
-    updateJob,
-    deleteJob
-} from '../controllers/jobController.js';
+  createJob,
+  getOpenJobs,
+  getAllJobs,
+  getJobById,
+  updateJob,
+  deleteJob,
+  closeOpenJob,
+  getAllClosedJob,
+} from "../controllers/jobController.js";
+import {
+  validateParamId,
+} from "../middlewares/validators/authValidator.js";
+import { validateRequest } from "../middlewares/validators/validateRequest.js";
+import { protect, requireRole } from "../middlewares/authMiddleware.js";
+
 //the jobController is imported from the controllers folder
-router.post('/', createJob);
-router.get('/open', getOpenJobs);
-router.get('/', getAllJobs);
-router.get('/:id', getJobById);
-router.put('/:id', updateJob);
-router.delete('/:id', deleteJob);
+router.post(
+  "/create-job",
+  protect,
+  requireRole("admin"),
+  createJob
+);
+router.put(
+  "/update/:id",
+  protect,
+  requireRole("admin"),
+  validateParamId,
+  validateRequest,
+  updateJob
+);
+router.put(
+  "/close/:id",
+  protect,
+  requireRole("admin"),
+  validateParamId,
+  validateRequest,
+  closeOpenJob
+);
+router.delete(
+  "/delete/:id",
+  protect,
+  requireRole("admin"),
+  validateParamId,
+  validateRequest,
+  deleteJob
+);
+router.get("/job/:id", validateParamId, validateRequest, getJobById);
+router.get("/open-job", getOpenJobs);
+router.get("/closed-job", getAllClosedJob);
+router.get("/all-job", getAllJobs);
 
 export default router;
