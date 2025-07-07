@@ -158,14 +158,14 @@ export const createAdminUserService = async ({ name, email, password }) => {
 };
 
 export const checkAuthService = async (email) => {
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({ where: { email }, include: [{ model: Role, attributes: ["name"]}] });
 
   if (!user) throw new Error("User not found");
 
   const accessToken = generateToken({ userId: user.id });
 
   return {
-    user: { id: user.id, name: user.name, email: user.email },
+    user: { id: user.id, name: user.name, email: user.email, role: user.Role.name },
     accessToken,
   };
 };
