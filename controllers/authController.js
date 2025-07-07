@@ -25,15 +25,14 @@ export const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
     const result = await verifyOtpService(email, otp);
-    res.status(200).json({ success: true,  ...result });
+    res.status(200).json({ success: true, ...result });
   } catch (error) {
     console.error("OTP verification error:", error.message);
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
-
-
+// User log in
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -45,7 +44,7 @@ export const login = async (req, res) => {
   }
 };
 
-
+// Refresh expired access token
 export const refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -58,6 +57,7 @@ export const refreshToken = async (req, res) => {
   }
 };
 
+// Logout loged in user
 export const logout = async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -70,6 +70,7 @@ export const logout = async (req, res) => {
   }
 };
 
+// Admin can create an other admin
 export const createAdminUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -86,6 +87,7 @@ export const createAdminUser = async (req, res) => {
   }
 };
 
+// To check signed in user authentication
 export const checkAuth = async (req, res) => {
   try {
     const result = await checkAuthService(req.user.email);
