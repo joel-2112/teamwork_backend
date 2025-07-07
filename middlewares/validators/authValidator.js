@@ -1,8 +1,10 @@
 import { body } from 'express-validator';
 import { param } from 'express-validator';
+import moment from "moment";
 
 
 
+// User data validator
 export const createUserValidator = [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email')
@@ -33,6 +35,7 @@ export const createUserValidator = [
     .withMessage('Password must contain at least one special character'),
 ];
 
+// Validator to validate role data when create role
 export const createRoleValidator = [
   body('name')
     .trim()
@@ -44,6 +47,7 @@ export const createRoleValidator = [
     .withMessage('Role name must be between 2 and 50 characters'),
 ];
 
+// Validate log in detail
 export const loginValidator = [
 body('email')
   .isEmail()
@@ -62,10 +66,14 @@ body('email')
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
+
+// validator to validate password reset data
 export const requestPasswordResetValidator = [
   body('email').isEmail().withMessage('Invalid email format'),
 ];
 
+
+// Validate the id in parameter
 export const validateParamId = [
   param('id')
     .trim()
@@ -75,7 +83,7 @@ export const validateParamId = [
     .withMessage('ID must be a valid positive integer'),
 ];
 
-
+// validator to validate reset password
 export const resetPasswordValidator = [
   body('token').notEmpty().withMessage('Reset token is required'),
   body('newPassword')
@@ -91,6 +99,8 @@ export const resetPasswordValidator = [
     .withMessage('Password must contain at least one special character'),
 ];
 
+
+// News data validator
 export const createNewsValidator = [
   body('title')
     .trim()
@@ -114,6 +124,8 @@ export const createNewsValidator = [
 
 ];
 
+
+// Job data validator
 export const jobDataValidator = (isUpdate = false) => [
   body('title')
     .if(() => !isUpdate)
@@ -185,6 +197,44 @@ export const jobDataValidator = (isUpdate = false) => [
     .withMessage('Experience is required'),
 ];
 
+// Event data validator
+export const createEventValidator = [
+  body("title")
+    .trim()
+    .notEmpty()
+    .withMessage("Title is required.")
+    .isLength({ max: 255 })
+    .withMessage("Title must be less than 255 characters."),
+
+  body("description")
+    .trim()
+    .notEmpty()
+    .withMessage("Description is required.")
+    .isLength({ min: 10 })
+    .withMessage("Description must be at least 10 characters."),
+
+  body("location")
+    .trim()
+    .notEmpty()
+    .withMessage("Location is required.")
+    .isLength({ max: 255 })
+    .withMessage("Location must be less than 255 characters."),
+
+  body("eventDate")
+    .notEmpty()
+    .withMessage("Event date is required.")
+    .custom((value) => {
+      if (!moment(value, moment.ISO_8601, true).isValid()) {
+        throw new Error("Invalid event date format. Use ISO 8601 format.");
+      }
+      if (moment(value).isBefore(moment())) {
+        throw new Error("Event date must be in the future.");
+      }
+      return true;
+    }),
+];
+
+// Agent data validator
 export const agentDataValidator = (isUpdate = false) => [
   body('name')
     .if(() => !isUpdate)

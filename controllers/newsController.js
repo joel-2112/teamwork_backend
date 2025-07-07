@@ -15,6 +15,7 @@ export const createNewsController = async (req, res) => {
     const { title, content } = req.body;
 
     // Duplicate check
+    
     const existingNews = await createNews({ title, content }, true);
 
     // Save image to disk only if file exists and news is valid
