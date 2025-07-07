@@ -27,8 +27,16 @@ export const createJob = async (req, res) => {
 
 export const getAllJobs = async (req, res) => {
   try {
-    const { page, limit } = req.query;
-    const jobs = await getAllJobsService({ page, limit });
+    const { page, limit, category, location, jobType, search } = req.query;
+    const jobs = await getAllJobsService({
+      page,
+      limit,
+      category,
+      location,
+      jobType,
+      search,
+    });
+    
     res.status(200).json({
       success: true,
       message: "All jobs retrieved successfully.",

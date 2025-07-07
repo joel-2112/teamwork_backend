@@ -17,9 +17,30 @@ export const createJobService = async (data) => {
   return await Job.create(data);
 };
 
-export const getAllJobsService = async ({ page = 1, limit = 10 } = {}) => {
+export const getAllJobsService = async ({
+  page = 1,
+  limit = 10,
+  category,
+  location,
+  jobType,
+  search,
+} = {}) => {
   const offset = (page - 1) * limit;
+  const where = {}
+
+  if (category) where.category = category;
+  if (location) where.location = { [Op.iLike]: `%${location}%` };
+  if (jobType) where.jobType = jobType;
+  if (search) {
+    where[Op.or] = [
+      { title: { [Op.iLike]: `%${search}%` } },
+      { companyName: { [Op.iLike]: `%${search}%` } },
+      { description: { [Op.iLike]: `%${search}%` } },
+    ];
+  }
+
   const { count, rows } = await Job.findAndCountAll({
+    where,
     include: [
       {
         model: JobApplication,

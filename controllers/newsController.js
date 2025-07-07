@@ -41,14 +41,25 @@ export const createNewsController = async (req, res) => {
 // Retrieve all news
 export const getAllNewsController = async (req, res) => {
   try {
-    const news = await getAllNews();
-    res
-      .status(200)
-      .json({ success: true, message: "All news successfully fetch.", news });
+    const { page, limit, title, search } = req.query;
+
+    const news = await getAllNews({
+      page,
+      limit,
+      title,
+      search,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "All news successfully fetched.",
+      News: news,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Retrieve news by id
 export const getNewsByIdController = async (req, res) => {

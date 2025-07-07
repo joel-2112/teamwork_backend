@@ -1,6 +1,8 @@
 import db from "../models/index.js";
+import { Op } from "sequelize";
 import fs from "fs";
 import path from "path";
+import { title } from "process";
 const { News } = db;
 
 // service to create news
@@ -22,10 +24,36 @@ export const createNews = async (data, checkOnly = false) => {
 };
 
 // Service to get all news
-export const getAllNews = async () => {
-  return await News.findAll({
-    order: [["publishDate", "DESC"]],
+export const getAllNews = async ({
+  page = 1,
+  limit = 10,
+  title,
+  search,
+} = {}) => {
+  const offset = (page - 1) * limit;
+  const where = {};
+
+  if (title) where.title = title;
+
+  if (search) {
+    where[Op.or] = [
+      { title: { [Op.iLike]: `%${search}%` } },
+    ];
+  }
+
+  const { count, rows } = await News.findAndCountAll({
+    where,
+    order: [["createdAt", "DESC"]],
+    limit: parseInt(limit),
+    offset: parseInt(offset),
   });
+
+  return {
+    total: count,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    News: rows,
+  };
 };
 
 export const getNewsById = async (id) => {
