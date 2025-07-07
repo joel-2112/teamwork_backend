@@ -34,24 +34,24 @@ export const updateRoleByIdService = async (id, name) => {
 export const getRoleByIdService = async (id) => {
   try {
     const role = await Role.findByPk(id);
-    if(!role) throw new Error("Role not found.");
+    if (!role) throw new Error("Role not found.");
 
     return role;
   } catch (error) {
-    throw new Error("Failed to retrieve all role.", error.message)
+    throw new Error("Failed to retrieve all role.", error.message);
   }
 };
 
 // Service to delete role by id
-export const deleteRoleByIdService = async(id) => {
-  try{
+export const deleteRoleByIdService = async (id) => {
+  try {
     const role = await Role.findByPk(id);
 
-    if(!role) throw new Error("Role not found");
+    if (!role) throw new Error("Role not found");
     const deletedRole = await role.destroy();
-    
+
     return deletedRole;
-  }catch(error){
-    throw new Error("Failed to delete role.")
+  } catch (error) {
+    throw new Error("Failed to delete role.");
   }
-}
+};
