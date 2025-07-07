@@ -9,6 +9,8 @@ import { saveImageToDisk } from "../utils/saveImage.js";
 import fs from "fs";
 import path from "path";
 
+
+// Create event
 export const createEventController = async (req, res) => {
   try {
     const { title, description, location, eventDate } = req.body;
@@ -70,6 +72,7 @@ export const getAllEventsController = async (req, res) => {
   }
 };
 
+//  To retrieve event by id
 export const getEventByIdController = async (req, res) => {
   try {
     const event = await getEventById(req.params.id);
@@ -83,6 +86,7 @@ export const getEventByIdController = async (req, res) => {
   }
 };
 
+// Update event by id
 export const updateEventController = async (req, res) => {
   try {
     const { title, description, eventDate, location } = req.body;
@@ -105,6 +109,8 @@ export const updateEventController = async (req, res) => {
   }
 };
 
+
+// Delete event by id 
 export const deleteEventController = async (req, res) => {
   try {
     await deleteEvent(req.params.id);

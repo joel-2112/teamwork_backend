@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 const { Event } = db;
 
+// Create event if it is not exist
 export const createEvent = async (data, checkOnly = false) => {
   const existingEvent = await Event.findOne({
     where: {
@@ -24,6 +25,7 @@ export const createEvent = async (data, checkOnly = false) => {
   return await Event.create(data);
 };
 
+// Retrieve all events with pagination and filtration by title, description, and location
 export const getAllEvents = async ({
   page = 1,
   limit = 10,
@@ -61,6 +63,7 @@ export const getAllEvents = async ({
   };
 };
 
+//Retrieve event by id
 export const getEventById = async (id) => {
   const event = await Event.findByPk(id);
   if (!event) throw new Error("Event not found");
@@ -85,6 +88,8 @@ export const updateEvent = async (
   });
 };
 
+
+// Delete event by id with its image from uploads/assets directory
 export const deleteEvent = async (id) => {
   const event = await Event.findByPk(id);
   if (!event) throw new Error("Event not found");
