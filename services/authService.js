@@ -76,7 +76,7 @@ export const verifyOtpService = async (email, inputOtp) => {
   };
 };
 
-// login services
+// Service to log in the user
 export const loginService = async ({ email, password }) => {
   if (!email) throw new Error("Missing required field: email");
   if (!password) throw new Error("Missing required field: password");
