@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 const { User, RefreshToken, Role } = db;
 dotenv.config();
 
+// Services to send the otp via user email
 export const sendOtpService = async ({ name, email, password }) => {
   if (!email) throw new Error("Email is required");
   if (!password) throw new Error("Password is required");
@@ -34,6 +35,7 @@ export const sendOtpService = async ({ name, email, password }) => {
   return { message: "OTP sent to your email.", email };
 };
 
+// Service to verify the otp and register new user if the otp is valid
 export const verifyOtpService = async (email, inputOtp) => {
   const storedOtp = await redisClient.get(`otp:${email}`);
   console.log("Stored OTP:", storedOtp, "Input OTP:", inputOtp);
@@ -65,7 +67,12 @@ export const verifyOtpService = async (email, inputOtp) => {
 
   return {
     message: "OTP verified successfully. User registered.",
-    user: { id: user.id, name: user.name, email: user.email, role: defaultRole.name },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: defaultRole.name,
+    },
   };
 };
 
@@ -109,6 +116,7 @@ export const loginService = async ({ email, password }) => {
   };
 };
 
+// Service to refresh the expired access token
 export const refreshTokenService = async (refreshToken) => {
   if (!refreshToken) throw new Error("Refresh token is required");
 
@@ -124,11 +132,13 @@ export const refreshTokenService = async (refreshToken) => {
   }
 };
 
+// Service to log out the user
 export const logoutService = async (refreshToken) => {
   if (!refreshToken) throw new Error("Refresh token is required");
   await RefreshToken.destroy({ where: { token: refreshToken } });
 };
 
+// Service to enable admin create an other admin
 export const createAdminUserService = async ({ name, email, password }) => {
   try {
     const adminRole = await db.Role.findOne({ where: { name: "admin" } });
@@ -157,15 +167,24 @@ export const createAdminUserService = async ({ name, email, password }) => {
   }
 };
 
+// service to check the authentication of the user
 export const checkAuthService = async (email) => {
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({
+    where: { email },
+    include: [{ model: Role, attributes: ["name"] }],
+  });
 
   if (!user) throw new Error("User not found");
 
   const accessToken = generateToken({ userId: user.id });
 
   return {
-    user: { id: user.id, name: user.name, email: user.email },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.Role.name,
+    },
     accessToken,
   };
 };
