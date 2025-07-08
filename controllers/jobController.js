@@ -9,6 +9,7 @@ import {
   getAllClosedJobService,
 } from "../services/jobService.js";
 
+// Create job if it is not already exist
 export const createJob = async (req, res) => {
   try {
     const job = await createJobService(req.body);
@@ -25,6 +26,7 @@ export const createJob = async (req, res) => {
   }
 };
 
+// Retrieve all job
 export const getAllJobs = async (req, res) => {
   try {
     const { page, limit, category, location, jobType, search } = req.query;
@@ -36,7 +38,7 @@ export const getAllJobs = async (req, res) => {
       jobType,
       search,
     });
-    
+
     res.status(200).json({
       success: true,
       message: "All jobs retrieved successfully.",
@@ -50,6 +52,7 @@ export const getAllJobs = async (req, res) => {
   }
 };
 
+// Retrieve job by id
 export const getJobById = async (req, res) => {
   try {
     const job = await getJobByIdService(req.params.id);
@@ -63,6 +66,7 @@ export const getJobById = async (req, res) => {
   }
 };
 
+// Update job by id
 export const updateJob = async (req, res) => {
   try {
     const job = await updateJobService(req.params.id, req.body);
@@ -79,6 +83,7 @@ export const updateJob = async (req, res) => {
   }
 };
 
+// Delete job by id
 export const deleteJob = async (req, res) => {
   try {
     await deleteJobService(req.params.id);
@@ -94,6 +99,7 @@ export const deleteJob = async (req, res) => {
   }
 };
 
+// Retrieve only open job with pagination and filtration
 export const getOpenJobs = async (req, res) => {
   try {
     const { page, limit, category, location, jobType, search } = req.query;
@@ -138,6 +144,7 @@ export const closeOpenJob = async (req, res) => {
   }
 };
 
+// Retrieve only all closed job with pagination and filtration
 export const getAllClosedJob = async (req, res) => {
   try {
     const { page, limit, category, location, jobType, search } = req.query;

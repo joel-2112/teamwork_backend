@@ -17,7 +17,7 @@ import { validateRequest } from "../middlewares/validators/validateRequest.js";
 
 router.post(
   "/create-event",
-  upload.single("picture"),
+  upload.array("pictures", 5),
   protect,
   requireRole("admin"),
   createEventValidator,
@@ -26,6 +26,7 @@ router.post(
 );
 router.put(
   "/update/:id",
+  upload.array("pictures", 5),
   protect,
   requireRole("admin"),
   validateParamId,

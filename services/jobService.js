@@ -3,6 +3,7 @@ import db from "../models/index.js"; // ensure index.js uses ESM exports
 import { title } from "process";
 const { Job, JobApplication } = db;
 
+// Service to create job if it is not already exist
 export const createJobService = async (data) => {
   const job = await Job.findOne({
     where: {
@@ -17,6 +18,8 @@ export const createJobService = async (data) => {
   return await Job.create(data);
 };
 
+
+// Service Retrieve all job with pagination
 export const getAllJobsService = async ({
   page = 1,
   limit = 10,
@@ -26,7 +29,7 @@ export const getAllJobsService = async ({
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = {}
+  const where = {};
 
   if (category) where.category = category;
   if (location) where.location = { [Op.iLike]: `%${location}%` };
@@ -55,6 +58,7 @@ export const getAllJobsService = async ({
         ],
       },
     ],
+    distinct: true,
     order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
     offset: parseInt(offset),
@@ -68,6 +72,7 @@ export const getAllJobsService = async ({
   };
 };
 
+// Service to retrieve job by id
 export const getJobByIdService = async (id) => {
   const job = await Job.findByPk(id, {
     include: [
@@ -89,12 +94,16 @@ export const getJobByIdService = async (id) => {
   return job;
 };
 
+
+// Service Update job by id
 export const updateJobService = async (id, data) => {
   const job = await Job.findByPk(id);
   if (!job) throw new Error("Job not found");
   return await job.update(data);
 };
 
+
+// Service to delte job by id
 export const deleteJobService = async (id) => {
   const job = await Job.findByPk(id);
   if (!job) throw new Error("Job not found");
@@ -104,6 +113,8 @@ export const deleteJobService = async (id) => {
   return await job.destroy();
 };
 
+
+// Service to retrieve open job
 export const getOpenJobsService = async ({
   page = 1,
   limit = 10,

@@ -2,7 +2,7 @@ import db from "../models/index.js";
 import { Op } from "sequelize";
 import fs from "fs";
 import path from "path";
-const { Event } = db;
+const { Event, Image } = db;
 
 // Create event if it is not exist
 export const createEvent = async (data, checkOnly = false) => {
@@ -50,6 +50,14 @@ export const getAllEvents = async ({
 
   const { count, rows } = await Event.findAndCountAll({
     where,
+    include: [
+      {
+        model: Image,
+        as: "images",
+        attributes: ["id", "imageUrl"],
+      },
+    ],
+    distinct: true,
     order: [["eventDate", "ASC"]],
     limit: parseInt(limit),
     offset: parseInt(offset),
@@ -65,11 +73,22 @@ export const getAllEvents = async ({
 
 //Retrieve event by id
 export const getEventById = async (id) => {
-  const event = await Event.findByPk(id);
+  const event = await Event.findOne({
+    where: { id },
+    include: [
+      {
+        model: Image,
+        as: "images",
+        attributes: ["id", "imageUrl"],
+      },
+    ],
+  });
+
   if (!event) throw new Error("Event not found");
   return event;
 };
 
+// To update Event
 export const updateEvent = async (
   id,
   title,
@@ -80,6 +99,7 @@ export const updateEvent = async (
   const event = await Event.findByPk(id);
 
   if (!event) throw new Error("Event not found");
+
   return await event.update({
     title,
     description,
@@ -88,27 +108,34 @@ export const updateEvent = async (
   });
 };
 
-
 // Delete event by id with its image from uploads/assets directory
 export const deleteEvent = async (id) => {
-  const event = await Event.findByPk(id);
+  const event = await Event.findByPk(id, {
+    include: [{ model: Image, as: "images" }],
+  });
+
   if (!event) throw new Error("Event not found");
 
-  // Delete associated image if it exists
-  if (event.imageUrl) {
-    const imagePath = path.join(
-      process.cwd(),
-      "uploads/assets",
-      path.basename(event.imageUrl)
-    );
-    try {
-      await fs.promises.unlink(imagePath);
-      console.log(`Deleted image file: ${imagePath}`);
-    } catch (err) {
-      console.error(`Error deleting image file: ${err.message}`);
-    }
-  }
+  // Delete all associated images
+  await Promise.all(
+    event.images.map(async (img) => {
+      const imagePath = path.join(
+        process.cwd(),
+        "uploads/assets",
+        path.basename(img.imageUrl)
+      );
+      try {
+        await fs.promises.unlink(imagePath);
+        console.log(`Deleted image file: ${imagePath}`);
+      } catch (err) {
+        console.error(`Error deleting image file: ${err.message}`);
+      }
 
-  // Delete the news record from DB
+      // Remove image record from DB
+      await img.destroy();
+    })
+  );
+
+  // Finally delete the event itself
   return await event.destroy();
 };

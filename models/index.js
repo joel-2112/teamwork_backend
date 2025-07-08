@@ -18,6 +18,7 @@ import UserFeedbackModel from "./UserFeadback.js";
 import AboutModel from "./About.js";
 import ServiceModel from "./Service.js";
 import RoleModel from "./role.js";
+import ImageModel from "./images.js"
 
 // Initialize models by passing db and DataTypes
 const Job = JobModel(db, DataTypes);
@@ -36,9 +37,11 @@ const UserFeedback = UserFeedbackModel(db, DataTypes);
 const About = AboutModel(db, DataTypes);
 const Service = ServiceModel(db, DataTypes);
 const Role = RoleModel(db, DataTypes);
+const Image = ImageModel(db, DataTypes);
 
 const models = {
   Event,
+  Image,
   News,
   Agent,
   Woreda,
@@ -106,6 +109,9 @@ CustomerOrder.belongsTo(Woreda, {
   foreignKey: "woredaId",
   as: "Woreda",
 });
+
+Event.hasMany(Image, { foreignKey: "eventId", as: "images", onDelete: "CASCADE" });
+Image.belongsTo(Event, { foreignKey: "eventId" });
 
 export default {
   sequelize: db,
