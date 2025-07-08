@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import fs from "fs";
 import path from "path";
 import { title } from "process";
+import moment from "moment";
 const { News } = db;
 
 // service to create news
@@ -36,9 +37,7 @@ export const getAllNews = async ({
   if (title) where.title = title;
 
   if (search) {
-    where[Op.or] = [
-      { title: { [Op.iLike]: `%${search}%` } },
-    ];
+    where[Op.or] = [{ title: { [Op.iLike]: `%${search}%` } }];
   }
 
   const { count, rows } = await News.findAndCountAll({
@@ -48,14 +47,57 @@ export const getAllNews = async ({
     offset: parseInt(offset),
   });
 
+  // Time ranges
+  const todayStart = moment().startOf("day").toDate();
+  const weekStart = moment().startOf("isoWeek").toDate(); // Monday
+  const monthStart = moment().startOf("month").toDate();
+  const next30Days = moment().add(30, "days").endOf("day").toDate();
+  const next7Days = moment().add(7, "days").endOf("day").toDate();
+  const todayEnd = moment().endOf("day").toDate(); // e.g. 2025-07-08 23:59:59
+
+  // Statistics based on publishDate
+  const totalNews = await News.count();
+
+  const todayNews = await News.count({
+    where: {
+      publishDate: {
+        [Op.gte]: todayStart,
+        [Op.lte]: todayEnd,
+      },
+    },
+  });
+
+  const weekNews = await News.count({
+    where: {
+      publishDate: {
+        [Op.gte]: todayStart,
+        [Op.lte]: next7Days,
+      },
+    },
+  });
+
+  const monthNews = await News.count({
+    where: {
+      publishDate: {
+        [Op.gte]: todayStart,
+        [Op.lte]: next30Days,
+      },
+    },
+  });
+
   return {
     total: count,
+    totalNews,
+    todayNews,
+    weekNews,
+    monthNews,
     page: parseInt(page),
     limit: parseInt(limit),
-    News: rows,
+    news: rows,
   };
 };
 
+// Service to retrieve news by id
 export const getNewsById = async (id) => {
   const news = await News.findByPk(id);
   if (!news) throw new Error("News not found");

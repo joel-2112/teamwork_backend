@@ -12,10 +12,10 @@ import path from "path";
 // Create news
 export const createNewsController = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, publishDate } = req.body;
 
     // Duplicate check
-    
+
     const existingNews = await createNews({ title, content }, true);
 
     // Save image to disk only if file exists and news is valid
@@ -27,7 +27,7 @@ export const createNewsController = async (req, res) => {
     }
 
     // Now create the news
-    const news = await createNews({ title, content, imageUrl });
+    const news = await createNews({ title, content, imageUrl, publishDate });
 
     res.status(201).json({
       success: true,
@@ -44,7 +44,7 @@ export const getAllNewsController = async (req, res) => {
   try {
     const { page, limit, title, search } = req.query;
 
-    const news = await getAllNews({
+    const newsData = await getAllNews({
       page,
       limit,
       title,
@@ -54,13 +54,20 @@ export const getAllNewsController = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "All news successfully fetched.",
-      News: news,
+      statistics: {
+        totalNews: newsData.total,
+        todayNews: newsData.todayNews,
+        thisWeekNews: newsData.weekNews,
+        thisMonthNews: newsData.monthNews,
+        page: newsData.page,
+        limit: newsData.limit,
+      },
+      news: newsData.news,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // Retrieve news by id
 export const getNewsByIdController = async (req, res) => {
