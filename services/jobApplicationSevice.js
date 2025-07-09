@@ -1,5 +1,4 @@
 import db from '../models/index.js';
-
 const { Job, JobApplication } = db;
 
 export const createJobApplicationService = async (data) => {

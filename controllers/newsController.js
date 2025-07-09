@@ -12,7 +12,8 @@ import path from "path";
 // Create news
 export const createNewsController = async (req, res) => {
   try {
-    const { title, content, publishDate } = req.body;
+    const { title, content, publishDate, category, author, readTime } =
+      req.body;
 
     // Duplicate check
 
@@ -27,7 +28,15 @@ export const createNewsController = async (req, res) => {
     }
 
     // Now create the news
-    const news = await createNews({ title, content, imageUrl, publishDate });
+    const news = await createNews({
+      title,
+      content,
+      imageUrl,
+      publishDate,
+      category,
+      author,
+      readTime,
+    });
 
     res.status(201).json({
       success: true,
@@ -42,13 +51,16 @@ export const createNewsController = async (req, res) => {
 // Retrieve all news
 export const getAllNewsController = async (req, res) => {
   try {
-    const { page, limit, title, search } = req.query;
+    const { page, limit, title, search, byDate, byCategory, byCompany } = req.query;
 
     const newsData = await getAllNews({
       page,
       limit,
       title,
       search,
+      byDate, 
+      byCategory,
+      byCompany
     });
 
     res.status(200).json({

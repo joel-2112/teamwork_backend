@@ -26,6 +26,27 @@ export default (db, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      category: {
+        type: DataTypes.ENUM([
+          "technology",
+          "company-news",
+          "industry-updates",
+          "press-releases",
+          "events",
+          "product-updates",
+          "company-culture",
+          "awards-recognition",
+        ]),
+        allowNull: false,
+      },
+      author: {
+        type: DataTypes.ENUM(["teamwork", "others"]),
+        allowNull: false,
+      },
+      readTime: {
+        type: DataTypes.INTEGER, 
+        allowNull: false,
+      },
     },
     {
       tableName: "news",

@@ -30,16 +30,45 @@ export const getAllNews = async ({
   limit = 10,
   title,
   search,
+  byDate, // "today", "this-week", "this-month"
+  byCategory,
+  byCompany,
 } = {}) => {
   const offset = (page - 1) * limit;
   const where = {};
 
+  // Filters
   if (title) where.title = title;
+  if(byCategory) where.category = byCategory;
+  if(byCompany) where.author = byCompany
 
   if (search) {
     where[Op.or] = [{ title: { [Op.iLike]: `%${search}%` } }];
+    where[Op.or] = [{ byCategory: { [Op.iLike]: `%${search}%` } }];
+    where[Op.or] = [{ byCompany: { [Op.iLike]: `%${search}%` } }];
   }
 
+  // Date range filters
+  const now = moment();
+
+  if (byDate === "today") {
+    where.publishDate = {
+      [Op.gte]: now.clone().startOf("day").toDate(),
+      [Op.lte]: now.clone().endOf("day").toDate(),
+    };
+  } else if (byDate === "this-week") {
+    where.publishDate = {
+      [Op.gte]: now.clone().startOf("week").toDate(), // Sunday
+      [Op.lte]: now.clone().endOf("week").toDate(), // Saturday
+    };
+  } else if (byDate === "this-month") {
+    where.publishDate = {
+      [Op.gte]: now.clone().startOf("month").toDate(),
+      [Op.lte]: now.clone().endOf("month").toDate(),
+    };
+  }
+
+  // Paginated data
   const { count, rows } = await News.findAndCountAll({
     where,
     order: [["createdAt", "DESC"]],
@@ -47,15 +76,16 @@ export const getAllNews = async ({
     offset: parseInt(offset),
   });
 
-  // Time ranges
+  // Full statistics (not filtered)
   const todayStart = moment().startOf("day").toDate();
-  const weekStart = moment().startOf("isoWeek").toDate(); // Monday
-  const monthStart = moment().startOf("month").toDate();
-  const next30Days = moment().add(30, "days").endOf("day").toDate();
-  const next7Days = moment().add(7, "days").endOf("day").toDate();
-  const todayEnd = moment().endOf("day").toDate(); // e.g. 2025-07-08 23:59:59
+  const todayEnd = moment().endOf("day").toDate();
 
-  // Statistics based on publishDate
+  const weekStart = moment().startOf("week").toDate(); // Sunday
+  const weekEnd = moment().endOf("week").toDate(); // Saturday
+
+  const monthStart = moment().startOf("month").toDate();
+  const monthEnd = moment().endOf("month").toDate();
+
   const totalNews = await News.count();
 
   const todayNews = await News.count({
@@ -70,8 +100,8 @@ export const getAllNews = async ({
   const weekNews = await News.count({
     where: {
       publishDate: {
-        [Op.gte]: todayStart,
-        [Op.lte]: next7Days,
+        [Op.gte]: weekStart,
+        [Op.lte]: weekEnd,
       },
     },
   });
@@ -79,8 +109,8 @@ export const getAllNews = async ({
   const monthNews = await News.count({
     where: {
       publishDate: {
-        [Op.gte]: todayStart,
-        [Op.lte]: next30Days,
+        [Op.gte]: monthStart,
+        [Op.lte]: monthEnd,
       },
     },
   });
