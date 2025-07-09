@@ -26,6 +26,7 @@ export const getAllJobsService = async ({
   category,
   location,
   jobType,
+  jobStatus,
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
@@ -34,6 +35,7 @@ export const getAllJobsService = async ({
   if (category) where.category = category;
   if (location) where.location = { [Op.iLike]: `%${location}%` };
   if (jobType) where.jobType = jobType;
+  if(jobStatus) where.jobStatus = jobStatus;
   if (search) {
     where[Op.or] = [
       { title: { [Op.iLike]: `%${search}%` } },

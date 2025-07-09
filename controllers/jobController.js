@@ -29,13 +29,14 @@ export const createJob = async (req, res) => {
 // Retrieve all job
 export const getAllJobs = async (req, res) => {
   try {
-    const { page, limit, category, location, jobType, search } = req.query;
+    const { page, limit, category, location, jobType, jobStatus, search } = req.query;
     const jobs = await getAllJobsService({
       page,
       limit,
       category,
       location,
       jobType,
+      jobStatus,
       search,
     });
 
