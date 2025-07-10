@@ -1,17 +1,18 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import  {
-    createJobApplication,
-    getApplicationsByJobId,
-    getJobApplicationById,
-    updateApplicationStatus,
-    deleteJobApplication,
-} from '../controllers/jobApplicationController.js';
+import {
+  createJobApplication,
+  getApplicationsByJobId,
+  getJobApplicationById,
+  updateApplicationStatus,
+  deleteJobApplication,
+} from "../controllers/jobApplicationController.js";
+import upload from "../middlewares/upload.js";
 
-router.post('/', createJobApplication);
-router.get('/job/:jobId', getApplicationsByJobId);
-router.get('/:id', getJobApplicationById);
-router.put('/:id/status', updateApplicationStatus);
-router.delete('/:id', deleteJobApplication);
+router.post("/apply", upload.single("document"), createJobApplication);
+router.get("/job-applications/:jobId", getApplicationsByJobId);
+router.get("/applications/:id", getJobApplicationById);
+router.put("/update-status/:id", updateApplicationStatus);
+router.delete("/delete/:id", deleteJobApplication);
 
 export default router;

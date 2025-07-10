@@ -9,7 +9,13 @@ export default (db, DataTypes) => {
         primaryKey: true,
       },
       status: {
-        type: DataTypes.ENUM(["applied", "interviewed", "hired", "rejected"]),
+        type: DataTypes.ENUM([
+          "applied",
+          "reviewed",
+          "interviewed",
+          "hired",
+          "rejected",
+        ]),
         allowNull: false,
         defaultValue: "applied",
       },
@@ -65,7 +71,12 @@ export default (db, DataTypes) => {
     {
       tableName: "job-applications",
       timestamps: true,
-      indexes: [{ fields: ["jobId"] }, { fields: ["status"] }],
+      indexes: [
+        {
+          unique: true,
+          fields: ["jobId", "applicantEmail"],
+        },
+      ],
     }
   );
 

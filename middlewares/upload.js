@@ -14,7 +14,8 @@ const fileFilter = (req, file, cb) => {
   ];
 
   if (
-    (["picture", "pictures"].includes(file.fieldname) && imageTypes.includes(file.mimetype)) ||
+    (["picture", "pictures"].includes(file.fieldname) &&
+      imageTypes.includes(file.mimetype)) ||
     (file.fieldname === "document" && docTypes.includes(file.mimetype))
   ) {
     cb(null, true);
@@ -26,7 +27,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: memoryStorage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  limits: { fileSize: 2 * 1024 * 1024 }, // 5 MB
 });
 
 export default upload;

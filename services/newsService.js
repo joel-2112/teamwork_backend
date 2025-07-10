@@ -39,13 +39,11 @@ export const getAllNews = async ({
 
   // Filters
   if (title) where.title = title;
-  if(byCategory) where.category = byCategory;
-  if(byCompany) where.author = byCompany
+  if (byCategory) where.category = byCategory;
+  if (byCompany) where.author = byCompany;
 
   if (search) {
     where[Op.or] = [{ title: { [Op.iLike]: `%${search}%` } }];
-    where[Op.or] = [{ byCategory: { [Op.iLike]: `%${search}%` } }];
-    where[Op.or] = [{ byCompany: { [Op.iLike]: `%${search}%` } }];
   }
 
   // Date range filters

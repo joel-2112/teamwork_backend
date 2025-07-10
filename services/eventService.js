@@ -6,22 +6,6 @@ const { Event, Image } = db;
 
 // Create event if it is not exist
 export const createEvent = async (data, checkOnly = false) => {
-  const existingEvent = await Event.findOne({
-    where: {
-      title: data.title,
-      location: data.location,
-      eventDate: data.eventDate,
-    },
-  });
-
-  if (existingEvent) {
-    throw new Error(
-      "Event with the same title, location and event date already exists."
-    );
-  }
-
-  if (checkOnly) return null;
-
   return await Event.create(data);
 };
 

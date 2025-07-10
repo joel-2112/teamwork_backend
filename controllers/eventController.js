@@ -8,6 +8,7 @@ import {
 import db from "../models/index.js";
 const { Image, Event } = db;
 import { saveImageToDisk } from "../utils/saveImage.js";
+import { Sequelize } from "sequelize";
 import fs from "fs";
 import path from "path";
 
@@ -15,18 +16,6 @@ import path from "path";
 export const createEventController = async (req, res) => {
   try {
     const { title, description, location, eventDate } = req.body;
-
-    // Check for duplicate event
-    const duplicateCheck = await createEvent(
-      { title, location, eventDate },
-      true
-    );
-    if (duplicateCheck) {
-      return res.status(400).json({
-        message:
-          "Event with the same title, location, and date already exists.",
-      });
-    }
 
     // Validate images
     const files = req.files || [];
@@ -65,13 +54,16 @@ export const createEventController = async (req, res) => {
       error instanceof Sequelize.UniqueConstraintError ||
       error.name === "SequelizeUniqueConstraintError"
     ) {
-      return res.status(400).json({
-        message:
-          "Event with the same title, location and event date already exist",
-      });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message:
+            "Event with the same title, location and event date already exist",
+        });
     }
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -95,7 +87,7 @@ export const getAllEventsController = async (req, res) => {
       events: events,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -109,7 +101,7 @@ export const getEventByIdController = async (req, res) => {
       event: event,
     });
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(404).json({success: false, message: error.message });
   }
 };
 
@@ -183,7 +175,7 @@ export const updateEventController = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: error.message });
+    res.status(400).json({success: false,  message: error.message });
   }
 };
 
@@ -196,6 +188,6 @@ export const deleteEventController = async (req, res) => {
       message: "Event and its images deleted successfully.",
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
