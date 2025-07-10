@@ -219,8 +219,9 @@ export const createEventValidator = [
       if (!moment(value, moment.ISO_8601, true).isValid()) {
         throw new Error("Invalid event date format. Use ISO 8601 format.");
       }
-      if (moment(value).isBefore(moment())) {
-        throw new Error("Event date must be in the future.");
+      // Allow today or any future date
+      if (moment(value).isBefore(moment().startOf("day"))) {
+        throw new Error("Event date cannot be in the past.");
       }
       return true;
     }),
