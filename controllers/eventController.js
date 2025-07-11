@@ -11,6 +11,7 @@ import { saveImageToDisk } from "../utils/saveImage.js";
 import { Sequelize } from "sequelize";
 import fs from "fs";
 import path from "path";
+import images from "../models/images.js";
 
 // Create event
 export const createEventController = async (req, res) => {
@@ -46,8 +47,10 @@ export const createEventController = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Event created successfully.",
-      event,
-      images: imageRecords,
+      event: {
+        event,
+        images: imageRecords
+      },
     });
   } catch (error) {
     if (
