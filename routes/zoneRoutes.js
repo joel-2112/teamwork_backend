@@ -1,17 +1,20 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import  {
-    createZoneController,
-    getAllZonesController,
-    getZoneByIdController,
-    updateZoneController,
-    deleteZoneController
-} from '../controllers/zoneController.js';
+import {
+  createZone,
+  getAllZones,
+  getZoneById,
+  updateZone,
+  deleteZone,
+  getZoneByRegionId
+} from "../controllers/zoneController.js";
+import { protect, requireRole } from '../middlewares/authMiddleware.js'
 
-router.post('/', createZoneController);
-router.get('/', getAllZonesController);
-router.get('/:id', getZoneByIdController);
-router.put('/:id', updateZoneController);
-router.delete('/:id', deleteZoneController);
+router.post("/create-zone", protect, requireRole('admin'), createZone);
+router.get("/all-zone", getAllZones);
+router.get("/zone/:id", getZoneById);
+router.get("/region-zone", getZoneByRegionId)
+router.put("/update/:id", protect, requireRole('admin'), updateZone);
+router.delete("/delete/:id", protect, requireRole('admin'), deleteZone);
 
 export default router;

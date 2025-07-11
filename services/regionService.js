@@ -1,36 +1,44 @@
-import db from '../models/index.js';
+import db from "../models/index.js";
 
-const { Region, Zone, Woreda } = db
+const { Region, Zone, Woreda } = db;
 
-export const createRegion = async (data) => {
+
+// Create region
+export const createRegionService = async (data) => {
   const { name } = data;
   return await Region.create({ name });
 };
 
-export const getAllRegions = async () => {
+// Get all regions
+export const getAllRegionsService = async () => {
   return await Region.findAll({
     include: [{ model: Zone, include: [Woreda] }],
   });
 };
 
-export const getRegionById = async (id) => {
+// Get region by id
+export const getRegionByIdService = async (id) => {
   const region = await Region.findByPk(id, {
     include: [{ model: Zone, include: [Woreda] }],
   });
-  if (!region) throw new Error('Region not found');
+  if (!region) throw new Error("Region not found");
   return region;
 };
 
-export const updateRegion = async (id, data) => {
+
+// Update region
+export const updateRegionService = async (id, data) => {
   const region = await Region.findByPk(id);
-  if (!region) throw new Error('Region not found');
+  if (!region) throw new Error("Region not found");
   return await region.update(data);
 };
 
-export const deleteRegion = async (id) => {
+
+// Delete region
+export const deleteRegionService = async (id) => {
   const region = await Region.findByPk(id);
-  if (!region) throw new Error('Region not found');
+  if (!region) throw new Error("Region not found");
   const zoneCount = await Zone.count({ where: { regionId: id } });
-  if (zoneCount > 0) throw new Error('Region has associated zones');
+  if (zoneCount > 0) throw new Error("Region has associated zones");
   return await region.destroy();
 };

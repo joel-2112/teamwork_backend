@@ -1,40 +1,61 @@
-import db from '../models/index.js';
-const { Zone, Region } = db
+import db from "../models/index.js";
+const { Zone, Region } = db;
 
-
-export const createZone = async (data) => {
+// Create zone if it is not exist in the region of this zone
+export const createZoneService = async (data) => {
   const { name, regionId } = data;
   const region = await Region.findByPk(regionId);
-  if (!region) throw new Error('Invalid region ID');
+  const zone = await Zone.findOne({ where: { name, regionId } });
+  if (zone) throw new Error("Zone of region already exist.");
+  if (!region) throw new Error("Invalid region ID");
   return await Zone.create({ name, regionId });
 };
 
-export const getAllZones = async () => {
+// Retrieve all zone
+export const getAllZonesService = async () => {
   return await Zone.findAll({
     include: [Region],
   });
 };
 
-export const getZoneById = async (id) => {
+// Retrieve zone by id
+export const getZoneByIdService = async (id) => {
   const zone = await Zone.findByPk(id, {
     include: [Region],
   });
-  if (!zone) throw new Error('Zone not found');
+  if (!zone) throw new Error("Zone not found");
   return zone;
 };
 
-export const updateZone = async (id, data) => {
+// Get all wereda of zone by zoneId
+export const getZoneByRegionIdService = async (regionId) => {
+  const zones = await Zone.findAll({
+    where: { regionId },
+  });
+  const region = await Region.findByPk(regionId);
+const regionName = region?.name || "Unknown";
+
+  if (!zones || zones.length === 0) {
+    throw new Error("This region has no zone.");
+  }
+
+  return { zones, regionName };
+};
+
+// Update zone
+export const updateZoneService = async (id, data) => {
   const zone = await Zone.findByPk(id);
-  if (!zone) throw new Error('Zone not found');
+  if (!zone) throw new Error("Zone not found");
   if (data.regionId) {
     const region = await Region.findByPk(data.regionId);
-    if (!region) throw new Error('Invalid Region ID');
+    if (!region) throw new Error("Invalid Region ID");
   }
   return await zone.update(data);
 };
 
-export const deleteZone = async (id) => {
+// Delete zone
+export const deleteZoneService = async (id) => {
   const zone = await Zone.findByPk(id);
-  if (!zone) throw new Error('Zone not found');
+  if (!zone) throw new Error("Zone not found");
   return await zone.destroy();
 };

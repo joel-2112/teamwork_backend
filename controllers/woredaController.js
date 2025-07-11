@@ -1,52 +1,97 @@
+import { json } from "sequelize";
 import {
-  createWoreda,
-  getAllWoredas,
-  getWoredaById,
-  updateWoreda,
-  deleteWoreda,
-} from '../services/woredaService.js';
+  createWoredaService,
+  getAllWoredasService,
+  getWoredaByIdService,
+  updateWoredaService,
+  deleteWoredaService,
+  getworedaByZoneIdService,
+} from "../services/woredaService.js";
 
-export const createWoredaController = async (req, res) => {
+// Create woreda
+export const createWoreda = async (req, res) => {
   try {
-    const woreda = await createWoreda(req.body);
-    res.status(201).json(woreda);
+    const woreda = await createWoredaService(req.body);
+    res.status(201).json({
+      success: true,
+      message: "Woreda created successfully.",
+      woreda: woreda,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const getAllWoredasController = async (req, res) => {
+
+// Retrieve all woreda
+export const getAllWoredas = async (req, res) => {
   try {
-    const woredas = await getAllWoredas();
-    res.status(200).json(woredas);
+    const woredas = await getAllWoredasService();
+    res.status(200).json({
+      success: true,
+      message: "All woredas retrieved successfully.",
+      woredas: woredas,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-export const getWoredaByIdController = async (req, res) => {
+
+// Retrieve woreda by id
+export const getWoredaById = async (req, res) => {
   try {
-    const woreda = await getWoredaById(req.params.id);
-    res.status(200).json(woreda);
+    const woreda = await getWoredaByIdService(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: "Woreda retrieved successfully.",
+      woreda: woreda,
+    });
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const updateWoredaController = async (req, res) => {
+// All woredas in one zone
+export const getWoredByZoneId = async (req, res) => {
   try {
-    const woreda = await updateWoreda(req.params.id, req.body);
-    res.status(200).json(woreda);
+    const { zoneId } = req.body;
+
+    const { woredas, zoneName } = await getworedaByZoneIdService(zoneId);
+
+    res.status(200).json({
+      success: true,
+      message: `All woredas in zone: ${zoneName}`,
+      woredas,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const deleteWoredaController = async (req, res) => {
+
+// Update woreda
+export const updateWoreda = async (req, res) => {
   try {
-    await deleteWoreda(req.params.id);
-    res.status(204).send();
+    const woreda = await updateWoredaService(req.params.id, req.body);
+    res.status(200).json({
+      success: true,
+      message: "Woreda updated successfully.",
+      woreda: woreda,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// Delete woreda
+export const deleteWoreda = async (req, res) => {
+  try {
+    await deleteWoredaService(req.params.id);
+    res
+      .status(200)
+      .json({ success: true, message: "Woreda deleted successfully." });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 };

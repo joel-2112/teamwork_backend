@@ -1,17 +1,18 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import  {
-    createRegionController,
-    getAllRegionsController,
-    getRegionByIdController,
-    updateRegionController,
-    deleteRegionController
-} from '../controllers/regionController.js';
+import {
+  createRegion,
+  getAllRegions,
+  getRegionById,
+  updateRegion,
+  deleteRegion,
+} from "../controllers/regionController.js";
+import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
-router.post('/', createRegionController);
-router.get('/', getAllRegionsController);
-router.get('/:id', getRegionByIdController);
-router.put('/:id', updateRegionController);
-router.delete('/:id', deleteRegionController);
+router.post("/create-region", protect, requireRole("admin"), createRegion);
+router.put("/update/:id", protect, requireRole("admin"), updateRegion);
+router.delete("/delete/:id", protect, requireRole("admin"), deleteRegion);
+router.get("/all-region", getAllRegions);
+router.get("/region/:id", getRegionById);
 
 export default router;

@@ -1,52 +1,80 @@
 import {
-  createRegion,
-  getAllRegions,
-  getRegionById,
-  updateRegion,
-  deleteRegion,
-} from '../services/regionService.js';
+  createRegionService,
+  getAllRegionsService,
+  getRegionByIdService,
+  updateRegionService,
+  deleteRegionService,
+} from "../services/regionService.js";
 
-export const createRegionController = async (req, res) => {
+// Create region
+export const createRegion = async (req, res) => {
   try {
-    const region = await createRegion(req.body);
-    res.status(201).json(region);
+    const region = await createRegionService(req.body);
+    res.status(201).json({
+      success: true,
+      message: "Region created successfully.",
+      region: region,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const getAllRegionsController = async (req, res) => {
+
+// Retrieve all region
+export const getAllRegions = async (req, res) => {
   try {
-    const regions = await getAllRegions();
-    res.status(200).json(regions);
+    const regions = await getAllRegionsService();
+    res.status(200).json({
+      success: true,
+      message: "All region are retrieved successfully.",
+      regions: regions,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-export const getRegionByIdController = async (req, res) => {
+
+// Retrieve region by id
+export const getRegionById = async (req, res) => {
   try {
-    const region = await getRegionById(req.params.id);
-    res.status(200).json(region);
+    const region = await getRegionByIdService(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: "Region retrieved successfully.",
+      region: region,
+    });
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(404).json({ success: false, message: error.message });
   }
 };
 
-export const updateRegionController = async (req, res) => {
+// Update Region by id
+export const updateRegion = async (req, res) => {
   try {
-    const region = await updateRegion(req.params.id, req.body);
-    res.status(200).json(region);
+    const region = await updateRegionService(req.params.id, req.body);
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Region updated successfully.",
+        region: region,
+      });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const deleteRegionController = async (req, res) => {
+
+// Delete Region by id
+export const deleteRegion = async (req, res) => {
   try {
-    await deleteRegion(req.params.id);
-    res.status(204).send();
+    await deleteRegionService(req.params.id);
+    res
+      .status(200)
+      .json({ success: true, message: "Region deleted successfully." });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ success: true, message: error.message });
   }
 };
