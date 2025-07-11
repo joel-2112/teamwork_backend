@@ -47,23 +47,29 @@ export const createEventController = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Event created successfully.",
-      event: {
-        event,
-        images: imageRecords
-      },
+      event: [
+        {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          eventDate: event.eventDate,
+          location: event.location,
+          createdAt: event.createdAt,
+          updatedAt: event.updatedAt,
+          images: imageRecords,
+        },
+      ],
     });
   } catch (error) {
     if (
       error instanceof Sequelize.UniqueConstraintError ||
       error.name === "SequelizeUniqueConstraintError"
     ) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "Event with the same title, location and event date already exist",
-        });
+      return res.status(400).json({
+        success: false,
+        message:
+          "Event with the same title, location and event date already exist",
+      });
     }
 
     res.status(500).json({ success: false, message: error.message });
@@ -104,7 +110,7 @@ export const getEventByIdController = async (req, res) => {
       event: event,
     });
   } catch (error) {
-    res.status(404).json({success: false, message: error.message });
+    res.status(404).json({ success: false, message: error.message });
   }
 };
 
@@ -178,7 +184,7 @@ export const updateEventController = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).json({success: false,  message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
