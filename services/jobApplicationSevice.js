@@ -93,8 +93,9 @@ export const updateApplicationStatusService = async (id, status) => {
   });
 
   if (!application) throw new Error("Job application not found");
-  if (application.status !== "applied" || application.status !== "reviewed")
-    throw new Error("Application status with out 'applied' and 'reviewd' can not update.");
+ if (application.status !== "applied" && application.status !== "reviewed")
+  throw new Error("Application status other than 'applied' or 'reviewed' cannot be updated.");
+
 
   // Update status
   const updatedApplication = await application.update({ status });
