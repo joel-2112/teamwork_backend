@@ -4,7 +4,6 @@ import path from "path";
 import db from "../models/index.js";
 const { Job, JobApplication, User } = db;
 
-
 // Create job
 export const createJobApplicationService = async (data) => {
   const job = await Job.findByPk(data.jobId);
@@ -23,7 +22,6 @@ export const createJobApplicationService = async (data) => {
 
   return await JobApplication.create(data);
 };
-
 
 // Retrieve all applications for one job by jobId and change the status of application into reviewed
 export const getApplicationsByJobIdService = async (
@@ -88,15 +86,15 @@ export const getApplicationByIdService = async (id) => {
   return application;
 };
 
-
-// Update only applied application status 
+// Update only applied application status
 export const updateApplicationStatusService = async (id, status) => {
   const application = await JobApplication.findByPk(id, {
     include: [{ model: Job, attributes: ["title"] }],
   });
 
   if (!application) throw new Error("Job application not found");
-  if(application.status !== "applied") throw new Error("Application status with out 'applied' can not update.")
+  if (application.status !== "applied" || application.status !== "reviewed")
+    throw new Error("Application status with out 'applied' and 'reviewd' can not update.");
 
   // Update status
   const updatedApplication = await application.update({ status });
@@ -112,8 +110,6 @@ export const updateApplicationStatusService = async (id, status) => {
   return updatedApplication;
 };
 
-
-
 // Delete application by id with  its resume
 export const deleteApplicationService = async (id) => {
   const application = await JobApplication.findByPk(id);
@@ -121,20 +117,19 @@ export const deleteApplicationService = async (id) => {
 
   // Delete the resume file if it exists
   if (application.resume) {
-      const resumePath = path.join(
-        process.cwd(),
-        "uploads/documents",
-        path.basename(application.resume)
-      );
-      try {
-        await fs.promises.unlink(resumePath);
-        console.log(`Deleted image file: ${resumePath}`);
-      } catch (err) {
-        console.error(`Error deleting image file: ${err.message}`);
-      }
+    const resumePath = path.join(
+      process.cwd(),
+      "uploads/documents",
+      path.basename(application.resume)
+    );
+    try {
+      await fs.promises.unlink(resumePath);
+      console.log(`Deleted image file: ${resumePath}`);
+    } catch (err) {
+      console.error(`Error deleting image file: ${err.message}`);
     }
+  }
 
   // Delete the application from the DB
   return await application.destroy();
 };
-

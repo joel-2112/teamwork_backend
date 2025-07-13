@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 
 const { Agent, Woreda, Zone, Region } = db;
 
-export const createAgent = async (data) => {
+export const createAgentService = async (data) => {
   const { regionId, zoneId, woredaId } = data;
 
   const region = await Region.findByPk(regionId);
@@ -11,14 +11,36 @@ export const createAgent = async (data) => {
 
   const zone = await Zone.findByPk(zoneId);
   if (!zone) throw new Error("Invalid Zone");
+  if (regionId !== zone.regionId)
+    throw new Error(
+      ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
+    );
 
   const woreda = await Woreda.findByPk(woredaId);
   if (!woreda) throw new Error("Invalid Woreda");
+  if (zoneId !== woreda.zoneId)
+    throw new Error(
+      `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
+    );
 
-  return await Agent.create(data);
+  const agent = await Agent.create(data);
+
+  // Convert to plain object and replace IDs with names
+  const agentData = agent.toJSON();
+
+  return {
+    ...agentData,
+    region: region.name,
+    zone: zone.name,
+    woreda: woreda.name,
+  };
 };
 
-export const getAllAgents = async (page = 1, limit = 10, filters = {}) => {
+export const getAllAgentsService = async (
+  page = 1,
+  limit = 10,
+  filters = {}
+) => {
   console.log("getAllAgents filters:", filters);
   const { search } = filters;
   const where = {};
@@ -55,7 +77,7 @@ export const getAllAgents = async (page = 1, limit = 10, filters = {}) => {
   }
 };
 
-export const getAgentById = async (id) => {
+export const getAgentByIdService = async (id) => {
   const agent = await Agent.findByPk(id, {
     include: [
       { model: Region, as: "Region", required: false },
@@ -67,7 +89,7 @@ export const getAgentById = async (id) => {
   return agent;
 };
 
-export const updateAgent = async (id, data) => {
+export const updateAgentService = async (id, data) => {
   const agent = await Agent.findByPk(id);
   if (!agent) throw new Error("Agent not found");
 
@@ -89,7 +111,7 @@ export const updateAgent = async (id, data) => {
   return await agent.update(data);
 };
 
-export const deleteAgent = async (id) => {
+export const deleteAgentService = async (id) => {
   const agent = await Agent.findByPk(id);
   if (!agent) throw new Error("Agent not found");
   return await agent.destroy();
