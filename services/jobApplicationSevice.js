@@ -134,3 +134,31 @@ export const deleteApplicationService = async (id) => {
   // Delete the application from the DB
   return await application.destroy();
 };
+
+// User can get all their job applications
+export const getAllMyJobApplicationService = async (userId) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+
+  const userEmail = user.email;
+  const applications = await JobApplication.findAll({
+    where: { applicantEmail: userEmail },
+    include: [{ model: Job, as: "Job" }],
+    order: [["createdAt", "DESC"]],
+  });
+
+  if (!applications || applications.length === 0) {
+    throw new Error("No job applications found for this user");
+  }
+
+  // Return the applications
+  applications.forEach((app) => {
+    app.resume = path.join(
+      process.cwd(),
+      "uploads/documents",
+      path.basename(app.resume)
+    );
+  });
+
+  return applications;
+};

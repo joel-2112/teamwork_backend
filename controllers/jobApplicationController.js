@@ -4,6 +4,7 @@ import {
   getApplicationByIdService,
   updateApplicationStatusService,
   deleteApplicationService,
+  getAllMyJobApplicationService
 } from "../services/jobApplicationSevice.js";
 import { Sequelize } from "sequelize";
 import fs from "fs";
@@ -118,5 +119,15 @@ export const deleteJobApplication = async (req, res) => {
       .json({ success: true, message: "Application deleted successfully." });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+
+export const getAllMyJobApplication = async (req, res) => {
+  try {
+    const applications = await getAllMyJobApplicationService(req.user.id);
+    res.status(200).json({ success: true, applications: applications });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 };
