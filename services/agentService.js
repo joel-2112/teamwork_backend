@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 
 const { Agent, Woreda, Zone, Region } = db;
 
+// Create ( send agent request ) agent
 export const createAgentService = async (data) => {
   const { regionId, zoneId, woredaId } = data;
 
@@ -36,6 +37,8 @@ export const createAgentService = async (data) => {
   };
 };
 
+
+// Retrieve all agent 
 export const getAllAgentsService = async (
   page = 1,
   limit = 10,
@@ -77,6 +80,8 @@ export const getAllAgentsService = async (
   }
 };
 
+
+// Retrieve agent by ID
 export const getAgentByIdService = async (id) => {
   const agent = await Agent.findByPk(id, {
     include: [
@@ -89,6 +94,8 @@ export const getAgentByIdService = async (id) => {
   return agent;
 };
 
+
+// Update agent by ID
 export const updateAgentService = async (id, data) => {
   const agent = await Agent.findByPk(id);
   if (!agent) throw new Error("Agent not found");
@@ -111,6 +118,7 @@ export const updateAgentService = async (id, data) => {
   return await agent.update(data);
 };
 
+// Delete agent by ID
 export const deleteAgentService = async (id) => {
   const agent = await Agent.findByPk(id);
   if (!agent) throw new Error("Agent not found");
