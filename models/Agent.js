@@ -40,7 +40,7 @@ export default (db, DataTypes) => {
         allowNull: false,
       },
       agentStatus: {
-        type: DataTypes.ENUM([ "pending", "reviewed", "accepted", "rejected"]),
+        type: DataTypes.ENUM(["pending", "reviewed", "accepted", "rejected"]),
         allowNull: false,
         defaultValue: "pending",
       },
@@ -105,6 +105,19 @@ export default (db, DataTypes) => {
         },
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
+      },
+      isDeleted: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      deletedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: "users",
+          key: "id",
+        },
       },
     },
     {

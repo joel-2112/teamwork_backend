@@ -1,7 +1,7 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
 
-const { Agent, Woreda, Zone, Region } = db;
+const { Agent, Woreda, Zone, Region, User, Role } = db;
 
 // Create ( send agent request ) agent
 export const createAgentService = async (data) => {
@@ -37,8 +37,7 @@ export const createAgentService = async (data) => {
   };
 };
 
-
-// Retrieve all agent 
+// Retrieve all agent
 export const getAllAgentsService = async (
   page = 1,
   limit = 10,
@@ -46,7 +45,7 @@ export const getAllAgentsService = async (
 ) => {
   console.log("getAllAgents filters:", filters);
   const { search } = filters;
-  const where = {};
+  const where = { isDeleted: false };
 
   if (search) {
     where[Op.or] = [
@@ -80,25 +79,38 @@ export const getAllAgentsService = async (
   }
 };
 
-
 // Retrieve agent by ID
 export const getAgentByIdService = async (id) => {
   const agent = await Agent.findByPk(id, {
+    where: { isDeleted: false },
     include: [
       { model: Region, as: "Region", required: false },
       { model: Zone, as: "Zone", required: false },
       { model: Woreda, as: "Woreda", required: false },
     ],
   });
+
   if (!agent) throw new Error("Agent not found");
+
+  agent.agentStatus = "reviewed"; 
+  await agent.save();
+
   return agent;
 };
 
-
 // Update agent by ID
-export const updateAgentService = async (id, data) => {
-  const agent = await Agent.findByPk(id);
+export const updateAgentDataService = async (agentId, userId, data) => {
+  const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
   if (!agent) throw new Error("Agent not found");
+
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+
+  if (agent.email !== user.email)
+    throw new Error("User email does not match agent email");
+
+  if (agent.agentStatus !== "pending" && agent.agentStatus !== "reviewed")
+    throw new Error("Agent status is not pending or reviewed, cannot update");
 
   if (data.regionId) {
     const region = await Region.findByPk(data.regionId);
@@ -108,19 +120,121 @@ export const updateAgentService = async (id, data) => {
   if (data.zoneId) {
     const zone = await Zone.findByPk(data.zoneId);
     if (!zone) throw new Error("Invalid Zone");
+    if (data.regionId !== zone.regionId)
+      throw new Error(
+        `Zone ${zone.name} is not in region ${data.regionId}, please enter correct zone.`
+      );
   }
 
   if (data.woredaId) {
     const woreda = await Woreda.findByPk(data.woredaId);
     if (!woreda) throw new Error("Invalid Woreda");
+    if (data.zoneId !== woreda.zoneId)
+      throw new Error(
+        `Woreda ${woreda.name} is not in zone ${data.zoneId}, please enter correct woreda.`
+      );
   }
 
   return await agent.update(data);
 };
 
-// Delete agent by ID
-export const deleteAgentService = async (id) => {
-  const agent = await Agent.findByPk(id);
+// Update agent Status by ID
+export const updateAgentStatusService = async (id, status) => {
+  const agent = await Agent.findByPk(id, { where: { isDeleted: false } });
   if (!agent) throw new Error("Agent not found");
-  return await agent.destroy();
+
+  const email = agent.email;
+  const user = await User.findOne({ where: { email } });
+  if (!user) throw new Error("User not found");
+
+  const wasAccepted = agent.agentStatus === "accepted"; // current status before update
+
+  const updatedAgent = await agent.update({ agentStatus: status });
+
+  if (status === "accepted" && !wasAccepted) {
+    const role = await Role.findOne({ where: { name: "agent" } });
+    if (!role) throw new Error("Agent role not found");
+
+    if (user.roleId !== role.id) {
+      user.roleId = role.id;
+      await user.save();
+    }
+  }
+
+  return updatedAgent;
 };
+
+// Delete agent by ID
+export const deleteAgentService = async (userId, agentId) => {
+  const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
+  if (!agent) throw new Error("Agent not found");
+
+  agent.isDeleted = true;
+  agent.deletedBy = userId;
+  await agent.save();
+
+  return agent;
+};
+
+// Retrieve all deleted agent
+export const getAllDeletedAgentService = async ({
+  page = 1,
+  limit = 10,
+  fullName,
+  profession,
+  email,
+  search,
+} = {}) => {
+  const where = { isDeleted: true };
+  const offset = (page - 1) * limit;
+
+  if (fullName) where.fullName = fullName;
+  if (profession) where.profession = profession;
+  if (email) where.email = email;
+  if (search) {
+    where[Op.or] = [
+      { fullName: { [Op.iLike]: `%${search}%` } },
+      { profession: { [Op.iLike]: `%${search}%` } },
+      { email: { [Op.iLike]: `%${search}%` } },
+    ];
+  }
+  const { count, rows } = await Agent.findAndCountAll({
+    where,
+    include: [
+      {
+        model: User,
+        attributes: ["name", "email", "id"],
+      },
+    ],
+    distinct: true,
+    order: [["createdAt", "ASC"]],
+    page: parseInt(page),
+    limit: parseInt(limit),
+  });
+
+  return {
+    total: count,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    deletedAgent: rows,
+  };
+};
+
+
+// Get my agent request
+export const getMyAgentRequestService = async (userId) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+  
+  const agent = await Agent.findOne({
+    where: { email: user.email, isDeleted: false },
+    include: [
+      { model: Region, as: "Region", required: false },
+      { model: Zone, as: "Zone", required: false },
+      { model: Woreda, as: "Woreda", required: false },
+    ],
+  });
+  if (!agent) throw new Error("Agent request not found");
+
+  return agent;
+}

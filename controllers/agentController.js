@@ -1,9 +1,13 @@
+import { agent } from "supertest";
 import {
   createAgentService,
   getAllAgentsService,
   getAgentByIdService,
-  updateAgentService,
+  updateAgentDataService,
   deleteAgentService,
+  updateAgentStatusService,
+  getAllDeletedAgentService,
+  getMyAgentRequestService
 } from "../services/agentService.js";
 
 export const createAgent = async (req, res) => {
@@ -49,8 +53,26 @@ export const getAgentById = async (req, res) => {
 
 export const updateAgent = async (req, res) => {
   try {
-    const agent = await updateAgentService(req.params.id, req.body);
+    const agentId = req.params.id;
+    const userId = req.user.id;
+    const agent = await updateAgentDataService(agentId, userId, req.body);
     res.status(200).json(agent);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const updateAgentStatus = async (req, res) => {
+  try {
+    const { agentStatus } = req.body;
+    const agent = await updateAgentStatusService(req.params.id, agentStatus);
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Agent status updated successfully.",
+        agent: agent,
+      });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -58,9 +80,50 @@ export const updateAgent = async (req, res) => {
 
 export const deleteAgent = async (req, res) => {
   try {
-    await deleteAgentService(req.params.id);
-    res.status(204).send();
+    const userId = req.user.id;
+    const agentId = req.params.id;
+
+    const deletedAgent = await deleteAgentService(userId, agentId);
+
+    res.status(200).json({
+      success: true,
+      message: `Agent with id ${agentId} is successfully deleted.`,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+export const getAllDeletedAgent = async (req, res) => {
+  try {
+    const { page, limit } = req.query;
+    const deletedAgents = await getAllDeletedAgentService({
+      page,
+      limit,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "All deleted agent is successfully retrieved.",
+      deletedAgents: deletedAgents,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getMyAgentRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const agentRequest = await getMyAgentRequestService(userId);
+    res.status(200).json({
+      success: true,
+      message: "My agent request retrieved successfully.",
+      myRequest: agentRequest,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ success: false, message: error.message });
   }
 };
