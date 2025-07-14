@@ -1,18 +1,21 @@
 // routes/serviceRoutes.js
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import  {
+import {
   createService,
   getAllServices,
   getServiceById,
   updateService,
   deleteService,
-} from '../controllers/serviceController.js';
+} from "../controllers/serviceController.js";
+import { protect, requireRole } from "../middlewares/authMiddleware.js";
+import upload from "../middlewares/upload.js";
 
-router.post('/', createService);
-router.get('/', getAllServices);
-router.get('/:id', getServiceById);
-router.put('/:id', updateService);
-router.delete('/:id', deleteService);
+
+router.post("/create-service", upload.array("pictures", 5), protect, requireRole('admin'), createService);
+router.put("/update/:id", upload.array("pictures", 5), protect, requireRole('admin'), updateService);
+router.delete("/delete/:id", protect, requireRole('admin'), deleteService);
+router.get("/all-services", getAllServices);
+router.get("/service/:id", getServiceById);
 
 export default router;

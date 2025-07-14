@@ -11,7 +11,6 @@ import { saveImageToDisk } from "../utils/saveImage.js";
 import { Sequelize } from "sequelize";
 import fs from "fs";
 import path from "path";
-import images from "../models/images.js";
 
 // Create event
 export const createEventController = async (req, res) => {

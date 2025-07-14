@@ -55,7 +55,7 @@ export const getAllEvents = async ({
   };
 };
 
-//Retrieve event by id
+// Retrieve event by id
 export const getEventById = async (id) => {
   const event = await Event.findOne({
     where: { id },
