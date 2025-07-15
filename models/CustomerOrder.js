@@ -1,7 +1,7 @@
 // models/CustomerOrder.js
 export default (db, DataTypes) => {
-  const ServiceOrder = db.define(
-    "ServiceOrder",
+  const CustomerOrder = db.define(
+    "CustomerOrder",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -131,14 +131,6 @@ export default (db, DataTypes) => {
         allowNull: false,
         defaultValue: "pending",
       },
-      serviceId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: "services",
-          key: "id",
-        },
-      },
       isDeleted: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -154,17 +146,10 @@ export default (db, DataTypes) => {
       },
     },
     {
-      tableName: "service_orders",
+      tableName: "customer_orders",
       timestamps: true,
-      indexes: [
-        { fields: ["country"] },
-        { fields: ["status"] },
-        { fields: ["regionId"] },
-        { fields: ["zoneId"] },
-        { fields: ["woredaId"] },
-      ],
     }
   );
 
-  return ServiceOrder;
+  return CustomerOrder;
 };

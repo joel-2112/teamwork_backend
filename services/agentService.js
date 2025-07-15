@@ -5,7 +5,10 @@ const { Agent, Woreda, Zone, Region, User, Role } = db;
 
 // Create ( send agent request ) agent
 export const createAgentService = async (data) => {
-  const { regionId, zoneId, woredaId } = data;
+  const { regionId, zoneId, woredaId, email } = data;
+
+  const isExist = await Agent.findOne({where: {email: email}});
+  if(isExist) throw new Error("You have already submitted agent request")
 
   const region = await Region.findByPk(regionId);
   if (!region) throw new Error("Invalid Region");
