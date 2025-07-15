@@ -13,7 +13,7 @@ import WoredaModel from "./Woreda.js";
 import NewsModel from "./News.js";
 import EventModel from "./Event.js";
 import PartnershipModel from "./Partnership.js";
-import CustomerOrderModel from "./CustomerOrder.js";
+import ServiceOrderModel from "./ServiceOrder.js";
 import UserFeedbackModel from "./UserFeadback.js";
 import AboutModel from "./About.js";
 import ServiceModel from "./Service.js";
@@ -32,7 +32,7 @@ const Woreda = WoredaModel(db, DataTypes);
 const News = NewsModel(db, DataTypes);
 const Event = EventModel(db, DataTypes);
 const Partnership = PartnershipModel(db, DataTypes);
-const CustomerOrder = CustomerOrderModel(db, DataTypes);
+const ServiceOrder = ServiceOrderModel(db, DataTypes);
 const UserFeedback = UserFeedbackModel(db, DataTypes);
 const About = AboutModel(db, DataTypes);
 const Service = ServiceModel(db, DataTypes);
@@ -52,7 +52,7 @@ const models = {
   User,
   RefreshToken,
   Partnership,
-  CustomerOrder,
+  ServiceOrder,
   UserFeedback,
   About,
   Service,
@@ -97,15 +97,15 @@ Agent.belongsTo(Woreda, {
   as: "Woreda",
 });
 
-CustomerOrder.belongsTo(Region, {
+ServiceOrder.belongsTo(Region, {
   foreignKey: "regionId",
   as: "Region",
 });
-CustomerOrder.belongsTo(Zone, {
+ServiceOrder.belongsTo(Zone, {
   foreignKey: "zoneId",
   as: "Zone",
 });
-CustomerOrder.belongsTo(Woreda, {
+ServiceOrder.belongsTo(Woreda, {
   foreignKey: "woredaId",
   as: "Woreda",
 });
@@ -129,6 +129,12 @@ User.hasMany(Agent, {
 Agent.belongsTo(User, {
   foreignKey: "deletedBy",
 });
+
+Service.hasMany(ServiceOrder, {
+  foreignKey: "serviceId",
+});
+ServiceOrder.belongsTo(Service, { foreignKey: "serviceId" });
+
 export default {
   sequelize: db,
   Sequelize,

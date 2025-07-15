@@ -42,32 +42,14 @@ export default (db, DataTypes) => {
       manualRegion: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-          notEmpty: {
-            msg: "Manual region is required for non-Ethiopian customers",
-            when: (order) => order.country !== "Ethiopia" && !order.regionId,
-          },
-        },
       },
       manualZone: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-          notEmpty: {
-            msg: "Manual zone is required for non-Ethiopian customers",
-            when: (order) => order.country !== "Ethiopia" && !order.zoneId,
-          },
-        },
       },
       manualWoreda: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-          notEmpty: {
-            msg: "Manual woreda/city is required for non-Ethiopian customers",
-            when: (order) => order.country !== "Ethiopia" && !order.woredaId,
-          },
-        },
       },
       sector: {
         type: DataTypes.STRING,
@@ -103,6 +85,13 @@ export default (db, DataTypes) => {
           notEmpty: true,
         },
       },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          isEmail: true,
+        },
+      },
       phoneNumber1: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -128,13 +117,13 @@ export default (db, DataTypes) => {
       requirementFile: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-          isUrl: true,
-        },
       },
       status: {
         type: DataTypes.ENUM([
           "pending",
+          "reviewed",
+          "accepted",
+          "rejected",
           "in_progress",
           "completed",
           "cancelled",
@@ -142,9 +131,30 @@ export default (db, DataTypes) => {
         allowNull: false,
         defaultValue: "pending",
       },
+      serviceId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: "services",
+          key: "id",
+        },
+      },
+      isDeleted: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      deletedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: "users",
+          key: "id",
+        },
+      },
     },
     {
-      tableName: "customer_orders",
+      tableName: "service_orders",
       timestamps: true,
       indexes: [
         { fields: ["country"] },

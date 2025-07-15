@@ -143,10 +143,10 @@ export const updateAgentStatusService = async (id, status) => {
   const agent = await Agent.findByPk(id, { where: { isDeleted: false } });
   if (!agent) throw new Error("Agent not found");
 
-  const email = agent.email;
-  const user = await User.findOne({ where: { email } });
-  if (!user) throw new Error("User not found");
+   const user = await User.findOne({ where: { email: agent.email } });
+   if (!user) throw new Error("User not found");
 
+   
   const wasAccepted = agent.agentStatus === "accepted"; // current status before update
 
   const updatedAgent = await agent.update({ agentStatus: status });
