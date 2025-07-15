@@ -5,10 +5,13 @@ const { Agent, Woreda, Zone, Region, User, Role } = db;
 
 // Create ( send agent request ) agent
 export const createAgentService = async (data) => {
-  const { regionId, zoneId, woredaId, email } = data;
+  const { regionId, zoneId, woredaId, email, phoneNumber } = data;
 
   const isExist = await Agent.findOne({where: {email: email}});
-  if(isExist) throw new Error("You have already submitted agent request")
+  if(isExist) throw new Error("You have already submitted agent request");
+
+  const phoneCheck = await Agent.findOne({where: {phoneNumber: phoneNumber}});
+  if(phoneCheck) throw new Error("You have already used this phone number");
 
   const region = await Region.findByPk(regionId);
   if (!region) throw new Error("Invalid Region");
