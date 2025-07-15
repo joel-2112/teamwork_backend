@@ -7,7 +7,8 @@ import {
   deleteAgentService,
   updateAgentStatusService,
   getAllDeletedAgentService,
-  getMyAgentRequestService
+  getMyAgentRequestService,
+  getAllApprovedAgentsService
 } from "../services/agentService.js";
 
 export const createAgent = async (req, res) => {
@@ -121,6 +122,22 @@ export const getMyAgentRequest = async (req, res) => {
       success: true,
       message: "My agent request retrieved successfully.",
       myRequest: agentRequest,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+
+export const getAllApprovedAgents = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const approvedAgents = await getAllApprovedAgentsService({ page, limit });
+    res.status(200).json({
+      success: true,
+      message: "All approved agents retrieved successfully.",
+      agents: approvedAgents,
     });
   } catch (error) {
     console.error(error);

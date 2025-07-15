@@ -92,7 +92,7 @@ export const getAgentByIdService = async (id) => {
 
   if (!agent) throw new Error("Agent not found");
 
-  agent.agentStatus = "reviewed"; 
+  agent.agentStatus = "reviewed";
   await agent.save();
 
   return agent;
@@ -220,12 +220,11 @@ export const getAllDeletedAgentService = async ({
   };
 };
 
-
 // Get my agent request
 export const getMyAgentRequestService = async (userId) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
-  
+
   const agent = await Agent.findOne({
     where: { email: user.email, isDeleted: false },
     include: [
@@ -237,4 +236,20 @@ export const getMyAgentRequestService = async (userId) => {
   if (!agent) throw new Error("Agent request not found");
 
   return agent;
-}
+};
+
+// Get all approved agents
+export const getAllApprovedAgentsService = async ( { page=1, limit=10 } = {}) => {
+  const offset = (page - 1) * limit;
+  return await Agent.findAll({
+    where: { agentStatus: "accepted", isDeleted: false },
+    include: [
+      { model: Region, as: "Region", required: false },
+      { model: Zone, as: "Zone", required: false },
+      { model: Woreda, as: "Woreda", required: false },
+    ],
+    order: [["createdAt", "ASC"]],
+    limit: parseInt(limit),
+    page: parseInt(page), 
+  });
+};

@@ -5,7 +5,7 @@ import {
   updateOrder,
   deleteOrder,
   updateOrderStatus,
-} from '../services/customerOrderService.js';
+} from "../services/customerOrderService.js";
 
 export const getAllOrdersController = async (req, res) => {
   try {
@@ -23,7 +23,7 @@ export const getAllOrdersController = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Controller error in getAllOrders:', error);
+    console.error("Controller error in getAllOrders:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

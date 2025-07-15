@@ -8,7 +8,8 @@ import {
   deleteAgent,
   updateAgentStatus,
   getAllDeletedAgent,
-  getMyAgentRequest
+  getMyAgentRequest,
+  getAllApprovedAgents
 } from "../controllers/agentController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
@@ -20,4 +21,5 @@ router.delete("/delete/:id", protect, requireRole("admin"), deleteAgent);
 router.put("/update-status/:id", protect, requireRole("admin"), updateAgentStatus);
 router.get("/deleted-agents", protect, requireRole("admin"), getAllDeletedAgent);
 router.get("/my-request", protect, getMyAgentRequest);
+router.get("/approved-agents", getAllApprovedAgents);
 export default router;
