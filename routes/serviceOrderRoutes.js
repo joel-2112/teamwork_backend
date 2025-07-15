@@ -6,7 +6,7 @@ import {
   getOrderById,
   updateOrder,
   deleteOrder,
-  updateCustomerOrderStatus,
+  updateServiceOrderStatus,
   cancelOrder,
   getMyOrders
 } from "../controllers/serviceOrderController.js";
@@ -19,7 +19,7 @@ router.get("/all-orders", protect, requireRole('admin'), getAllOrders);
 router.get("/order/:id", protect, requireRole('admin'), getOrderById);
 router.put("/update/:id", protect, updateOrder);
 router.delete("/delete/:id", protect, deleteOrder);
-router.put("/update-status/:id", protect, requireRole('admin'), updateCustomerOrderStatus);
+router.put("/update-status/:id", protect, requireRole('admin'), updateServiceOrderStatus);
 router.put("/cancel-order/:id", protect, cancelOrder);
 router.get("/my-orders", protect, getMyOrders);
 

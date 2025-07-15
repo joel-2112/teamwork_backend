@@ -144,7 +144,7 @@ export const deleteOrder = async (req, res) => {
   }
 };
 
-export const updateCustomerOrderStatus = async (req, res) => {
+export const updateServiceOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const order = await updateOrderStatusService(req.params.id, status);
