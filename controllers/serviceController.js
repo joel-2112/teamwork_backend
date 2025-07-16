@@ -16,29 +16,34 @@ export const createService = async (req, res) => {
   try {
     const { title, description } = req.body;
 
-    // Validate images
-    const files = req.files || [];
-    if (files.length < 1 || files.length > 5) {
-      return res.status(400).json({
-        message: "Please upload between 1 and 5 images for the event.",
-      });
-    }
-
-    // Create service
     const service = await createServiceService({
       title,
       description,
     });
 
-    // Save images and link to the service
-    const imageRecords = await Promise.all(
-      files.map((file) => {
-        const uniqueName = `service-${Date.now()}-${file.originalname}`;
-        saveImageToDisk(file.buffer, uniqueName);
-        const imageUrl = `/uploads/assets/${uniqueName}`;
-        return Image.create({ serviceId: service.id, imageUrl });
-      })
-    );
+    // // Validate images
+    // const files = req.files || [];
+    // if (files.length < 1 || files.length > 5) {
+    //   return res.status(400).json({
+    //     message: "Please upload between 1 and 5 images for the event.",
+    //   });
+    // }
+
+    // // Create service
+    // const service = await createServiceService({
+    //   title,
+    //   description,
+    // });
+
+    // // Save images and link to the service
+    // const imageRecords = await Promise.all(
+    //   files.map((file) => {
+    //     const uniqueName = `service-${Date.now()}-${file.originalname}`;
+    //     saveImageToDisk(file.buffer, uniqueName);
+    //     const imageUrl = `/uploads/assets/${uniqueName}`;
+    //     return Image.create({ serviceId: service.id, imageUrl });
+    //   })
+    // );
 
     res.status(201).json({
       success: true,
@@ -50,7 +55,6 @@ export const createService = async (req, res) => {
           description: service.description,
           createdAt: service.createdAt,
           updatedAt: service.updatedAt,
-          images: imageRecords,
         },
       ],
     });

@@ -20,15 +20,15 @@ export default (sequelize, DataTypes) => {
         },
         onDelete: "CASCADE",
       },
-      serviceId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: "services",
-          key: "id",
-        },
-        onDelete: "CASCADE",
-      },
+      // serviceId: {
+      //   type: DataTypes.INTEGER,
+      //   allowNull: true,
+      //   references: {
+      //     model: "services",
+      //     key: "id",
+      //   },
+      //   onDelete: "CASCADE",
+      // },
     },
     {
       tableName: "images",
