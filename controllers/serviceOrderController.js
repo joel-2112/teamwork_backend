@@ -18,6 +18,7 @@ const { Region, Zone, Woreda } = db;
 // Create service order with requirement file
 export const createServiceOrder = async (req, res) => {
   try {
+    const userId = req.user.id;
     const file = req.file;
     let requirementFilePath = null;
 
@@ -30,7 +31,7 @@ export const createServiceOrder = async (req, res) => {
     }
 
     // Create order in DB
-    const order = await createServiceOrderService(data);
+    const order = await createServiceOrderService(data, userId);
 
     // Save file to disk if uploaded
     if (file && file.fieldname === "requirementFile") {
@@ -89,6 +90,7 @@ export const getAllOrders = async (req, res) => {
     const result = await getAllOrdersService(parseInt(page), parseInt(limit), filters);
     res.status(200).json({
       success: true,
+      message: "All Service Orders retrieved successfully.",
       statistics: {
         total: result.count,
         page: parseInt(page),
@@ -137,7 +139,7 @@ export const deleteOrder = async (req, res) => {
     const userId = req.user.id;
     await deleteOrderService(orderId, userId);
     res
-      .status(204)
+      .status(200)
       .json({ success: true, message: "Order deleted successfully." });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
@@ -148,9 +150,9 @@ export const updateServiceOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const order = await updateOrderStatusService(req.params.id, status);
-    res.status(200).json({ success: true, data: order });
+    res.status(200).json({ success: true, order: order });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 

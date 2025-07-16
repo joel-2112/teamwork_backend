@@ -2,12 +2,22 @@ import db from "../models/index.js";
 import path from "path";
 import fs from "fs";
 import { Sequelize } from "sequelize";
-
+import {
+  createCustomerOrderService,
+  getAllOrdersService,
+  getOrderByIdService,
+  updateOrderService,
+  deleteOrderService,
+  updateOrderStatusService,
+  cancelOrderService,
+  getMyOrdersService
+} from "../services/customerOrderService.js";
 const { Region, Zone, Woreda } = db;
 
-// Create service order with requirement file
-export const createServiceOrder = async (req, res) => {
+// Create customer order with requirement file
+export const createCustomerOrder = async (req, res) => {
   try {
+    const userId = req.user.id;
     const file = req.file;
     let requirementFilePath = null;
 
@@ -20,7 +30,7 @@ export const createServiceOrder = async (req, res) => {
     }
 
     // Create order in DB
-    const order = await createServiceOrderService(data);
+    const order = await createCustomerOrderService(data, userId);
 
     // Save file to disk if uploaded
     if (file && file.fieldname === "requirementFile") {
@@ -69,5 +79,113 @@ export const createServiceOrder = async (req, res) => {
     }
 
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getAllOrders = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search, status } = req.query;
+    const filters = { search, status };
+    const result = await getAllOrdersService(
+      parseInt(page),
+      parseInt(limit),
+      filters
+    );
+    res.status(200).json({
+      success: true,
+      statistics: {
+        total: result.count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(result.count / limit),
+        orders: result.rows,
+      },
+    });
+  } catch (error) {
+    console.error("Controller error in getAllOrders:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getOrderById = async (req, res) => {
+  try {
+    const order = await getOrderByIdService(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: "Order retrieved successfully.",
+      order: order,
+    });
+  } catch (error) {
+    res.status(404).json({ success: false, message: error.message });
+  }
+};
+
+
+export const updateOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const userId = req.user.id;
+    const order = await updateOrderService(orderId, userId, req.body);
+    res.status(200).json({
+      success: true,
+      message: "Order successfully updated.",
+      order: order,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const userId = req.user.id;
+    await deleteOrderService(orderId, userId);
+    res
+      .status(200)
+      .json({ success: true, message: "Order deleted successfully." });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+export const updateServiceOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const order = await updateOrderStatusService(req.params.id, status);
+    res.status(200).json({ success: true, order: order });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+
+export const cancelOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const userId = req.user.id;
+    const order = await cancelOrderService(orderId, userId);
+    res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully.",
+      order: order,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getMyOrders = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const userId = req.user.id;
+    const orders = await getMyOrdersService(userId, page, limit);
+    res.status(200).json({
+      success: true,
+      message: "My orders retrieved successfully.",
+      orders: orders,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 };

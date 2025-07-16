@@ -3,54 +3,39 @@ import { Op } from "sequelize";
 const { ServiceOrder, Region, Zone, Woreda, User } = db;
 
 // To order the service
-export const createServiceOrderService = async (orderData) => {
-  const {
-    country,
-    regionId,
-    zoneId,
-    woredaId,
-    manualRegion,
-    manualZone,
-    manualWoreda,
-    sector,
-    orderTitle,
-    fullName,
-    sex,
-    roleInSector,
-    phoneNumber1,
-    phoneNumber2,
-    shortDescription,
-    requirementFile,
-    serviceId,
-  } = orderData;
+export const createServiceOrderService = async (orderData, userId) => {
 
-  const region = await Region.findByPk(regionId);
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+
+
+  const region = await Region.findByPk(orderData.regionId);
   if (!region) throw new Error("Invalid Region");
 
-  const zone = await Zone.findByPk(zoneId);
+  const zone = await Zone.findByPk(orderData.zoneId);
   if (!zone) throw new Error("Invalid Zone");
-  if (regionId != zone.regionId) {
+  if (orderData.regionId != zone.regionId) {
     throw new Error(
       ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
     );
   }
 
-  const woreda = await Woreda.findByPk(woredaId);
+  const woreda = await Woreda.findByPk(orderData.woredaId);
   if (!woreda) throw new Error("Invalid Woreda");
-  if (zoneId != woreda.zoneId)
+  if (orderData.zoneId != woreda.zoneId)
     throw new Error(
       `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
     );
 
   // Validation for non-Ethiopian customers
-  if (country !== "Ethiopia") {
-    if (!manualRegion) {
+  if (orderData.country !== "Ethiopia") {
+    if (!orderData.manualRegion) {
       throw new Error("Manual region is required for non-Ethiopian customers");
     }
-    if (!manualZone) {
+    if (!orderData.manualZone) {
       throw new Error("Manual zone is required for non-Ethiopian customers");
     }
-    if (!manualWoreda) {
+    if (!orderData.manualWoreda) {
       throw new Error(
         "Manual woreda/city is required for non-Ethiopian customers"
       );
@@ -58,23 +43,10 @@ export const createServiceOrderService = async (orderData) => {
   }
 
   const newOrder = await ServiceOrder.create({
-    country,
-    regionId,
-    zoneId,
-    woredaId,
-    manualRegion,
-    manualZone,
-    manualWoreda,
-    sector,
-    orderTitle,
-    fullName,
-    sex,
-    roleInSector,
-    phoneNumber1,
-    phoneNumber2,
-    shortDescription,
-    requirementFile,
-    serviceId,
+   ...orderData,
+    userId: user.id,
+    email: user.email, 
+    fullName: user.name,
   });
 
   return newOrder;

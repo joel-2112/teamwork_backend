@@ -14,6 +14,7 @@ import NewsModel from "./News.js";
 import EventModel from "./Event.js";
 import PartnershipModel from "./Partnership.js";
 import ServiceOrderModel from "./ServiceOrder.js";
+import CustomerOrderModel from "./CustomerOrder.js";
 import UserFeedbackModel from "./UserFeadback.js";
 import AboutModel from "./About.js";
 import ServiceModel from "./Service.js";
@@ -33,6 +34,7 @@ const News = NewsModel(db, DataTypes);
 const Event = EventModel(db, DataTypes);
 const Partnership = PartnershipModel(db, DataTypes);
 const ServiceOrder = ServiceOrderModel(db, DataTypes);
+const CustomerOrder = CustomerOrderModel(db, DataTypes);
 const UserFeedback = UserFeedbackModel(db, DataTypes);
 const About = AboutModel(db, DataTypes);
 const Service = ServiceModel(db, DataTypes);
@@ -53,6 +55,7 @@ const models = {
   RefreshToken,
   Partnership,
   ServiceOrder,
+  CustomerOrder,
   UserFeedback,
   About,
   Service,
@@ -110,6 +113,18 @@ ServiceOrder.belongsTo(Woreda, {
   as: "Woreda",
 });
 
+CustomerOrder.belongsTo(Region, {
+  foreignKey: "regionId",
+  as: "Region",
+});
+CustomerOrder.belongsTo(Zone, {
+  foreignKey: "zoneId",
+  as: "Zone",
+});
+CustomerOrder.belongsTo(Woreda, {
+  foreignKey: "woredaId",
+  as: "Woreda",
+});
 Event.hasMany(Image, {
   foreignKey: "eventId",
   as: "images",
@@ -134,6 +149,11 @@ Service.hasMany(ServiceOrder, {
   foreignKey: "serviceId",
 });
 ServiceOrder.belongsTo(Service, { foreignKey: "serviceId" });
+
+User.hasMany(CustomerOrder, {
+  foreignKey: "userId",
+});
+CustomerOrder.belongsTo(User, { foreignKey: "userId" });
 
 export default {
   sequelize: db,
