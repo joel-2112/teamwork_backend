@@ -5,12 +5,19 @@ import {
   updatePartnershipService,
   deletePartnershipService,
   updatePartnershipStatusService,
-} from '../services/partershipService.js';
+} from "../services/partershipService.js";
 
 export const createPartnership = async (req, res) => {
   try {
-    const partnership = await createPartnershipService(req.body);
-    res.status(201).json({ success: true, data: partnership });
+    const userId = req.user.id;
+    const partnership = await createPartnershipService(userId, req.body);
+    res
+      .status(201)
+      .json({
+        success: true,
+        message: "Partnership request sent successfully",
+        partnership: partnership,
+      });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
@@ -19,7 +26,12 @@ export const createPartnership = async (req, res) => {
 export const getAllPartnerships = async (req, res) => {
   try {
     const { page, limit, status, ability } = req.query;
-    const partnerships = await getAllPartnershipsService({ page, limit, status, ability });
+    const partnerships = await getAllPartnershipsService({
+      page,
+      limit,
+      status,
+      ability,
+    });
     res.status(200).json({ success: true, data: partnerships });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -56,7 +68,10 @@ export const deletePartnership = async (req, res) => {
 export const updatePartnershipStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const partnership = await updatePartnershipStatusService(req.params.id, status);
+    const partnership = await updatePartnershipStatusService(
+      req.params.id,
+      status
+    );
     res.status(200).json({ success: true, data: partnership });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });

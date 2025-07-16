@@ -1,20 +1,21 @@
 // routes/partnershipRoutes.js
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import  {
+import {
   createPartnership,
   getAllPartnerships,
   getPartnershipById,
   updatePartnership,
   deletePartnership,
   updatePartnershipStatus,
-} from '../controllers/partnershipController.js';
+} from "../controllers/partnershipController.js";
+import { protect, requireRole } from "../middlewares/authMiddleware.js"
 
-router.post('/', createPartnership);
-router.get('/', getAllPartnerships);
-router.get('/:id', getPartnershipById);
-router.put('/:id', updatePartnership);
-router.delete('/:id', deletePartnership);
-router.put('/:id/status', updatePartnershipStatus);
+router.post("/apply-partnership", protect, createPartnership);
+router.get("/all-partnerships",  getAllPartnerships);
+router.get("/partnership/:id", getPartnershipById);
+router.put("/update/:id", updatePartnership);
+router.delete("/delete/:id", deletePartnership);
+router.put("/update-status/:id", updatePartnershipStatus);
 
 export default router;

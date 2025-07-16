@@ -133,7 +133,7 @@ export default (db, DataTypes) => {
       },
       serviceId: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
         references: {
           model: "services",
           key: "id",
@@ -151,6 +151,10 @@ export default (db, DataTypes) => {
           model: "users",
           key: "id",
         },
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
       },
       userId: {
         type: DataTypes.INTEGER,

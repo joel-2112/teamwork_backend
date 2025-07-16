@@ -166,6 +166,7 @@ export const deleteOrderService = async (orderId, userId) => {
   // Soft delete the order
   order.isDeleted = true;
   order.deletedBy = userId;
+  order.deleteAt = new Date();
   await order.save();
 
   return order;

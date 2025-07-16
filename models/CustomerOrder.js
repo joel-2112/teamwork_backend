@@ -144,6 +144,10 @@ export default (db, DataTypes) => {
           key: "id",
         },
       },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,

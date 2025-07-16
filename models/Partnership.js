@@ -35,7 +35,7 @@ export default (db, DataTypes) => {
       allowNull: true,
       validate: {
         notEmpty: {
-          msg: 'Description is required when abilityForPartnership is "other"',
+          msg: 'Description is required when ability for Partnership is "other"',
           when: (partnership) => partnership.abilityForPartnership === 'other',
         },
       },
@@ -59,6 +59,30 @@ export default (db, DataTypes) => {
       type: DataTypes.ENUM(['pending', 'reviewed', 'accepted', 'rejected']),
       allowNull: false,
       defaultValue: 'pending',
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'users', // Assuming you have a Users model
+        key: 'id',
+      },
+    },
+    isDeleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    deletedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users', // Assuming you have a Users model
+        key: 'id',
+      },
     },
   }, {
     tableName: 'partnerships',

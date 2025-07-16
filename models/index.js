@@ -155,6 +155,18 @@ User.hasMany(CustomerOrder, {
 });
 CustomerOrder.belongsTo(User, { foreignKey: "userId" });
 
+User.hasOne(Partnership, {
+  foreignKey: "userId",
+});
+Partnership.belongsTo(User, { foreignKey: "userId" });
+
+User.hasMany(Partnership, {
+  foreignKey: "deletedBy",
+});
+Partnership.belongsTo(User, {
+  foreignKey: "deletedBy",
+});
+
 export default {
   sequelize: db,
   Sequelize,
