@@ -108,101 +108,13 @@ export const getServiceById = async (req, res) => {
 
 export const updateService = async (req, res) => {
   try {
-    const { title, description, replacedImages } = req.body;
+    const { title, description } = req.body;
     const serviceId = req.params.id;
 
-    const service = await Service.findByPk(serviceId, {
-      include: [{ model: Image, as: "images" }],
+    const updatedService = await updateServiceService(serviceId, {
+      title,
+      description,
     });
-
-    if (!service) {
-      return res.status(404).json({ message: "Service not found." });
-    }
-
-    // Update title & description
-    await service.update({ title, description });
-
-    const files = req.files || [];
-    const parsedReplacedImages = replacedImages
-      ? JSON.parse(replacedImages)
-      : [];
-
-    const existingImages = service.images;
-    const existingImageCount = existingImages.length;
-
-    const filesForReplacement = parsedReplacedImages.length;
-    const filesForAdd = files.length - filesForReplacement;
-
-    if (filesForReplacement > 0 && filesForReplacement > files.length) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Not enough uploaded files for the images you want to replace.",
-      });
-    }
-
-    // Replace images
-    const updatedImages = [];
-    for (let i = 0; i < filesForReplacement; i++) {
-      const imageId = parsedReplacedImages[i].imageId;
-      const file = files[i];
-
-      const image = await Image.findOne({ where: { id: imageId, serviceId } });
-
-      if (!image) {
-        return res.status(404).json({
-          success: false,
-          message: `Image with ID ${imageId} not found for this service.`,
-        });
-      }
-
-      // Delete old image from disk
-      const imagePath = path.join(
-        process.cwd(),
-        "uploads/assets",
-        path.basename(image.imageUrl)
-      );
-
-      try {
-        await fs.promises.unlink(imagePath);
-      } catch (err) {
-        console.warn(`Failed to delete old image: ${err.message}`);
-      }
-
-      // Save new image & update record
-      const uniqueName = `service-${Date.now()}-${i}-${file.originalname}`;
-      saveImageToDisk(file.buffer, uniqueName);
-      const imageUrl = `/uploads/assets/${uniqueName}`;
-
-      await image.update({ imageUrl });
-      updatedImages.push(image);
-    }
-
-    // Add new images
-    if (filesForAdd > 0) {
-      const totalAfterAdd =
-        existingImageCount - filesForReplacement + filesForAdd;
-      if (totalAfterAdd > 5) {
-        return res.status(400).json({
-          success: false,
-          message: `Adding ${filesForAdd} image(s) exceeds the max limit of 5 images.`,
-        });
-      }
-
-      for (let i = filesForReplacement; i < files.length; i++) {
-        const file = files[i];
-        const uniqueName = `service-${Date.now()}-${i}-${file.originalname}`;
-        saveImageToDisk(file.buffer, uniqueName);
-        const imageUrl = `/uploads/assets/${uniqueName}`;
-        await Image.create({ serviceId, imageUrl });
-      }
-    }
-
-    // Return updated service with images
-    const updatedService = await Service.findByPk(serviceId, {
-      include: [{ model: Image, as: "images" }],
-    });
-
     return res.status(200).json({
       success: true,
       message: "Service updated successfully.",
