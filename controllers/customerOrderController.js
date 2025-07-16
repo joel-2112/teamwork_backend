@@ -60,7 +60,7 @@ export const createCustomerOrder = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Customer order created successfully.",
-      data: {
+      order: {
         ...order.toJSON(),
         regionName: region?.name || null,
         zoneName: zone?.name || null,
