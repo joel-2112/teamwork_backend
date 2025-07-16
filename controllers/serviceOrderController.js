@@ -6,7 +6,7 @@ import {
   deleteOrderService,
   updateOrderStatusService,
   cancelOrderService,
-  getMyOrdersService
+  getMyOrdersService,
 } from "../services/serviceOrderService.js";
 import db from "../models/index.js";
 import path from "path";
@@ -87,7 +87,11 @@ export const getAllOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, status } = req.query;
     const filters = { search, status };
-    const result = await getAllOrdersService(parseInt(page), parseInt(limit), filters);
+    const result = await getAllOrdersService(
+      parseInt(page),
+      parseInt(limit),
+      filters
+    );
     res.status(200).json({
       success: true,
       message: "All Service Orders retrieved successfully.",
@@ -156,7 +160,6 @@ export const updateServiceOrderStatus = async (req, res) => {
   }
 };
 
-
 export const cancelOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -171,7 +174,6 @@ export const cancelOrder = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
-
 
 export const getMyOrders = async (req, res) => {
   try {

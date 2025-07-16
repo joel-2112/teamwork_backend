@@ -4,31 +4,37 @@ const { ServiceOrder, Region, Zone, Woreda, User } = db;
 
 // To order the service
 export const createServiceOrderService = async (orderData, userId) => {
-
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
 
-
-  const region = await Region.findByPk(orderData.regionId);
-  if (!region) throw new Error("Invalid Region");
-
-  const zone = await Zone.findByPk(orderData.zoneId);
-  if (!zone) throw new Error("Invalid Zone");
-  if (orderData.regionId != zone.regionId) {
-    throw new Error(
-      ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
-    );
+  // Create the service order
+  if (!orderData.serviceId) {
+    throw new Error("Service ID is required to create a service order");
   }
 
-  const woreda = await Woreda.findByPk(orderData.woredaId);
-  if (!woreda) throw new Error("Invalid Woreda");
-  if (orderData.zoneId != woreda.zoneId)
-    throw new Error(
-      `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
-    );
+  if (orderData.country === "Ethiopia") {
+    const region = await Region.findByPk(orderData.regionId);
+    if (!region) throw new Error("Invalid Region");
 
-  // Validation for non-Ethiopian customers
-  if (orderData.country !== "Ethiopia") {
+    const zone = await Zone.findByPk(orderData.zoneId);
+    if (!zone) throw new Error("Invalid Zone");
+    if (orderData.regionId != zone.regionId) {
+      throw new Error(
+        ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
+      );
+    }
+
+    const woreda = await Woreda.findByPk(orderData.woredaId);
+    if (!woreda) throw new Error("Invalid Woreda");
+    if (orderData.zoneId != woreda.zoneId)
+      throw new Error(
+        `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
+      );
+
+    orderData.manualRegion = null;
+    orderData.manualZone = null;
+    orderData.manualWoreda = null;
+  } else {
     if (!orderData.manualRegion) {
       throw new Error("Manual region is required for non-Ethiopian customers");
     }
@@ -40,12 +46,16 @@ export const createServiceOrderService = async (orderData, userId) => {
         "Manual woreda/city is required for non-Ethiopian customers"
       );
     }
+    orderData.regionId = null;
+    orderData.zoneId = null;
+    orderData.woredaId = null;
   }
 
+  // Create the service order
   const newOrder = await ServiceOrder.create({
-   ...orderData,
+    ...orderData,
     userId: user.id,
-    email: user.email, 
+    email: user.email,
     fullName: user.name,
   });
 
@@ -53,7 +63,11 @@ export const createServiceOrderService = async (orderData, userId) => {
 };
 
 // Get all orders with pagination and filtration
-export const getAllOrdersService = async (page = 1, limit = 10, filters = {}) => {
+export const getAllOrdersService = async (
+  page = 1,
+  limit = 10,
+  filters = {}
+) => {
   const { search, status } = filters;
   const where = { isDeleted: false };
 
