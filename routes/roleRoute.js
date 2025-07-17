@@ -8,6 +8,7 @@ import {
   updateRoleById,
   getRoleById,
   deleteRoleById,
+  getAllRoles,
 } from "../controllers/roleController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import { validateRequest } from "../middlewares/validators/validateRequest.js";
@@ -21,6 +22,12 @@ router.post(
   createRoleValidator,
   validateRequest,
   createRoleController
+);
+router.get(
+  "/all-roles",
+  protect,
+  requireRole("admin"),
+  getAllRoles
 );
 router.put(
   "/update-role/:id",

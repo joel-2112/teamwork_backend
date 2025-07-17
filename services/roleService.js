@@ -30,6 +30,24 @@ export const updateRoleByIdService = async (id, name) => {
   return updatedRole;
 };
 
+// get all roles with pagination
+export const getAllRolesService = async (page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+  const where = {};
+  const roles = await Role.findAndCountAll({ 
+    where,
+    limit,
+    offset,
+    order: [["createdAt", "DESC"]],
+  });
+
+  return {
+    total: roles.count,
+    pages: Math.ceil(roles.count / limit),
+    roles: roles.rows,
+  };
+}
+
 // Retrieve all role
 export const getRoleByIdService = async (id) => {
   try {
@@ -41,6 +59,8 @@ export const getRoleByIdService = async (id) => {
     throw new Error("Failed to retrieve all role.", error.message);
   }
 };
+
+
 
 // Service to delete role by id
 export const deleteRoleByIdService = async (id) => {

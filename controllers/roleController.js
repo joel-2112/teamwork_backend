@@ -3,6 +3,7 @@ import {
   updateRoleByIdService,
   getRoleByIdService,
   deleteRoleByIdService,
+  getAllRolesService
 } from "../services/roleService.js";
 
 // Create new role
@@ -19,6 +20,23 @@ export const createRoleController = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+// Get all roles with pagination
+export const getAllRoles = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const roles = await getAllRolesService(Number(page), Number(limit));
+
+    res.status(200).json({
+      success: true,
+      message: "Roles retrieved successfully.",
+      roles: roles,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+}
 
 // Update role by id
 export const updateRoleById = async (req, res) => {
