@@ -116,7 +116,7 @@ export default (db, DataTypes) => {
       },
       requirementFile: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
       },
       status: {
         type: DataTypes.ENUM([
