@@ -182,6 +182,9 @@ export const updatePartnershipStatusService = async (
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
 
+  const partner = await User.findOne({ where: { email: partnership.email}})
+  if(!partner) throw new Error("Partner with this email is not exist");
+
   if (partnership.email === user.email)
     throw new Error("You can not update your own partnership request status");
 
@@ -197,9 +200,9 @@ export const updatePartnershipStatusService = async (
     const role = await Role.findOne({ where: { name: "partner" } });
     if (!role) throw new Error("Partner role not found");
 
-    if (user.roleId !== role.id) {
-      user.roleId = role.id;
-      await user.save();
+    if (partner.roleId !== role.id) {
+      partner.roleId = role.id;
+      await partner.save();
     }
   }
 
