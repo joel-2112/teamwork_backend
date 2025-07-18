@@ -21,13 +21,13 @@ export const createPartnershipService = async (userId, data) => {
     throw new Error("You have already submitted a partnership request with this phone number");
   }
 
-  const checkUserPhone = await User.findOne({
-    where: { phoneNumber: data.phoneNumber },
-  });
+  // const checkUserPhone = await User.findOne({
+  //   where: { phoneNumber: data.phoneNumber },
+  // });
 
-  if (checkUserPhone) {
-    throw new Error("This phone number is already associated with an account");
-  }
+  // if (checkUserPhone) {
+  //   throw new Error("This phone number is already associated with an account");
+  // }
 
   const partnership = await Partnership.create({
     ...data,
