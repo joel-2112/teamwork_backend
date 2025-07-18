@@ -24,7 +24,7 @@ export const createPartnership = async (req, res) => {
 
 export const getAllPartnerships = async (req, res) => {
   try {
-    const { page, limit, status, ability, search } = req.query;
+    const { page, limit, status, abilityForPartnership, search } = req.query;
     const partnerships = await getAllPartnershipsService({
       page,
       limit,

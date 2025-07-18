@@ -60,13 +60,14 @@ export const getAllPartnershipsService = async ({
   page = 1,
   limit = 10,
   status,
-  ability,
+  abilityForPartnership,
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
   const where = { isDeleted: false };
   if (status) where.status = status;
-  if (ability) where.abilityForPartnership = ability;
+  if (abilityForPartnership)
+    where.abilityForPartnership = abilityForPartnership;
   if (search && Op.iLike) {
     where[Op.or] = [
       { fullName: { [Op.iLike]: `%${search}%` } },
