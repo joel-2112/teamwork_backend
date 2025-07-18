@@ -29,7 +29,7 @@ export const getAllPartnerships = async (req, res) => {
       page,
       limit,
       status,
-      ability,
+      abilityForPartnership,
       search,
     });
     res.status(200).json({
