@@ -82,8 +82,24 @@ export const getAllPartnershipsService = async ({
     offset: parseInt(offset),
   });
 
+  const countPending = await Partnership.count({
+    where: { status: "pending", isDeleted: false },
+  });
+  const countReviewed = await Partnership.count({
+    where: { status: "reviewed", isDeleted: false },
+  });
+  const countAccepted = await Partnership.count({
+    where: { status: "accepted", isDeleted: false },
+  });
+  const countRejected = await Partnership.count({
+    where: { status: "rejected", isDeleted: false },
+  });
   return {
     total: count,
+    pending: countPending,
+    accepted: countAccepted,
+    rejected: countRejected,
+    reviewed: countReviewed,
     page: parseInt(page),
     limit: parseInt(limit),
     partnerships: rows,
