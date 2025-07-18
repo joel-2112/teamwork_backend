@@ -121,9 +121,13 @@ export const updatePartnershipStatusService = async (
   userId,
   status
 ) => {
-  const partnership = await Partnership.findOne(partnershipId, {
-    where: { isDeleted: false },
+  const partnership = await Partnership.findOne({
+    where: {
+      id: partnershipId,
+      isDeleted: false,
+    },
   });
+
   if (!partnership) throw new Error("Partnership not found");
 
   const user = await User.findByPk(userId);
