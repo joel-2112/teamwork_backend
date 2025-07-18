@@ -13,6 +13,13 @@ export const createPartnershipService = async (userId, data) => {
       'Description is required when ability for Partnership is "other"'
     );
   }
+
+  const isExist = await Partnership.findOne({
+    where: { userId: user.id, isDeleted: false },
+  });
+  if (isExist) {
+    throw new Error("You have already submitted a partnership request, Please wait for review.");
+  }
   
   const checkPhone = await Partnership.findOne({
     where: { phoneNumber: data.phoneNumber, isDeleted: false },
