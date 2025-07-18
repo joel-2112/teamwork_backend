@@ -184,16 +184,18 @@ export const updatePartnershipStatusService = async (
 
   if (partnership.email === user.email)
     throw new Error("You can not update your own partnership request status");
+
   if (!["pending", "reviewed", "accepted", "rejected"].includes(status)) {
     throw new Error("Invalid status value");
   }
 
+  const previousStatus = partnership.status;
+
   const updatedPartnership = await partnership.update({ status });
 
-  const wasAccepted = partnership.status === "accepted"; // current status before update
-  if (status === "accepted" && !wasAccepted) {
+  if (status === "accepted" && previousStatus !== "accepted") {
     const role = await Role.findOne({ where: { name: "partner" } });
-    if (!role) throw new Error("Agent role not found");
+    if (!role) throw new Error("Partner role not found");
 
     if (user.roleId !== role.id) {
       user.roleId = role.id;
