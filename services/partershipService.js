@@ -1,7 +1,7 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
 
-const { Partnership, User } = db;
+const { Partnership, User, Role } = db;
 
 // send partnership request
 export const createPartnershipService = async (userId, data) => {
@@ -12,6 +12,21 @@ export const createPartnershipService = async (userId, data) => {
     throw new Error(
       'Description is required when ability for Partnership is "other"'
     );
+  }
+  
+  const checkPhone = await Partnership.findOne({
+    where: { phoneNumber: data.phoneNumber, isDeleted: false },
+  });
+  if (checkPhone) {
+    throw new Error("You have already submitted a partnership request with this phone number");
+  }
+
+  const checkUserPhone = await User.findOne({
+    where: { phoneNumber: data.phoneNumber },
+  });
+
+  if (checkUserPhone) {
+    throw new Error("This phone number is already associated with an account");
   }
 
   const partnership = await Partnership.create({
@@ -140,6 +155,18 @@ export const updatePartnershipStatusService = async (
   }
 
   const updatedPartnership = await partnership.update({ status });
+
+    const wasAccepted = partnership.status === "accepted"; // current status before update
+  if (status === "accepted" && !wasAccepted) {
+    const role = await Role.findOne({ where: { name: "partner" } });
+    if (!role) throw new Error("Agent role not found");
+
+    if (user.roleId !== role.id) {
+      user.roleId = role.id;
+      await user.save();
+    }
+  }
+
 
   return updatedPartnership;
 };
