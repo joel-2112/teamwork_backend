@@ -1,5 +1,7 @@
 import { where } from "sequelize";
 import db from "../models/index.js";
+import { Op } from "sequelize";
+
 const { Partnership, User } = db;
 
 // send partnership request
@@ -152,4 +154,3 @@ export const getMyPartnershipsService = async (userId) => {
 
   return partnerships;
 };
-
