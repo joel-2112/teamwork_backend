@@ -1,4 +1,3 @@
-import { where } from "sequelize";
 import db from "../models/index.js";
 import { Op } from "sequelize";
 
@@ -36,10 +35,10 @@ export const getAllPartnershipsService = async ({
   const where = { isDeleted: false };
   if (status) where.status = status;
   if (ability) where.abilityForPartnership = ability;
-  if (search) {
+  if (search && Op.iLike) {
     where[Op.or] = [
-      { fullName: { [Op.ilike]: `%${search}%` } },
-      { email: { [Op.ilike]: `%${search}%` } },
+      { fullName: { [Op.iLike]: `%${search}%` } },
+      { email: { [Op.iLike]: `%${search}%` } },
     ];
   }
 
