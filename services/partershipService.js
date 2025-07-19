@@ -145,8 +145,8 @@ export const updatePartnershipService = async (partnershipId, userId, data) => {
 
 // delete partnership
 export const deletePartnershipService = async (partnershipId, userId) => {
-  const partnership = await Partnership.findOne(partnershipId, {
-    where: { isDeleted: false },
+  const partnership = await Partnership.findOne({
+    where: { id: partnershipId, isDeleted: false },
   });
   if (!partnership) throw new Error("Partnership not found");
 
