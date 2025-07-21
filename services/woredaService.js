@@ -39,6 +39,7 @@ export const getAllWoredasService = async (
   });
 
   return {
+    total: count,
     page: parseInt(page),
     limit: parseInt(limit),
     rows,
