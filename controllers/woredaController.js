@@ -22,11 +22,11 @@ export const createWoreda = async (req, res) => {
   }
 };
 
-
 // Retrieve all woreda
 export const getAllWoredas = async (req, res) => {
   try {
-    const woredas = await getAllWoredasService();
+    const { page, limit, zoneId, search } = req.query;
+    const woredas = await getAllWoredasService(page, limit, zoneId, search);
     res.status(200).json({
       success: true,
       message: "All woredas retrieved successfully.",
@@ -36,7 +36,6 @@ export const getAllWoredas = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // Retrieve woreda by id
 export const getWoredaById = async (req, res) => {
@@ -55,7 +54,7 @@ export const getWoredaById = async (req, res) => {
 // All woredas in one zone
 export const getWoredByZoneId = async (req, res) => {
   try {
-    const  zoneId  = req.params.id;
+    const zoneId = req.params.id;
 
     const { woredas, zoneName } = await getworedaByZoneIdService(zoneId);
 
@@ -68,7 +67,6 @@ export const getWoredByZoneId = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
-
 
 // Update woreda
 export const updateWoreda = async (req, res) => {

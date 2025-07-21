@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { Op } from "sequelize";
 const { Woreda, Zone } = db;
 
 // Create woreda
@@ -12,15 +13,36 @@ export const createWoredaService = async (data) => {
 };
 
 // Retrieve all woreda
-export const getAllWoredasService = async () => {
-  return await Woreda.findAll({
+export const getAllWoredasService = async (
+  page = 1,
+  limit = 10,
+  zoneId,
+  search
+) => {
+  const offset = (page - 1) * limit;
+  const where = {};
+
+  if(zoneId) where.zoneId = zoneId;
+  if (search) where.name = { [Op.iLike]: `%${search}%` };
+
+  const {count, rows} =  await Woreda.findAndCountAll({
+    where,
     include: [
       {
         model: Zone,
-        as: 'zone', // This is required
+        as: "zone", // This is required
       },
     ],
+    distinct: true,
+    page: parseInt(page),
+    limit: parseInt(limit),
   });
+
+  return {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    rows,
+  }
 };
 
 // Retrieve woreda by id
