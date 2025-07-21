@@ -24,7 +24,8 @@ export const createRegion = async (req, res) => {
 // Retrieve all region
 export const getAllRegions = async (req, res) => {
   try {
-    const regions = await getAllRegionsService();
+    const { page, limit, search } = req.query;
+    const regions = await getAllRegionsService( page, limit, search);
     res.status(200).json({
       success: true,
       message: "All region are retrieved successfully.",

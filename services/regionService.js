@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { Op } from "sequelize";
 
 const { Region, Zone, Woreda } = db;
 
@@ -9,8 +10,14 @@ export const createRegionService = async (data) => {
 };
 
 // Get all regions
-export const getAllRegionsService = async () => {
-  return await Region.findAll({
+export const getAllRegionsService = async (page=1, limit = 10, search) => {
+
+  const offset = (page - 1) * limit;
+  const where = {};
+
+    if(search) where.name = { [Op.iLike]: `%${search}%` };
+  const { count, rows } = await Region.findAndCountAll({
+    where,
     include: [
       {
         model: Zone,
@@ -23,7 +30,16 @@ export const getAllRegionsService = async () => {
         ],
       },
     ],
+    distinct: true,
+    offset,
+    limit,
   });
+  return {
+    totalRegion: count,
+    pages: parseInt(page),
+    limit: parseInt(limit),
+    regions: rows,
+  };
 };
 
 // Get region by id
