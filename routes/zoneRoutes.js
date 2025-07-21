@@ -6,15 +6,15 @@ import {
   getZoneById,
   updateZone,
   deleteZone,
-  getZoneByRegionId
+  getZoneByRegionId,
 } from "../controllers/zoneController.js";
-import { protect, requireRole } from '../middlewares/authMiddleware.js'
+import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
-router.post("/create-zone", protect, requireRole('admin'), createZone);
+router.post("/create-zone", protect, requireRole("admin"), createZone);
 router.get("/all-zone", getAllZones);
 router.get("/zone/:id", getZoneById);
-router.get("/region-zone", getZoneByRegionId)
-router.put("/update/:id", protect, requireRole('admin'), updateZone);
-router.delete("/delete/:id", protect, requireRole('admin'), deleteZone);
+router.get("/region-zone", getZoneByRegionId);
+router.put("/update/:id", protect, requireRole("admin"), updateZone);
+router.delete("/delete/:id", protect, requireRole("admin"), deleteZone);
 
 export default router;

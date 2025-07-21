@@ -84,8 +84,8 @@ RefreshToken.belongsTo(User, { foreignKey: "userId", as: "User" });
 Zone.belongsTo(Region, { foreignKey: "regionId" });
 Region.hasMany(Zone, { foreignKey: "regionId" });
 
-Woreda.belongsTo(Zone, { foreignKey: "zoneId" });
-Zone.hasMany(Woreda, { foreignKey: "zoneId" });
+Zone.hasMany(Woreda, { foreignKey: 'zoneId', as: 'woredas' });
+Woreda.belongsTo(Zone, { foreignKey: 'zoneId', as: 'zone' });
 
 Agent.belongsTo(Region, {
   foreignKey: "regionId",

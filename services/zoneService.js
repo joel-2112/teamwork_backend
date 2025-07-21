@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-const { Zone, Region } = db;
+const { Zone, Region, Woreda } = db;
 
 // Create zone if it is not exist in the region of this zone
 export const createZoneService = async (data) => {
@@ -12,10 +12,30 @@ export const createZoneService = async (data) => {
 };
 
 // Retrieve all zone
-export const getAllZonesService = async () => {
-  return await Zone.findAll({
-    include: [Region],
+export const getAllZonesService = async (page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+
+  const { count, rows } = await Zone.findAndCountAll({
+    include: [
+      {
+        model: Woreda,
+        as: "woredas",
+      },
+    ],
+    distinct: true,
+    offset,
+    limit,
   });
+
+  // Count all woredas in all zones
+  const totalWoreda = await Woreda.count();
+
+  return {
+    totalZone: count,
+    totalWoreda,
+    pages: parseInt(page),
+    zones: rows,
+  };
 };
 
 // Retrieve zone by id
@@ -33,7 +53,7 @@ export const getZoneByRegionIdService = async (regionId) => {
     where: { regionId },
   });
   const region = await Region.findByPk(regionId);
-const regionName = region?.name || "Unknown";
+  const regionName = region?.name || "Unknown";
 
   if (!zones || zones.length === 0) {
     throw new Error("This region has no zone.");
