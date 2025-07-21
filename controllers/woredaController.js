@@ -55,7 +55,7 @@ export const getWoredaById = async (req, res) => {
 // All woredas in one zone
 export const getWoredByZoneId = async (req, res) => {
   try {
-    const { zoneId } = req.params.id;
+    const  zoneId  = req.params.id;
 
     const { woredas, zoneName } = await getworedaByZoneIdService(zoneId);
 
