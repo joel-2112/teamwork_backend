@@ -13,7 +13,7 @@ import { protect, requireRole } from "../middlewares/authMiddleware.js";
 router.post("/create-woreda", protect, requireRole('admin'), createWoreda);
 router.get("/all-woreda", getAllWoredas);
 router.get("/woreda/:id", getWoredaById);
-router.get("/zone-woreda", getWoredByZoneId)
+router.get("/zone-woreda/:id", getWoredByZoneId)
 router.put("/update/:id", protect, requireRole('admin'), updateWoreda);
 router.delete("/delete/:id", protect, requireRole('admin'), deleteWoreda);
 
