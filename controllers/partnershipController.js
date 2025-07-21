@@ -18,8 +18,13 @@ export const createPartnership = async (req, res) => {
       partnership: partnership,
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
+  console.error("Sequelize Error:", error.errors || error);
+  res.status(400).json({
+    success: false,
+    message: error.message || "Something went wrong",
+    errors: error.errors || [],
+  });
+}
 };
 
 export const getAllPartnerships = async (req, res) => {
