@@ -57,7 +57,7 @@ export const getZoneById = async (req, res) => {
 // All zones in one region
 export const getZoneByRegionId = async (req, res) => {
   try {
-    const { regionId } = req.body;
+    const  regionId  = req.params.id;
 
     const { zones, regionName } = await getZoneByRegionIdService(regionId);
 
