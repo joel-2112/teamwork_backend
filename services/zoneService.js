@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { Op } from "sequelize";
 const { Zone, Region, Woreda } = db;
 
 // Create zone if it is not exist in the region of this zone
@@ -12,10 +13,15 @@ export const createZoneService = async (data) => {
 };
 
 // Retrieve all zone
-export const getAllZonesService = async (page = 1, limit = 10) => {
+export const getAllZonesService = async (page = 1, limit = 10, regionId, search) => {
   const offset = (page - 1) * limit;
+  const where = {};
+
+  if(regionId) where.regionId = regionId;
+  if(search) where.name = { [Op.iLike]: `%${search}%` };
 
   const { count, rows } = await Zone.findAndCountAll({
+    where,
     include: [
       {
         model: Woreda,
@@ -31,7 +37,7 @@ export const getAllZonesService = async (page = 1, limit = 10) => {
   const totalWoreda = await Woreda.count();
 
   return {
-    totalZone: count,
+    totalZone: count, 
     totalWoreda,
     pages: parseInt(page),
     zones: rows,

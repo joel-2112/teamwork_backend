@@ -24,10 +24,9 @@ export const createZone = async (req, res) => {
 // Retrieve all zone
 export const getAllZones = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const { page, limit, regionId, search } = req.query;
 
-    const result = await getAllZonesService(page, limit);
+    const result = await getAllZonesService(page, limit, regionId, search);
 
     res.status(200).json({
       success: true,
