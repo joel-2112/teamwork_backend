@@ -8,8 +8,9 @@ import {
   updateAbout,
   deleteAbout,
 } from "../controllers/aboutController.js";
+import upload from "../middlewares/upload.js";
 
-router.post("/", createAbout);
+router.post("/create-about", upload.single("aboutImage"), createAbout);
 router.get("/", getAllAbout);
 router.get("/:id", getAboutById);
 router.put("/:id", updateAbout);

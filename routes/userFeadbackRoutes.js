@@ -1,5 +1,5 @@
 // routes/userFeedbackRoutes.js
-import express from 'express';
+import express from "express";
 const router = express.Router();
 import {
   createUserFeedback,
@@ -8,13 +8,14 @@ import {
   updateUserFeedback,
   deleteUserFeedback,
   updateUserFeedbackStatus,
-} from '../controllers/userFeedbackController.js';
+} from "../controllers/userFeedbackController.js";
+import { protect, requireRole } from "../middlewares/authMiddleware.js"
 
-router.post('/', createUserFeedback);
-router.get('/', getAllUserFeedbacks);
-router.get('/:id', getUserFeedbackById);
-router.put('/:id', updateUserFeedback);
-router.delete('/:id', deleteUserFeedback);
-router.put('/:id/status', updateUserFeedbackStatus);
+router.post("/send-feedback", createUserFeedback);
+router.get("/all-feedbacks", protect, requireRole('admin'), getAllUserFeedbacks);
+router.get("/feedback/:id", protect, requireRole('admin'), getUserFeedbackById);
+router.put("/update/:id", protect, requireRole('admin'), updateUserFeedback);
+router.delete("/delete/:id", protect, requireRole('admin'), deleteUserFeedback);
+router.put("/update-status/:id", protect, requireRole('admin'), updateUserFeedbackStatus);
 
 export default router;

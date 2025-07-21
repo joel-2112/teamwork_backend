@@ -11,14 +11,12 @@ export const createWoredaService = async (data) => {
   return await Woreda.create({ name, zoneId });
 };
 
-
 // Retrieve all woreda
 export const getAllWoredasService = async () => {
   return await Woreda.findAll({
     include: [Zone],
   });
 };
-
 
 // Retrieve woreda by id
 export const getWoredaByIdService = async (id) => {
@@ -35,7 +33,7 @@ export const getworedaByZoneIdService = async (zoneId) => {
     where: { zoneId },
   });
   const zone = await Zone.findByPk(zoneId);
-const zoneName = zone?.name || "Unknown";
+  const zoneName = zone?.name || "Unknown";
 
   if (!woredas || woredas.length === 0) {
     throw new Error("This zone has no woredas.");
@@ -43,7 +41,6 @@ const zoneName = zone?.name || "Unknown";
 
   return { woredas, zoneName };
 };
-
 
 // Update woreda
 export const updateWoredaService = async (id, data) => {
@@ -55,7 +52,6 @@ export const updateWoredaService = async (id, data) => {
   }
   return await woreda.update(data);
 };
-
 
 // Delete woreda
 export const deleteWoredaService = async (id) => {

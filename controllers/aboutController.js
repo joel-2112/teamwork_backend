@@ -1,17 +1,49 @@
+import { create } from "domain";
 import {
   createAboutService,
   getAllAboutService,
   getAboutByIdService,
   updateAboutService,
   deleteAboutService,
-} from '../services/aboutService.js';
+} from "../services/aboutService.js";
+import { saveImageToDisk } from "../utils/saveImage.js";
+import fs from "fs";
+import path from "path";
 
 export const createAbout = async (req, res) => {
   try {
-    const about = await createAboutService(req.body);
-    res.status(201).json({ success: true, data: about });
+    const { title, content, mission, vision, values } = req.body;
+
+    let about = await createAboutService({
+      title,
+      content,
+      mission,
+      vision,
+      values,
+      aboutImage: null, // Initially null, will update after image save
+    });
+
+    // Save image only if DB save is successful
+    if (req.file && req.file.buffer) {
+      const uniqueName = `picture-${Date.now()}${path.extname(req.file.originalname)}`;
+      const savedPath = saveImageToDisk(req.file.buffer, uniqueName);
+      const imageUrl = `${req.protocol}://${req.get('host')}/uploads/assets/${uniqueName}`;
+
+      // Update the aboutImage field in DB
+      await about.update({ aboutImage: imageUrl });
+
+      // Reflect the update in the response
+      about = await about.reload();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "About section created successfully.",
+      about,
+    });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    console.error("Error creating about section:", error);
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 

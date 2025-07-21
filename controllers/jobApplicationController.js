@@ -9,7 +9,6 @@ import {
 import { Sequelize } from "sequelize";
 import fs from "fs";
 import path from "path";
-import { application } from "express";
 
 // Create ( apply for the job ) if the user with the same email and job is not applied
 export const createJobApplication = async (req, res) => {

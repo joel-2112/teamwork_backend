@@ -131,13 +131,12 @@ Event.hasMany(Image, {
   onDelete: "CASCADE",
 });
 Image.belongsTo(Event, { foreignKey: "eventId" });
-Service.hasMany(Image, {
-  foreignKey: "serviceId",
-  as: "images",
-  onDelete: "CASCADE",
-});
-Image.belongsTo(Service, { foreignKey: "serviceId" });
-
+// Service.hasMany(Image, {
+//   foreignKey: "serviceId",
+//   as: "images",
+//   onDelete: "CASCADE",
+// });
+// Image.belongsTo(Service, { foreignKey: "serviceId" });
 User.hasMany(Agent, {
   foreignKey: "deletedBy",
 });
