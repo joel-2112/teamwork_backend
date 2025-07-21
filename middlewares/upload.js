@@ -18,8 +18,7 @@ const fileFilter = (req, file, cb) => {
       imageTypes.includes(file.mimetype)) ||
     (file.fieldname === "document" && docTypes.includes(file.mimetype)) ||
     (file.fieldname === "requirementFile" && docTypes.includes(file.mimetype)) ||
-    (file.fieldname === "aboutImage" &&
-      imageTypes.includes(file.mimetype))
+    (file.fieldname === "aboutImage" && imageTypes.includes(file.mimetype))
   ) {
     cb(null, true);
   } else {

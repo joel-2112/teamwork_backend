@@ -33,10 +33,13 @@ import roleRouote from "./routes/roleRoute.js"
 const app = express();
 const port = process.env.PORT || 5000;
 
+app.use("/uploads", express.static(path.resolve("uploads")));
+
+
 // Serve static files from /uploads with CORS headers
 app.use(
   "/uploads",
-  express.static(path.join("uploads"), {
+  express.static(path.resolve("uploads"), {
     setHeaders: (res, path) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET");
@@ -44,6 +47,7 @@ app.use(
     },
   })
 );
+
 
 
 // Middleware

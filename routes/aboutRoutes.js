@@ -14,6 +14,6 @@ router.post("/create-about", upload.single("aboutImage"), createAbout);
 router.get("/", getAllAbout);
 router.get("/:id", getAboutById);
 router.put("/:id", updateAbout);
-router.delete("/:id", deleteAbout);
+router.delete("/delete/:id", deleteAbout);
 
 export default router;

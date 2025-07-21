@@ -14,36 +14,37 @@ export const createAbout = async (req, res) => {
   try {
     const { title, content, mission, vision, values } = req.body;
 
-    let about = await createAboutService({
+    // Duplicate check
+
+    const existingAbout = await createAboutService({ title, content }, true);
+
+    // Save image to disk only if file exists and about is valid
+    let aboutImage = null;
+    if (req.file) {
+      const uniqueName = `picture-${Date.now()}${path.extname(req.file.originalname)}`;
+      const savedPath = saveImageToDisk(req.file.buffer, uniqueName);
+
+      // Construct full URL from the request
+      aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+    }
+
+    // Now create the about section
+    const about = await createAboutService({
       title,
       content,
+      aboutImage,
       mission,
       vision,
       values,
-      aboutImage: null, // Initially null, will update after image save
     });
 
-    // Save image only if DB save is successful
-    if (req.file && req.file.buffer) {
-      const uniqueName = `picture-${Date.now()}${path.extname(req.file.originalname)}`;
-      const savedPath = saveImageToDisk(req.file.buffer, uniqueName);
-      const imageUrl = `${req.protocol}://${req.get('host')}/uploads/assets/${uniqueName}`;
-
-      // Update the aboutImage field in DB
-      await about.update({ aboutImage: imageUrl });
-
-      // Reflect the update in the response
-      about = await about.reload();
-    }
-
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "About section created successfully.",
       about,
     });
   } catch (error) {
-    console.error("Error creating about section:", error);
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -78,8 +79,10 @@ export const updateAbout = async (req, res) => {
 export const deleteAbout = async (req, res) => {
   try {
     await deleteAboutService(req.params.id);
-    res.status(204).json({ success: true });
+    res
+      .status(200)
+      .json({ success: true, message: "About deleted successfully." });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
