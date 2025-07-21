@@ -14,7 +14,12 @@ export const createWoredaService = async (data) => {
 // Retrieve all woreda
 export const getAllWoredasService = async () => {
   return await Woreda.findAll({
-    include: [Zone],
+    include: [
+      {
+        model: Zone,
+        as: 'zone', // This is required
+      },
+    ],
   });
 };
 

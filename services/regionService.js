@@ -2,7 +2,6 @@ import db from "../models/index.js";
 
 const { Region, Zone, Woreda } = db;
 
-
 // Create region
 export const createRegionService = async (data) => {
   const { name } = data;
@@ -12,7 +11,18 @@ export const createRegionService = async (data) => {
 // Get all regions
 export const getAllRegionsService = async () => {
   return await Region.findAll({
-    include: [{ model: Zone, include: [Woreda] }],
+    include: [
+      {
+        model: Zone,
+        as: "Zones", // Optional alias (default not set in association)
+        include: [
+          {
+            model: Woreda,
+            as: "woredas", // This is REQUIRED because you used this alias
+          },
+        ],
+      },
+    ],
   });
 };
 
@@ -25,14 +35,12 @@ export const getRegionByIdService = async (id) => {
   return region;
 };
 
-
 // Update region
 export const updateRegionService = async (id, data) => {
   const region = await Region.findByPk(id);
   if (!region) throw new Error("Region not found");
   return await region.update(data);
 };
-
 
 // Delete region
 export const deleteRegionService = async (id) => {

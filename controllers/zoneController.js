@@ -32,7 +32,7 @@ export const getAllZones = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "All zones retrieved successfully.",
-      statistics: result,
+      ...result,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
