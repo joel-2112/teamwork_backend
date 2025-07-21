@@ -76,7 +76,7 @@ export const getApplicationsByJobId = async (req, res) => {
       statistics: {
         total: applications.total,
         page: applications.page,
-        limit: application.limit,
+        limit: applications.limit,
       },
       applications: applications.applications,
     });
