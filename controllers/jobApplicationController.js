@@ -4,7 +4,7 @@ import {
   getApplicationByIdService,
   updateApplicationStatusService,
   deleteApplicationService,
-  getAllMyJobApplicationService
+  getAllMyJobApplicationService,
 } from "../services/jobApplicationSevice.js";
 import { Sequelize } from "sequelize";
 import fs from "fs";
@@ -81,7 +81,12 @@ export const getApplicationsByJobId = async (req, res) => {
       applications: applications.applications,
     });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    console.error("Sequelize Error:", error.errors || error);
+    res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong",
+      errors: error.errors || [],
+    });
   }
 };
 
@@ -120,7 +125,6 @@ export const deleteJobApplication = async (req, res) => {
     res.status(400).json({ success: false, error: error.message });
   }
 };
-
 
 export const getAllMyJobApplication = async (req, res) => {
   try {
