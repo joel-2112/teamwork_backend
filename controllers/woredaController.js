@@ -25,12 +25,18 @@ export const createWoreda = async (req, res) => {
 // Retrieve all woreda
 export const getAllWoredas = async (req, res) => {
   try {
-    const { page, limit, zoneId, search } = req.query;
-    const woredas = await getAllWoredasService(page, limit, zoneId, search);
+    const { page, limit, regionId, zoneId, search } = req.query;
+    const woredas = await getAllWoredasService(
+      page,
+      limit,
+      regionId,
+      zoneId,
+      search
+    );
     res.status(200).json({
       success: true,
       message: "All woredas retrieved successfully.",
-      woredas: woredas,
+      woredas,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

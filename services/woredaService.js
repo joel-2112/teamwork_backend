@@ -16,34 +16,38 @@ export const createWoredaService = async (data) => {
 export const getAllWoredasService = async (
   page = 1,
   limit = 10,
+  regionId,
   zoneId,
   search
 ) => {
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
   const offset = (page - 1) * limit;
   const where = {};
 
-  if(zoneId) where.zoneId = zoneId;
+  if (zoneId) where.zoneId = zoneId;
   if (search) where.name = { [Op.iLike]: `%${search}%` };
 
-  const {count, rows} =  await Woreda.findAndCountAll({
+  const { count, rows } = await Woreda.findAndCountAll({
     where,
     include: [
       {
         model: Zone,
-        as: "zone", // This is required
+        as: "zone",
+        where: regionId ? { regionId } : undefined,
       },
     ],
     distinct: true,
-    page: parseInt(page),
-    limit: parseInt(limit),
+    limit,
+    offset,
   });
 
   return {
     total: count,
-    page: parseInt(page),
-    limit: parseInt(limit),
+    page,
+    limit,
     rows,
-  }
+  };
 };
 
 // Retrieve woreda by id
