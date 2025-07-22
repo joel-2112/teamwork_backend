@@ -68,34 +68,33 @@ export const updateAboutService = async (id, data, file, req) => {
   const about = await About.findByPk(id);
   if (!about) throw new Error("About not found");
 
-  // Handle image replacement if a new image is uploaded
   if (file) {
-    // Delete old image if it exists
     if (about.aboutImage) {
-      const oldImagePath = path.join(
-        "uploads/assets",
-        path.basename(about.aboutImage)
-      );
+      const oldImagePath = path.join("uploads/assets", path.basename(about.aboutImage));
       if (fs.existsSync(oldImagePath)) {
         fs.unlinkSync(oldImagePath);
       }
     }
 
-    // Save new image
     const uniqueName = `picture-${Date.now()}${path.extname(file.originalname)}`;
-    const savedPath = saveImageToDisk(file.buffer, uniqueName);
-
-    // Set new image URL
+    saveImageToDisk(file.buffer, uniqueName);
     data.aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
   }
 
-  // Update individual value items if values are provided
   if (data.values) {
-    if (!Array.isArray(data.values)) {
+    let parsedValues;
+
+    try {
+      parsedValues = typeof data.values === "string" ? JSON.parse(data.values) : data.values;
+    } catch (err) {
+      throw new Error("Values must be a valid JSON array.");
+    }
+
+    if (!Array.isArray(parsedValues)) {
       throw new Error("Values must be an array of objects.");
     }
 
-    const updatedValues = data.values.map((newVal) => {
+    const updatedValues = parsedValues.map((newVal) => {
       if (!newVal.title || !newVal.description) {
         throw new Error("Each value must have a title and description.");
       }
