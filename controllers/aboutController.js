@@ -12,23 +12,54 @@ import path from "path";
 
 export const createAbout = async (req, res) => {
   try {
-    const { title, content, mission, vision, values } = req.body;
+    const { title, content, mission, vision } = req.body;
+    let { values } = req.body;
 
-    // Duplicate check
+    // Parse and validate values
+    if (typeof values === "string") {
+      try {
+        values = JSON.parse(values);
+      } catch (err) {
+        return res
+          .status(400)
+          .json({ message: "Invalid JSON format for values" });
+      }
+    }
 
+    if (!Array.isArray(values) || values.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Values must be a non-empty array" });
+    }
+
+    for (let i = 0; i < values.length; i++) {
+      const val = values[i];
+      if (
+        typeof val !== "object" ||
+        typeof val.title !== "string" ||
+        typeof val.description !== "string" ||
+        val.title.trim().length < 3 ||
+        val.description.trim().length < 5
+      ) {
+        return res.status(400).json({
+          message: `Each value must have a valid 'title' (min 3 chars) and 'description' (min 5 chars). Error at index ${i}`,
+        });
+      }
+    }
+
+    // Check for existing entry
     const existingAbout = await createAboutService({ title, content }, true);
 
-    // Save image to disk only if file exists and about is valid
+    // Save image if available
     let aboutImage = null;
     if (req.file) {
       const uniqueName = `picture-${Date.now()}${path.extname(req.file.originalname)}`;
       const savedPath = saveImageToDisk(req.file.buffer, uniqueName);
 
-      // Construct full URL from the request
       aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
     }
 
-    // Now create the about section
+    // Create about entry
     const about = await createAboutService({
       title,
       content,
@@ -50,29 +81,43 @@ export const createAbout = async (req, res) => {
 
 export const getAllAbout = async (req, res) => {
   try {
-    const { page, limit, title } = req.query;
-    const abouts = await getAllAboutService({ page, limit, title });
-    res.status(200).json({ success: true, data: abouts });
+    const { page, limit, title, search } = req.query;
+    const abouts = await getAllAboutService({ page, limit, title, search });
+    res.status(200).json({
+      success: true,
+      message: "All About retrieved successfully.",
+      statistics: abouts,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const getAboutById = async (req, res) => {
   try {
     const about = await getAboutByIdService(req.params.id);
-    res.status(200).json({ success: true, data: about });
+    res.status(200).json({
+      success: true,
+      message: `About with id ${req.params.id} is: `,
+      about: about,
+    });
   } catch (error) {
-    res.status(404).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
 export const updateAbout = async (req, res) => {
   try {
     const about = await updateAboutService(req.params.id, req.body);
-    res.status(200).json({ success: true, data: about });
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: `About with id ${req.params.id} is successfully updated.`,
+        about: about,
+      });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 

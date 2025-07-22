@@ -4,7 +4,6 @@ const { About } = db;
 import fs from "fs";
 import path from "path";
 
-
 // Create about with image
 export const createAboutService = async (data, checkOnly = false) => {
   const existingAbout = await About.findOne({
@@ -15,7 +14,9 @@ export const createAboutService = async (data, checkOnly = false) => {
   });
 
   if (existingAbout) {
-    throw new Error("About section with the same title and content already exists");
+    throw new Error(
+      "About section with the same title and content already exists"
+    );
   }
 
   if (checkOnly) return null;
@@ -28,10 +29,17 @@ export const getAllAboutService = async ({
   page = 1,
   limit = 10,
   title,
+  search,
 } = {}) => {
   const offset = (page - 1) * limit;
   const where = {};
-  if (title) where.title = { [Op.iLike]: `%${title}%` };
+  if (title) where.title = title;
+  if (search) {
+    where[Op.or] = [
+      { title: { [Op.iLike]: `%${search}%` } },
+      { content: { [Op.iLike]: `%${search}%` } },
+    ];
+  }
 
   const { count, rows } = await About.findAndCountAll({
     where,
@@ -48,7 +56,6 @@ export const getAllAboutService = async ({
   };
 };
 
-
 // Retrieve about section by ID
 export const getAboutByIdService = async (id) => {
   const about = await About.findByPk(id);
@@ -56,17 +63,42 @@ export const getAboutByIdService = async (id) => {
   return about;
 };
 
-
 // Update about section by id
 export const updateAboutService = async (id, data) => {
   const about = await About.findByPk(id);
   if (!about) throw new Error("About not found");
-  if (
-    data.values &&
-    (!Array.isArray(data.values) || data.values.length === 0)
-  ) {
-    throw new Error("Values must be a non-empty array");
+
+  // Parse current values
+  let currentValues = Array.isArray(about.values) ? about.values : [];
+
+  if (data.values && Array.isArray(data.values)) {
+    // Build updated values
+    const updates = data.values;
+
+    // Merge: update matching title or index
+    const mergedValues = currentValues.map((existingVal) => {
+      const update = updates.find((val) => val.title === existingVal.title);
+      if (update) {
+        return {
+          title: update.title || existingVal.title,
+          description: update.description || existingVal.description,
+        };
+      }
+      return existingVal;
+    });
+
+    // Include new items (if not already in current values)
+    updates.forEach((val) => {
+      const exists = mergedValues.some((v) => v.title === val.title);
+      if (!exists && val.title && val.description) {
+        mergedValues.push({ title: val.title, description: val.description });
+      }
+    });
+
+    // Assign merged result
+    data.values = mergedValues;
   }
+
   return await about.update(data);
 };
 

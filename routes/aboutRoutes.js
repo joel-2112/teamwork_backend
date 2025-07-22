@@ -11,9 +11,9 @@ import {
 import upload from "../middlewares/upload.js";
 
 router.post("/create-about", upload.single("aboutImage"), createAbout);
-router.get("/", getAllAbout);
-router.get("/:id", getAboutById);
-router.put("/:id", updateAbout);
+router.get("/all-abouts", getAllAbout);
+router.get("/about/:id", getAboutById);
+router.put("/update/:id", updateAbout);
 router.delete("/delete/:id", deleteAbout);
 
 export default router;
