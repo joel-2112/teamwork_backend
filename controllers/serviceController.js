@@ -130,7 +130,7 @@ export const deleteService = async (req, res) => {
   try {
     await deleteServiceService(req.params.id);
     res
-      .status(204)
+      .status(200)
       .json({
         success: true,
         message: `Service with id ${req.params.id} is successfully deleted.`,
