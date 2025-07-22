@@ -7,11 +7,13 @@ const { Agent, Woreda, Zone, Region, User, Role } = db;
 export const createAgentService = async (data) => {
   const { regionId, zoneId, woredaId, email, phoneNumber } = data;
 
-  const isExist = await Agent.findOne({where: {email: email}});
-  if(isExist) throw new Error("You have already submitted agent request");
+  const isExist = await Agent.findOne({ where: { email: email } });
+  if (isExist) throw new Error("You have already submitted agent request");
 
-  const phoneCheck = await Agent.findOne({where: {phoneNumber: phoneNumber}});
-  if(phoneCheck) throw new Error("You have already used this phone number");
+  const phoneCheck = await Agent.findOne({
+    where: { phoneNumber: phoneNumber },
+  });
+  if (phoneCheck) throw new Error("You have already used this phone number");
 
   const region = await Region.findByPk(regionId);
   if (!region) throw new Error("Invalid Region");
@@ -149,10 +151,9 @@ export const updateAgentStatusService = async (id, status) => {
   const agent = await Agent.findByPk(id, { where: { isDeleted: false } });
   if (!agent) throw new Error("Agent not found");
 
-   const user = await User.findOne({ where: { email: agent.email } });
-   if (!user) throw new Error("User not found");
+  const user = await User.findOne({ where: { email: agent.email } });
+  if (!user) throw new Error("User not found");
 
-   
   const wasAccepted = agent.agentStatus === "accepted"; // current status before update
 
   const updatedAgent = await agent.update({ agentStatus: status });
@@ -245,7 +246,10 @@ export const getMyAgentRequestService = async (userId) => {
 };
 
 // Get all approved agents
-export const getAllApprovedAgentsService = async ( { page=1, limit=10 } = {}) => {
+export const getAllApprovedAgentsService = async ({
+  page = 1,
+  limit = 10,
+} = {}) => {
   const offset = (page - 1) * limit;
   return await Agent.findAll({
     where: { agentStatus: "accepted", isDeleted: false },
@@ -256,6 +260,6 @@ export const getAllApprovedAgentsService = async ( { page=1, limit=10 } = {}) =>
     ],
     order: [["createdAt", "ASC"]],
     limit: parseInt(limit),
-    page: parseInt(page), 
+    page: parseInt(page),
   });
 };

@@ -133,8 +133,13 @@ export const updateOrder = async (req, res) => {
       order: order,
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
+  console.error("Sequelize Error:", error.errors || error);
+  res.status(400).json({
+    success: false,
+    message: error.message || "Something went wrong",
+    errors: error.errors || [],
+  });
+}
 };
 
 export const deleteOrder = async (req, res) => {
