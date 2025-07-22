@@ -143,21 +143,35 @@ export const updateOrderService = async (orderId, userId, data) => {
   if (order.status !== "pending" && order.status !== "reviewed") {
     throw new Error("Only pending or reviewed orders can be updated");
   }
-  const { country, regionId, zoneId, woredaId } = data;
 
-  if (country === "Ethiopia") {
-    if (regionId) {
-      const region = await Region.findByPk(regionId);
+  if (data.country === "Ethiopia") {
+    if (data.regionId) {
+      const region = await Region.findByPk(data.regionId);
       if (!region) throw new Error("Invalid Region");
     }
-    if (zoneId) {
-      const zone = await Zone.findByPk(zoneId);
+    if (data.zoneId) {
+      const zone = await Zone.findByPk(data.zoneId);
       if (!zone) throw new Error("Invalid Zone");
     }
-    if (woredaId) {
-      const woreda = await Woreda.findByPk(woredaId);
+    if (data.woredaId) {
+      const woreda = await Woreda.findByPk(data.woredaId);
       if (!woreda) throw new Error("Invalid Woreda");
     }
+
+    data.manualRegion = null;
+    data.manualZone = null;
+    data.manualWoreda = null;
+  } else {
+    if (!data.manualRegion)
+      throw new Error("Manual region is required for non-Ethiopian customers");
+    if (!data.manualZone)
+      throw new Error("Manual zone is required for non-Ethiopian customers");
+    if (!data.manualWoreda)
+      throw new Error("Manual woreda is required for non-Ethiopian customers");
+
+    data.regionId = null;
+    data.zoneId = null;
+    data.woredaId = null;
   }
 
   return await order.update(data);
