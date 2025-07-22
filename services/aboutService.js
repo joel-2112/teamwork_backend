@@ -5,7 +5,6 @@ import fs from "fs";
 import path from "path";
 import { saveImageToDisk } from "../utils/saveImage.js";
 
-
 // Create about with image
 export const createAboutService = async (data, checkOnly = false) => {
   const existingAbout = await About.findOne({
@@ -65,7 +64,6 @@ export const getAboutByIdService = async (id) => {
   return about;
 };
 
-// Update about section by id
 export const updateAboutService = async (id, data, file, req) => {
   const about = await About.findByPk(id);
   if (!about) throw new Error("About not found");
@@ -91,48 +89,96 @@ export const updateAboutService = async (id, data, file, req) => {
     data.aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
   }
 
-  // Handle values merging
-  let currentValues = Array.isArray(about.values) ? about.values : [];
-
-  if (data.values && typeof data.values === "string") {
-    try {
-      data.values = JSON.parse(data.values);
-    } catch (err) {
-      throw new Error("Invalid JSON format for values");
+  // Update individual value items if values are provided
+  if (data.values) {
+    if (!Array.isArray(data.values)) {
+      throw new Error("Values must be an array of objects.");
     }
-  }
 
-  if (Array.isArray(data.values)) {
-    const updates = data.values;
-
-    // Merge values
-    const mergedValues = currentValues.map((existingVal) => {
-      const update = updates.find((val) => val.title === existingVal.title);
-      if (update) {
-        return {
-          title: update.title || existingVal.title,
-          description: update.description || existingVal.description,
-        };
+    const updatedValues = data.values.map((newVal) => {
+      if (!newVal.title || !newVal.description) {
+        throw new Error("Each value must have a title and description.");
       }
-      return existingVal;
+      return {
+        title: newVal.title,
+        description: newVal.description,
+      };
     });
 
-    // Add new entries that don't exist yet
-    updates.forEach((val) => {
-      const exists = mergedValues.some((v) => v.title === val.title);
-      if (!exists && val.title && val.description) {
-        mergedValues.push({
-          title: val.title,
-          description: val.description,
-        });
-      }
-    });
-
-    data.values = mergedValues;
+    data.values = updatedValues;
   }
 
   return await about.update(data);
 };
+
+// Update about section by id
+// export const updateAboutService = async (id, data, file, req) => {
+//   const about = await About.findByPk(id);
+//   if (!about) throw new Error("About not found");
+
+//   // Handle image replacement if a new image is uploaded
+//   if (file) {
+//     // Delete old image if it exists
+//     if (about.aboutImage) {
+//       const oldImagePath = path.join(
+//         "uploads/assets",
+//         path.basename(about.aboutImage)
+//       );
+//       if (fs.existsSync(oldImagePath)) {
+//         fs.unlinkSync(oldImagePath);
+//       }
+//     }
+
+//     // Save new image
+//     const uniqueName = `picture-${Date.now()}${path.extname(file.originalname)}`;
+//     const savedPath = saveImageToDisk(file.buffer, uniqueName);
+
+//     // Set new image URL
+//     data.aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+//   }
+
+//   // Handle values merging
+//   let currentValues = Array.isArray(about.values) ? about.values : [];
+
+//   if (data.values && typeof data.values === "string") {
+//     try {
+//       data.values = JSON.parse(data.values);
+//     } catch (err) {
+//       throw new Error("Invalid JSON format for values");
+//     }
+//   }
+
+//   if (Array.isArray(data.values)) {
+//     const updates = data.values;
+
+//     // Merge values
+//     const mergedValues = currentValues.map((existingVal) => {
+//       const update = updates.find((val) => val.title === existingVal.title);
+//       if (update) {
+//         return {
+//           title: update.title || existingVal.title,
+//           description: update.description || existingVal.description,
+//         };
+//       }
+//       return existingVal;
+//     });
+
+//     // Add new entries that don't exist yet
+//     updates.forEach((val) => {
+//       const exists = mergedValues.some((v) => v.title === val.title);
+//       if (!exists && val.title && val.description) {
+//         mergedValues.push({
+//           title: val.title,
+//           description: val.description,
+//         });
+//       }
+//     });
+
+//     data.values = mergedValues;
+//   }
+
+//   return await about.update(data);
+// };
 
 // Delete about section by id
 export const deleteAboutService = async (id) => {
