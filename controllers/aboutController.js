@@ -108,16 +108,20 @@ export const getAboutById = async (req, res) => {
 
 export const updateAbout = async (req, res) => {
   try {
-    const about = await updateAboutService(req.params.id, req.body);
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: `About with id ${req.params.id} is successfully updated.`,
-        about: about,
-      });
+    const updatedAbout = await updateAboutService(
+      req.params.id,
+      req.body,
+      req.file, // assuming you're using multer for image upload
+      req
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "About section updated successfully.",
+      about: updatedAbout,
+    });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 

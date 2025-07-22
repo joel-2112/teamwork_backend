@@ -3,6 +3,8 @@ import db from "../models/index.js";
 const { About } = db;
 import fs from "fs";
 import path from "path";
+import { saveImageToDisk } from "../utils/saveImage.js";
+
 
 // Create about with image
 export const createAboutService = async (data, checkOnly = false) => {
@@ -64,18 +66,46 @@ export const getAboutByIdService = async (id) => {
 };
 
 // Update about section by id
-export const updateAboutService = async (id, data) => {
+export const updateAboutService = async (id, data, file, req) => {
   const about = await About.findByPk(id);
   if (!about) throw new Error("About not found");
 
-  // Parse current values
+  // Handle image replacement if a new image is uploaded
+  if (file) {
+    // Delete old image if it exists
+    if (about.aboutImage) {
+      const oldImagePath = path.join(
+        "uploads/assets",
+        path.basename(about.aboutImage)
+      );
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    // Save new image
+    const uniqueName = `picture-${Date.now()}${path.extname(file.originalname)}`;
+    const savedPath = saveImageToDisk(file.buffer, uniqueName);
+
+    // Set new image URL
+    data.aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+  }
+
+  // Handle values merging
   let currentValues = Array.isArray(about.values) ? about.values : [];
 
-  if (data.values && Array.isArray(data.values)) {
-    // Build updated values
+  if (data.values && typeof data.values === "string") {
+    try {
+      data.values = JSON.parse(data.values);
+    } catch (err) {
+      throw new Error("Invalid JSON format for values");
+    }
+  }
+
+  if (Array.isArray(data.values)) {
     const updates = data.values;
 
-    // Merge: update matching title or index
+    // Merge values
     const mergedValues = currentValues.map((existingVal) => {
       const update = updates.find((val) => val.title === existingVal.title);
       if (update) {
@@ -87,15 +117,17 @@ export const updateAboutService = async (id, data) => {
       return existingVal;
     });
 
-    // Include new items (if not already in current values)
+    // Add new entries that don't exist yet
     updates.forEach((val) => {
       const exists = mergedValues.some((v) => v.title === val.title);
       if (!exists && val.title && val.description) {
-        mergedValues.push({ title: val.title, description: val.description });
+        mergedValues.push({
+          title: val.title,
+          description: val.description,
+        });
       }
     });
 
-    // Assign merged result
     data.values = mergedValues;
   }
 
