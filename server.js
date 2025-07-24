@@ -28,6 +28,7 @@ import userFeedbackRoutes from "./routes/userFeadbackRoutes.js";
 import aboutRoutes from "./routes/aboutRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
 import roleRouote from "./routes/roleRoute.js"
+import reportRoute from "./routes/reportRoute.js"
 
 // Initialize Express
 const app = express();
@@ -88,6 +89,7 @@ app.use("/api/v1/customer-orders", customerOrderRoutes);
 app.use("/api/v1/user-feedbacks", userFeedbackRoutes);
 app.use("/api/v1/abouts", aboutRoutes);
 app.use("/api/v1/services", serviceRoutes);
+app.use("/api/v1/reports", reportRoute);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -20,6 +20,7 @@ import AboutModel from "./About.js";
 import ServiceModel from "./Service.js";
 import RoleModel from "./role.js";
 import ImageModel from "./images.js";
+import ReportModel from "./Report.js";
 
 // Initialize models by passing db and DataTypes
 const Job = JobModel(db, DataTypes);
@@ -40,6 +41,7 @@ const About = AboutModel(db, DataTypes);
 const Service = ServiceModel(db, DataTypes);
 const Role = RoleModel(db, DataTypes);
 const Image = ImageModel(db, DataTypes);
+const Report = ReportModel(db, DataTypes);
 
 const models = {
   Event,
@@ -60,6 +62,7 @@ const models = {
   About,
   Service,
   Role,
+  Report,
 };
 
 // user and role relation
@@ -84,8 +87,8 @@ RefreshToken.belongsTo(User, { foreignKey: "userId", as: "User" });
 Zone.belongsTo(Region, { foreignKey: "regionId" });
 Region.hasMany(Zone, { foreignKey: "regionId" });
 
-Zone.hasMany(Woreda, { foreignKey: 'zoneId', as: 'woredas' });
-Woreda.belongsTo(Zone, { foreignKey: 'zoneId', as: 'zone' });
+Zone.hasMany(Woreda, { foreignKey: "zoneId", as: "woredas" });
+Woreda.belongsTo(Zone, { foreignKey: "zoneId", as: "zone" });
 
 Agent.belongsTo(Region, {
   foreignKey: "regionId",
@@ -125,6 +128,24 @@ CustomerOrder.belongsTo(Woreda, {
   foreignKey: "woredaId",
   as: "Woreda",
 });
+Report.belongsTo(Region, {
+  foreignKey: "regionId",
+  as: "Region",
+});
+Report.belongsTo(Zone, {
+  foreignKey: "zoneId",
+  as: "Zone",
+});
+Report.belongsTo(Woreda, {
+  foreignKey: "woredaId",
+  as: "Woreda",
+});
+
+User.hasMany(Report, {
+  foreignKey: "userId",
+});
+Report.belongsTo(User, { foreignKey: "userId" });
+
 Event.hasMany(Image, {
   foreignKey: "eventId",
   as: "images",
