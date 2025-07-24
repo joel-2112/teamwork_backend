@@ -4,10 +4,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 const { User } = db;
 
-
-
-
-export const getAllUsersService = async ({ page = 1, limit = 10, name } = {}) => {
+export const getAllUsersService = async ({
+  page = 1,
+  limit = 10,
+  name,
+} = {}) => {
   const offset = (page - 1) * limit;
   const where = {};
   if (name) where.name = { [Op.iLike]: `%${name}%` };
