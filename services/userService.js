@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import db from "../models/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-const { User } = db;
+const { User, Role } = db;
 
 export const getAllUsersService = async ({
   page = 1,
@@ -15,6 +15,12 @@ export const getAllUsersService = async ({
 
   const { count, rows } = await User.findAndCountAll({
     where,
+    include: [
+      {
+        model: Role,
+        attributes: ["id", "name"],
+      },
+    ],
     attributes: { exclude: ["password"] },
     order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
