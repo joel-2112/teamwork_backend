@@ -37,6 +37,12 @@ export const getAllUsersService = async ({
 
 export const getUserByIdService = async (id) => {
   const user = await User.findByPk(id, {
+    include: [
+      {
+        model: Role,
+        attributes: ["id", "name"],
+      },
+    ],
     attributes: { exclude: ["password"] },
   });
   if (!user) throw new Error("User not found");
