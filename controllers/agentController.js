@@ -13,7 +13,8 @@ import {
 
 export const createAgent = async (req, res) => {
   try {
-    const agent = await createAgentService(req.body);
+    const userId = req.user.id;
+    const agent = await createAgentService(userId, req.body);
     res
       .status(201)
       .json({ success: true, message: "Agent created successfully.", agent });

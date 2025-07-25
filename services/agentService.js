@@ -4,12 +4,16 @@ import { Op } from "sequelize";
 const { Agent, Partnership, Woreda, Zone, Region, User, Role } = db;
 
 // Create ( send agent request ) agent
-export const createAgentService = async (data) => {
+export const createAgentService = async (userId, data) => {
   const { regionId, zoneId, woredaId, email, phoneNumber } = data;
+
+  const user = await User.findByPk(userId);
+  if(!user) throw new Error("User not found.")
+
 
   const checkPartner = await Partnership.findOne({
     where: {
-      email: data.email,
+      email: user.email,
       agentStatus: {
         [Op.ne]: "cancelled",
       },
