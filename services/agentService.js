@@ -1,11 +1,24 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
 
-const { Agent, Woreda, Zone, Region, User, Role } = db;
+const { Agent, Partnership, Woreda, Zone, Region, User, Role } = db;
 
 // Create ( send agent request ) agent
 export const createAgentService = async (data) => {
   const { regionId, zoneId, woredaId, email, phoneNumber } = data;
+
+  const checkPartner = await Partnership.findOne({
+    where: {
+      email: data.email,
+      agentStatus: {
+        [Op.ne]: "cancelled",
+      },
+    },
+  });
+  if (checkPartner)
+    throw new Error(
+      "You have already submitted partnership request, can not send agent request"
+    );
 
   const isExist = await Agent.findOne({ where: { email: email } });
   if (isExist) throw new Error("You have already submitted agent request");
