@@ -37,7 +37,7 @@ export default (db, DataTypes) => {
         allowNull: true,
       },
       gender: {
-        type: DataTypes.ENUM("Male", "Female", "Other"),
+        type: DataTypes.ENUM("male", "female", "other"),
         allowNull: false,
       },
       phone: {
