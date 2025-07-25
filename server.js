@@ -2,12 +2,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import path from 'path';
+import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
-import db from './models/index.js'; 
+import db from "./models/index.js";
 import errorHandler from "./middlewares/errorHandler.js";
 
 // Import Routes
@@ -27,15 +27,14 @@ import customerOrderRoutes from "./routes/customerOrderRoute.js";
 import userFeedbackRoutes from "./routes/userFeadbackRoutes.js";
 import aboutRoutes from "./routes/aboutRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
-import roleRouote from "./routes/roleRoute.js"
-import reportRoute from "./routes/reportRoute.js"
+import roleRouote from "./routes/roleRoute.js";
+import reportRoute from "./routes/reportRoute.js";
 
 // Initialize Express
 const app = express();
 const port = process.env.PORT || 5000;
 
 app.use("/uploads", express.static(path.resolve("uploads")));
-
 
 // Serve static files from /uploads with CORS headers
 app.use(
@@ -48,8 +47,6 @@ app.use(
     },
   })
 );
-
-
 
 // Middleware
 app.use(
@@ -98,18 +95,16 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await db.sequelize.authenticate();
-    console.log('Database connected successfully');
+    console.log("Database connected successfully");
 
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
 
-    await db.sequelize.sync({ alter: true }); 
-    console.log('All models synced and tables created/updated');
-
-    
+    await db.sequelize.sync();
+    console.log("All models synced and tables created/updated");
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error("Failed to start server:", err);
     process.exit(1);
   }
 };

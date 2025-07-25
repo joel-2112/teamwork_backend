@@ -5,7 +5,8 @@ import {
   updatePartnershipService,
   deletePartnershipService,
   updatePartnershipStatusService,
-  getMyPartnershipsService
+  getMyPartnershipsService,
+  cancelMyPartnershipRequestService,
 } from "../services/partershipService.js";
 
 export const createPartnership = async (req, res) => {
@@ -18,13 +19,13 @@ export const createPartnership = async (req, res) => {
       partnership: partnership,
     });
   } catch (error) {
-  console.error("Sequelize Error:", error.errors || error);
-  res.status(400).json({
-    success: false,
-    message: error.message || "Something went wrong",
-    errors: error.errors || [],
-  });
-}
+    console.error("Sequelize Error:", error.errors || error);
+    res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong",
+      errors: error.errors || [],
+    });
+  }
 };
 
 export const getAllPartnerships = async (req, res) => {
@@ -108,7 +109,6 @@ export const updatePartnershipStatus = async (req, res) => {
   }
 };
 
-
 export const getMyPartnerships = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -119,6 +119,29 @@ export const getMyPartnerships = async (req, res) => {
       partnerships: partnerships,
     });
   } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const cancelMyPartnershipRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const parentId = req.params.id;
+
+    const cancelledPartner = await cancelMyPartnershipRequestService(
+      parentId,
+      userId
+    );
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Partnership request has been successfully canceled",
+        partner: cancelledPartner,
+      });
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

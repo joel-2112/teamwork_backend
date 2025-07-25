@@ -65,10 +65,11 @@ export const createAdminUser = async (req, res) => {
     const { name, email, password } = req.body;
 
     const newAdmin = await createAdminUserService({ name, email, password });
+
     res.status(200).json({
       success: true,
-      message: "admin created successfully.",
-      newAdmin: newAdmin,
+      message: "Admin created successfully.",
+      newAdmin,
     });
   } catch (error) {
     console.error("create admin error", error.message);
@@ -78,15 +79,13 @@ export const createAdminUser = async (req, res) => {
 
 export const updateUserStatus = async (req, res) => {
   try {
-    const { status } = req.body
+    const { status } = req.body;
     const user = await updateUserStatusService(req.params.id, status);
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: `'${user.name}' has been successfully ${status}.`,
-      });
+    res.status(200).json({
+      success: true,
+      message: `'${user.name}' has been successfully ${status}.`,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

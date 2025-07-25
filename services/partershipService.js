@@ -1,12 +1,31 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
 
-const { Partnership, User, Role } = db;
+const { Partnership, User, Role, Agent } = db;
 
 // send partnership request
 export const createPartnershipService = async (userId, data) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
+
+  const adminRole = await Role.findOne({ where: { name: "admin" } });
+  if (!adminRole) throw new Error("Admin role not found.");
+
+  if (user.roleId === adminRole.id)
+    throw new Error("Admin can not send partnership request.");
+
+  const checkAgentRequest = await Agent.findOne({
+    where: {
+      email: data.email,
+      agentStatus: {
+        [Op.ne]: "cancelled",
+      },
+    },
+  });
+  if (checkAgentRequest)
+    throw new Error(
+      "User has already sent Agent request, can not send agent and partnership request at the same time"
+    );
 
   if (data.abilityForPartnership === "other" && !data.abilityDescription) {
     throw new Error(
@@ -182,8 +201,8 @@ export const updatePartnershipStatusService = async (
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
 
-  const partner = await User.findOne({ where: { email: partnership.email}})
-  if(!partner) throw new Error("Partner with this email is not exist");
+  const partner = await User.findOne({ where: { email: partnership.email } });
+  if (!partner) throw new Error("Partner with this email is not exist");
 
   if (partnership.email === user.email)
     throw new Error("You can not update your own partnership request status");
@@ -221,4 +240,28 @@ export const getMyPartnershipsService = async (userId) => {
   }
 
   return partnerships;
+};
+
+// Cancel user partnership request
+export const cancelMyPartnershipRequestService = async (partnerId, userId) => {
+  const partner = await Partnership.findOne({
+    where: { id: partnerId, isDeleted: false },
+  });
+  if (!partner) throw new Error("Partner not found.");
+
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found.");
+
+  if (partner.status === "cancelled")
+    throw new Error("Partner Request already cancelled.");
+
+  if (partner.userId !== user.id)
+    throw new Error(
+      "You are not authorized to cancel partnership requests, only cancel your own request"
+    );
+
+  partner.status = "cancelled";
+  await partner.save();
+
+  return partner;
 };

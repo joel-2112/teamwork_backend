@@ -110,39 +110,34 @@ export const createAdminUserService = async ({ name, email, password }) => {
     const adminRole = await Role.findOne({ where: { name: "admin" } });
     if (!adminRole) throw new Error("Admin role not found");
 
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      // Update their role to admin and save
-      existingUser.roleId = adminRole.id;
-      await existingUser.save();
-      return existingUser;
-    }
-
     const checkPartner = await Partnership.findOne({
       where: {
-        email: email,
-        status: {
-          [Op.ne]: "cancelled",
-        },
+        email,
+        status: { [Op.ne]: "cancelled" },
       },
     });
     if (checkPartner)
       throw new Error(
-        "User has already submitted partner request, so can not be admin."
+        "User has already submitted a partnership request, so cannot be admin."
       );
 
     const checkAgent = await Agent.findOne({
       where: {
-        email: email,
-        status: {
-          [Op.ne]: "cancelled",
-        },
+        email,
+        agentStatus: { [Op.ne]: "cancelled" },
       },
     });
     if (checkAgent)
       throw new Error(
-        "User has already submitted agent request, so can not be admin."
+        "User has already submitted an agent request, so cannot be admin."
       );
+
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      existingUser.roleId = adminRole.id;
+      await existingUser.save();
+      return existingUser;
+    }
 
     // Create a new admin user
     const newUser = await User.create({
@@ -154,7 +149,7 @@ export const createAdminUserService = async ({ name, email, password }) => {
 
     return newUser;
   } catch (err) {
-    throw new Error("Failed to create or update admin.");
+    throw new Error(err.message || "Failed to create or update admin.");
   }
 };
 

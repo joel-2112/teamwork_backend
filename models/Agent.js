@@ -40,7 +40,13 @@ export default (db, DataTypes) => {
         allowNull: false,
       },
       agentStatus: {
-        type: DataTypes.ENUM(["pending", "reviewed", "accepted", "rejected"]),
+        type: DataTypes.ENUM([
+          "pending",
+          "reviewed",
+          "accepted",
+          "rejected",
+          "cancelled",
+        ]),
         allowNull: false,
         defaultValue: "pending",
       },
