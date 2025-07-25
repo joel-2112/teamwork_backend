@@ -38,11 +38,16 @@ export default (db, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "roles", 
+          model: "roles",
           key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
+      },
+      status: {
+        type: DataTypes.ENUM("active", "blocked"),
+        allowNull: false,
+        defaultValue: "active",
       },
     },
     {

@@ -4,7 +4,6 @@ import {
   logoutService,
   sendOtpService,
   verifyOtpService,
-  createAdminUserService,
   checkAuthService,
 } from "../services/authService.js";
 
@@ -70,22 +69,7 @@ export const logout = async (req, res) => {
   }
 };
 
-// Admin can create an other admin
-export const createAdminUser = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
 
-    const newAdmin = await createAdminUserService({ name, email, password });
-    res.status(200).json({
-      success: true,
-      message: "admin created successfully.",
-      newAdmin: newAdmin,
-    });
-  } catch (error) {
-    console.error("create admin error", error.message);
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
 
 // To check signed in user authentication
 export const checkAuth = async (req, res) => {

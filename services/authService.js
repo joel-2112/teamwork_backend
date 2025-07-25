@@ -5,7 +5,7 @@ import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpEMail } from "../utils/sendOTP.js";
 import redisClient from "../config/redisClient.js";
 import dotenv from "dotenv";
-const { User, RefreshToken, Role } = db;
+const { User, RefreshToken, Role, Partnership, Agent } = db;
 dotenv.config();
 
 // Services to send the otp via user email
@@ -52,7 +52,7 @@ export const verifyOtpService = async (email, inputOtp) => {
   const { name, password } = JSON.parse(tempUserData);
 
   // Get the "user" role ID
-  const defaultRole = await db.Role.findOne({ where: { name: "user" } });
+  const defaultRole = await Role.findOne({ where: { name: "user" } });
   if (!defaultRole) throw new Error("Default role 'user' not found.");
 
   // Create user with roleId
@@ -86,8 +86,10 @@ export const loginService = async ({ email, password }) => {
     where: { email },
     include: [{ model: Role, attributes: ["name"] }],
   });
-
   if (!user) throw new Error("Invalid email or password");
+
+  if (user.status === "blocked")
+    throw new Error("You have been blocked, so you can not login.");
 
   const isValid = await user.validatePassword(password);
   if (!isValid) throw new Error("Invalid email or password");
@@ -136,35 +138,6 @@ export const refreshTokenService = async (refreshToken) => {
 export const logoutService = async (refreshToken) => {
   if (!refreshToken) throw new Error("Refresh token is required");
   await RefreshToken.destroy({ where: { token: refreshToken } });
-};
-
-// Service to enable admin create an other admin
-export const createAdminUserService = async ({ name, email, password }) => {
-  try {
-    const adminRole = await db.Role.findOne({ where: { name: "admin" } });
-    if (!adminRole) throw new Error("Admin role not found");
-
-    const existingUser = await db.User.findOne({ where: { email } });
-
-    if (existingUser) {
-      // Update their role to admin and save
-      existingUser.roleId = adminRole.id;
-      await existingUser.save();
-      return existingUser;
-    }
-
-    // Create a new admin user
-    const newUser = await db.User.create({
-      name,
-      email,
-      password,
-      roleId: adminRole.id,
-    });
-
-    return newUser;
-  } catch (err) {
-    throw new Error("Failed to create or update admin.");
-  }
 };
 
 // service to check the authentication of the user

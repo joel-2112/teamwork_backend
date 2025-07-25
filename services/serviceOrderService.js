@@ -71,6 +71,7 @@ export const getAllOrdersService = async (
   const { search, status } = filters;
   const where = { isDeleted: false };
 
+  if (status) where.status = status;
   if (search) {
     where[Op.or] = [
       { orderTitle: { [Op.iLike]: `%${search}%` } },
@@ -81,20 +82,47 @@ export const getAllOrdersService = async (
     ];
   }
 
-  if (status) where.status = status;
-
   const offset = (page - 1) * limit;
-
-  return await ServiceOrder.findAndCountAll({
+  const { count, rows } = await ServiceOrder.findAndCountAll({
     where,
-    limit,
-    offset,
     include: [
       { model: Region, as: "Region", required: false },
       { model: Zone, as: "Zone", required: false },
       { model: Woreda, as: "Woreda", required: false },
     ],
+    distinct: true,
+    limit,
+    offset,
   });
+
+  const pendingOrder = await ServiceOrder.count({
+    where: { status: "pending" },
+  });
+  const reviewedOrder = await ServiceOrder.count({
+    where: { status: "reviewed" },
+  });
+  const acceptedOrder = await ServiceOrder.count({
+    where: { status: "accepted" },
+  });
+  const rejectedOrder = await ServiceOrder.count({
+    where: { status: "rejected" },
+  });
+  const inprogressOrder = await ServiceOrder.count({
+    where: { status: "in_progress" },
+  });
+  const cancelledOrder = await ServiceOrder.count({
+    where: { status: "cancelled" },
+  });
+  const completedOrder = await ServiceOrder.count({
+    where: { status: "completed" },
+  });
+
+  return {
+    totalOrder: count,
+    pendingOrder: pendingOrder,
+    reviewedOrder: reviewedOrder,
+    acceptedOrder: acceptedOrder
+  }
 };
 
 // Get order by ID

@@ -142,9 +142,9 @@ Report.belongsTo(Woreda, {
 });
 
 User.hasMany(Report, {
-  foreignKey: "userId",
+  foreignKey: "createdBy",
 });
-Report.belongsTo(User, { foreignKey: "userId" });
+Report.belongsTo(User, { foreignKey: "createdBy", as: "reportedBy" });
 
 Event.hasMany(Image, {
   foreignKey: "eventId",
@@ -187,6 +187,14 @@ Partnership.belongsTo(User, {
   foreignKey: "deletedBy",
 });
 
+User.hasMany(Report, { foreignKey: "deletedBy" });
+Report.belongsTo(User, { foreignKey: "deletedBy", as: "removedBy" });
+
+User.hasMany(Report, { foreignKey: "statusChangedBy" });
+Report.belongsTo(User, {
+  foreignKey: "statusChangedBy",
+  as: "statusUpdatedBy",
+});
 export default {
   sequelize: db,
   Sequelize,

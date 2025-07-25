@@ -58,7 +58,7 @@ export default (db, DataTypes) => {
         },
       },
       status: {
-        type: DataTypes.ENUM(["pending", "reviewed", "accepted", "rejected"]),
+        type: DataTypes.ENUM(["pending", "reviewed", "accepted", "rejected", "cancelled"]),
         allowNull: false,
         defaultValue: "pending",
       },

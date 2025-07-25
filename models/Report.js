@@ -1,3 +1,4 @@
+
 // models/Report.js
 export default (db, DataTypes) => {
   const Report = db.define(
@@ -66,8 +67,14 @@ export default (db, DataTypes) => {
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM("open", "in_progress", "resolved"),
-        defaultValue: "open",
+        type: DataTypes.ENUM(
+          "pending",
+          "open",
+          "in_progress",
+          "cancelled",
+          "resolved"
+        ),
+        defaultValue: "pending",
         allowNull: false,
       },
       createdBy: {
@@ -77,6 +84,35 @@ export default (db, DataTypes) => {
           model: "users",
           key: "id",
         },
+      },
+      statusChangedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: "users",
+          key: "id",
+        },
+      },
+      changedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      isDeleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
+      deletedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: "users",
+          key: "id",
+        },
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
       },
     },
     {
