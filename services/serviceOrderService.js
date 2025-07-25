@@ -68,10 +68,14 @@ export const getAllOrdersService = async (
   limit = 10,
   filters = {}
 ) => {
-  const { search, status } = filters;
+  const { search, status, regionId, zoneId, woredaId } = filters;
   const where = { isDeleted: false };
 
   if (status) where.status = status;
+  if (regionId) where.regionId = regionId;
+  if (zoneId) where.zoneId = zoneId;
+  if (woredaId) where.woredaId = woredaId;
+
   if (search) {
     where[Op.or] = [
       { orderTitle: { [Op.iLike]: `%${search}%` } },
@@ -129,8 +133,8 @@ export const getAllOrdersService = async (
     page: parseInt(page),
     limit: parseInt(limit),
     offset,
-    rows
-  }
+    rows,
+  };
 };
 
 // Get order by ID
