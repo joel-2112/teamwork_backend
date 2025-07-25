@@ -87,20 +87,35 @@ export const getAllOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, status } = req.query;
     const filters = { search, status };
-    const result = await getAllOrdersService(
-      parseInt(page),
-      parseInt(limit),
-      filters
-    );
+
+    const {
+      totalOrder,
+      pendingOrder,
+      reviewedOrder,
+      acceptedOrder,
+      rejectedOrder,
+      inprogressOrder,
+      cancelledOrder,
+      completedOrder,
+      rows,
+    } = await getAllOrdersService(parseInt(page), parseInt(limit), filters);
+
     res.status(200).json({
       success: true,
       message: "All Service Orders retrieved successfully.",
       statistics: {
-        total: result.count,
+        totalOrder,
+        pendingOrder,
+        reviewedOrder,
+        acceptedOrder,
+        rejectedOrder,
+        inprogressOrder,
+        cancelledOrder,
+        completedOrder,
         page: parseInt(page),
         limit: parseInt(limit),
-        totalPages: Math.ceil(result.count / limit),
-        orders: result.rows,
+        totalPages: Math.ceil(totalOrder / limit),
+        orders: rows,
       },
     });
   } catch (error) {
@@ -133,13 +148,13 @@ export const updateOrder = async (req, res) => {
       order: order,
     });
   } catch (error) {
-  console.error("Sequelize Error:", error.errors || error);
-  res.status(400).json({
-    success: false,
-    message: error.message || "Something went wrong",
-    errors: error.errors || [],
-  });
-}
+    console.error("Sequelize Error:", error.errors || error);
+    res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong",
+      errors: error.errors || [],
+    });
+  }
 };
 
 export const deleteOrder = async (req, res) => {

@@ -121,7 +121,15 @@ export const getAllOrdersService = async (
     totalOrder: count,
     pendingOrder: pendingOrder,
     reviewedOrder: reviewedOrder,
-    acceptedOrder: acceptedOrder
+    acceptedOrder: acceptedOrder,
+    rejectedOrder: rejectedOrder,
+    inprogressOrder: inprogressOrder,
+    cancelledOrder: cancelledOrder,
+    completedOrder: completedOrder,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    offset,
+    rows
   }
 };
 

@@ -32,6 +32,26 @@ export default (db, DataTypes) => {
         ]),
         allowNull: false,
       },
+      companyName: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      gender: {
+        type: DataTypes.ENUM("Male", "Female", "Other"),
+        allowNull: false,
+      },
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      position: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       message: {
         type: DataTypes.TEXT,
         allowNull: false,
