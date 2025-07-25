@@ -159,15 +159,17 @@ export const createAdminUserService = async ({ name, email, password }) => {
 };
 
 // Block user
-export const blockUserByIdService = async (id) => {
+export const updateUserStatusService = async (id, status) => {
   const user = await User.findByPk(id);
   if (!user) throw new Error("User not found.");
 
-  if (user.status === "blocked")
-    throw new Error(`'${user.name}' has already blocked.`);
+  if (user.status === "blocked" && status === "blocked")
+    throw new Error(`'${user.name}' has already been blocked.`);
 
-  user.status = "blocked";
-  await user.save();
+  if (user.status === "active" && status === "active")
+    throw new Error(`'${user.name}' is already active.`);
 
+  await user.update({ status });
   return user;
 };
+

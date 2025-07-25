@@ -4,7 +4,7 @@ import {
   updateUserService,
   deleteUserService,
   createAdminUserService,
-  blockUserByIdService,
+  updateUserStatusService,
 } from "../services/userService.js";
 
 export const getAllUsers = async (req, res) => {
@@ -76,15 +76,16 @@ export const createAdminUser = async (req, res) => {
   }
 };
 
-export const blockUserById = async (req, res) => {
+export const updateUserStatus = async (req, res) => {
   try {
-    const user = await blockUserByIdService(req.params.id);
+    const { status } = req.body
+    const user = await updateUserStatusService(req.params.id, status);
 
     res
       .status(200)
       .json({
         success: true,
-        message: `'${user.name}' has been successfully blocked`,
+        message: `'${user.name}' has been successfully ${status}.`,
       });
   } catch (error) {
     console.log(error);

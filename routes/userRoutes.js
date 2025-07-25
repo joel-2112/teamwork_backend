@@ -7,7 +7,7 @@ import {
   updateUser,
   deleteUser,
   createAdminUser,
-  blockUserById
+  updateUserStatus
 } from "../controllers/userController.js";
 import {
   createUserValidator,
@@ -28,7 +28,7 @@ router.post(
 router.get("/all-users", protect, requireRole('admin'), getAllUsers);
 router.get("/user/:id", protect, requireRole('admin'), getUserById);
 router.put("/update/:id", protect, requireRole('admin'), updateUser);
-router.put("/block/:id", protect, requireRole('admin'), blockUserById)
+router.put("/update-status/:id", protect, requireRole('admin'), updateUserStatus)
 router.delete("/delete/:id", protect, requireRole('admin'), deleteUser);
 
 export default router;
