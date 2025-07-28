@@ -69,7 +69,7 @@ export const createServiceOrderService = async (orderData, userId) => {
   await sendServiceOrderConfirmationEmail({
     userEmail: user.email,
     fullName: user.name,
-    serviceName: service?.name || "Requested Service",
+    serviceName: service?.title || "Requested Service",
   });
 
   return newOrder;
