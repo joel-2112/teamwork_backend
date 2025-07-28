@@ -1,4 +1,4 @@
-import { sendApplicationResultEmail } from "../utils/sendApplicationResult.js";
+import { sendApplicationResultEmail, sendJobApplicationConfirmationEmail } from "../utils/sendApplicationResult.js";
 import fs from "fs";
 import path from "path";
 import db from "../models/index.js";
@@ -20,6 +20,13 @@ export const createJobApplicationService = async (data) => {
     if (!data[field]) throw new Error(`Missing required field: ${field}`);
   }
 
+  // Send confirmation email
+  await sendJobApplicationConfirmationEmail({
+    userEmail: data.applicantEmail,
+    fullName: data.applicantFullName,
+    jobTitle: job.jobTitle || "the position",
+  });
+  
   return await JobApplication.create(data);
 };
 

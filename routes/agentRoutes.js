@@ -9,7 +9,8 @@ import {
   updateAgentStatus,
   getAllDeletedAgent,
   getMyAgentRequest,
-  getAllApprovedAgents
+  getAllApprovedAgents,
+  cancelAgent
 } from "../controllers/agentController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
@@ -22,4 +23,6 @@ router.put("/update-status/:id", protect, requireRole("admin"), updateAgentStatu
 router.get("/deleted-agents", protect, requireRole("admin"), getAllDeletedAgent);
 router.get("/my-request", protect, getMyAgentRequest);
 router.get("/approved-agents", getAllApprovedAgents);
+router.put("/cancel:id", protect, cancelAgent);
+
 export default router;

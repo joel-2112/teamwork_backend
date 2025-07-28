@@ -8,7 +8,8 @@ import {
   updateAgentStatusService,
   getAllDeletedAgentService,
   getMyAgentRequestService,
-  getAllApprovedAgentsService
+  getAllApprovedAgentsService,
+  cancelAgentService,
 } from "../services/agentService.js";
 
 export const createAgent = async (req, res) => {
@@ -68,15 +69,33 @@ export const updateAgentStatus = async (req, res) => {
   try {
     const { agentStatus } = req.body;
     const agent = await updateAgentStatusService(req.params.id, agentStatus);
+    res.status(200).json({
+      success: true,
+      message: "Agent status updated successfully.",
+      agent: agent,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const cancelAgent = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const agentId = req.params.id;
+
+    const agent = await cancelAgentService(agentId, userId);
+
     res
       .status(200)
       .json({
         success: true,
-        message: "Agent status updated successfully.",
+        message: "You have successfully cancel agent request.",
         agent: agent,
       });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -129,7 +148,6 @@ export const getMyAgentRequest = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
-
 
 export const getAllApprovedAgents = async (req, res) => {
   try {

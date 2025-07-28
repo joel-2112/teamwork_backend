@@ -1,5 +1,9 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
+import {
+  sendAgentRequestConfirmationEmail,
+  sendAgentStatusUpdateEmail,
+} from "../utils/sendEmail.js";
 
 const { Agent, Partnership, Woreda, Zone, Region, User, Role } = db;
 
@@ -8,8 +12,7 @@ export const createAgentService = async (userId, data) => {
   const { regionId, zoneId, woredaId, email, phoneNumber } = data;
 
   const user = await User.findByPk(userId);
-  if(!user) throw new Error("User not found.")
-
+  if (!user) throw new Error("User not found.");
 
   const checkPartner = await Partnership.findOne({
     where: {
@@ -50,6 +53,12 @@ export const createAgentService = async (userId, data) => {
     );
 
   const agent = await Agent.create(data);
+
+  // Send confirmation email
+  await sendAgentRequestConfirmationEmail({
+    userEmail: user.email,
+    fullName: user.name,
+  });
 
   // Convert to plain object and replace IDs with names
   const agentData = agent.toJSON();
@@ -185,7 +194,34 @@ export const updateAgentStatusService = async (id, status) => {
     }
   }
 
+  // Send status email (skip cancelled)
+  if (status !== "cancelled") {
+    await sendAgentStatusUpdateEmail({
+      userEmail: agent.email,
+      fullName: agent.fullName,
+      agentStatus: status,
+    });
+  }
+
   return updatedAgent;
+};
+
+export const cancelAgentService = async (agentId, userId) => {
+  const agent = await Agent.findOne({
+    where: { id: agentId, isDeleted: false },
+  });
+  if (!agent) throw new Error("Agent is not found.");
+
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found.");
+
+  if (agent.email !== user.email)
+    throw new Error("You are not authorized to cancel this agent request.");
+
+  agent.agentStatus = "cancelled";
+  await agent.save();
+
+  return agent;
 };
 
 // Delete agent by ID

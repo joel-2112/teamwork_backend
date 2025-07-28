@@ -1,5 +1,9 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
+import {
+  sendPartnershipRequestConfirmationEmail,
+  sendPartnershipStatusUpdateEmail,
+} from "../utils/sendEmail.js";
 
 const { Partnership, User, Role, Agent } = db;
 
@@ -71,6 +75,12 @@ export const createPartnershipService = async (userId, data) => {
     fullName: user.name,
     email: user.email,
   });
+
+  await sendPartnershipRequestConfirmationEmail({
+    userEmail: user.email,
+    fullName: user.name,
+  });
+
   return partnership;
 };
 
@@ -224,6 +234,12 @@ export const updatePartnershipStatusService = async (
       await partner.save();
     }
   }
+
+  await sendPartnershipStatusUpdateEmail({
+    userEmail: partner.email,
+    fullName: partnership.fullName,
+    status,
+  });
 
   return updatedPartnership;
 };
