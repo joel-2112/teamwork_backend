@@ -5,7 +5,7 @@ import {
   sendOrderStatusUpdateEmail,
 } from "../utils/sendEmail.js";
 
-const { ServiceOrder, Region, Zone, Woreda, User } = db;
+const { ServiceOrder, Region, Zone, Woreda, User, Service } = db;
 
 // To order the service
 export const createServiceOrderService = async (orderData, userId) => {
@@ -65,7 +65,7 @@ export const createServiceOrderService = async (orderData, userId) => {
   });
 
   // Send confirmation email
-  const service = await ServiceOrder.findByPk(orderData.serviceId);
+  const service = await Service.findByPk(orderData.serviceId);
   await sendServiceOrderConfirmationEmail({
     userEmail: user.email,
     fullName: user.name,
