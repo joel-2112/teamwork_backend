@@ -1,5 +1,10 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
+import {
+  sendServiceOrderConfirmationEmail,
+  sendOrderStatusUpdateEmail,
+} from "../utils/sendEmail.js";
+
 const { ServiceOrder, Region, Zone, Woreda, User } = db;
 
 // To order the service
@@ -57,6 +62,14 @@ export const createServiceOrderService = async (orderData, userId) => {
     userId: user.id,
     email: user.email,
     fullName: user.name,
+  });
+
+  // Send confirmation email
+  const service = await Service.findByPk(orderData.serviceId);
+  await sendServiceOrderConfirmationEmail({
+    userEmail: user.email,
+    fullName: user.name,
+    serviceName: service?.name || "Requested Service",
   });
 
   return newOrder;
@@ -258,6 +271,17 @@ export const updateOrderStatusService = async (id, status) => {
   if (!order) throw new Error("Order not found");
 
   await order.update({ status });
+
+  // Send email only for the specified 4 statuses
+  if (["accepted", "in_progress", "completed", "rejected"].includes(status)) {
+    await sendOrderStatusUpdateEmail({
+      userEmail: order.email,
+      fullName: order.fullName,
+      orderTitle: order.orderTitle,
+      status,
+    });
+  }
+
   return order;
 };
 
@@ -281,6 +305,14 @@ export const cancelOrderService = async (orderId, userId) => {
 
   order.status = "cancelled";
   await order.save();
+
+  // Send cancellation email
+  await sendOrderStatusUpdateEmail({
+    userEmail: user.email,
+    fullName: order.fullName,
+    orderTitle: order.orderTitle,
+    status: "cancelled",
+  });
 
   return order;
 };
