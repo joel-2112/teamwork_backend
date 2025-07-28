@@ -34,32 +34,19 @@ import reportRoute from "./routes/reportRoute.js";
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Serve static files from the same location as above
-const uploadsDir = path.resolve(__dirname, "../uploads"); // Go outside project folder
+app.use("/uploads", express.static(path.resolve("uploads")));
 
+// Serve static files from /uploads with CORS headers
 app.use(
   "/uploads",
-  express.static(uploadsDir, {
-    setHeaders: (res) => {
+  express.static(path.resolve("uploads"), {
+    setHeaders: (res, path) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET");
       res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     },
   })
 );
-
-
-// Serve static files from /uploads with CORS headers
-// app.use(
-//   "/uploads",
-//   express.static(path.resolve("uploads"), {
-//     setHeaders: (res, path) => {
-//       res.setHeader("Access-Control-Allow-Origin", "*");
-//       res.setHeader("Access-Control-Allow-Methods", "GET");
-//       res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-//     },
-//   })
-// );
 
 // Middleware
 app.use(
