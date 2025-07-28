@@ -65,7 +65,7 @@ export const createServiceOrderService = async (orderData, userId) => {
   });
 
   // Send confirmation email
-  const service = await Service.findByPk(orderData.serviceId);
+  const service = await ServiceOrder.findByPk(orderData.serviceId);
   await sendServiceOrderConfirmationEmail({
     userEmail: user.email,
     fullName: user.name,
