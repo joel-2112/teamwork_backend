@@ -17,7 +17,7 @@ export const createAgentService = async (userId, data) => {
   const checkPartner = await Partnership.findOne({
     where: {
       email: user.email,
-      agentStatus: {
+      status: {
         [Op.ne]: "cancelled",
       },
     },
