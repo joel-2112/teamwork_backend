@@ -110,7 +110,9 @@ export const updateNewsController = async (req, res) => {
 // Delete news
 export const deleteNewsController = async (req, res) => {
   try {
-    await deleteNews(req.params.id);
+    const userId = req.user.id;
+    const newsId = req.params.id;
+    await deleteNews(newsId, userId);
     res
       .status(200)
       .json({ success: true, message: "News deleted successfully." });

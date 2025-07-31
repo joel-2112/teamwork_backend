@@ -8,8 +8,8 @@ const { News, User } = db;
 
 // service to create news
 export const createNews = async (userId, data, checkOnly = false) => {
-  const user = await User.findByPk(userId)
-  if(!user) throw new Error("User not found");
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
 
   const existingNews = await News.findOne({
     where: {
@@ -26,7 +26,7 @@ export const createNews = async (userId, data, checkOnly = false) => {
 
   return await News.create({
     ...data,
-    postedBy: user.id
+    postedBy: user.id,
   });
 };
 
@@ -41,7 +41,7 @@ export const getAllNews = async ({
   byCompany,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = {};
+  const where = { isDeleted: false };
 
   // Filters
   if (title) where.title = title;
@@ -133,38 +133,53 @@ export const getAllNews = async ({
 
 // Service to retrieve news by id
 export const getNewsById = async (id) => {
-  const news = await News.findByPk(id);
+  const news = await News.findOne({ where: { id: id, isDeleted: false } });
   if (!news) throw new Error("News not found");
   return news;
 };
 
 // Service to update news by id
 export const updateNews = async (id, data) => {
-  const news = await News.findByPk(id);
+  const news = await News.findOne({ where: { id: id, isDeleted: false } });
   if (!news) throw new Error("News not found");
   return await news.update(data);
 };
 
 // Service to delete news by id
-export const deleteNews = async (id) => {
-  const news = await News.findByPk(id);
-  if (!news) throw new Error("News not found");
+// export const deleteNews = async (id) => {
+//   const news = await News.findOne({ where: { id: id, isDeleted: false } });
+//   if (!news) throw new Error("News not found");
 
-  // Delete associated image if it exists
-  if (news.imageUrl) {
-    const imagePath = path.join(
-      process.cwd(),
-      "uploads/assets",
-      path.basename(news.imageUrl)
-    );
-    try {
-      await fs.promises.unlink(imagePath);
-      console.log(`Deleted image file: ${imagePath}`);
-    } catch (err) {
-      console.error(`Error deleting image file: ${err.message}`);
-    }
-  }
+//   // Delete associated image if it exists
+//   if (news.imageUrl) {
+//     const imagePath = path.join(
+//       process.cwd(),
+//       "uploads/assets",
+//       path.basename(news.imageUrl)
+//     );
+//     try {
+//       await fs.promises.unlink(imagePath);
+//       console.log(`Deleted image file: ${imagePath}`);
+//     } catch (err) {
+//       console.error(`Error deleting image file: ${err.message}`);
+//     }
+//   }
 
-  // Delete the news record from DB
-  return await news.destroy();
+//   // Delete the news record from DB
+//   return await news.destroy();
+// };
+
+export const deleteNews = async (newsId, userId) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error(" User not found");
+
+  const news = await News.findOne({ where: { id: newsId, isDeleted: false } });
+  if (!news) throw new Error("News not found or already deleted.");
+
+  news.isDeleted = true;
+  news.deletedBy = user.id;
+  news.deletedAt = new Date();
+  await news.save();
+
+  return news;
 };
