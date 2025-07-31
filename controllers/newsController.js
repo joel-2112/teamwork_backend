@@ -12,23 +12,24 @@ import path from "path";
 // Create news
 export const createNewsController = async (req, res) => {
   try {
+    const userId = req.user.id;
     const { title, content, publishDate, category, author, readTime } =
       req.body;
 
     // Duplicate check
 
-    const existingNews = await createNews({ title, content }, true);
+    const existingNews = await createNews(userId, { title, content }, true);
 
     // Save image to disk only if file exists and news is valid
     let imageUrl = null;
     if (req.file) {
       const uniqueName = `picture-${Date.now()}${path.extname(req.file.originalname)}`;
       const savedPath = saveImageToDisk(req.file.buffer, uniqueName);
-      imageUrl = `/uploads/assets/${uniqueName}`;
+      imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
     }
 
     // Now create the news
-    const news = await createNews({
+    const news = await createNews(userId, {
       title,
       content,
       imageUrl,
@@ -51,16 +52,17 @@ export const createNewsController = async (req, res) => {
 // Retrieve all news
 export const getAllNewsController = async (req, res) => {
   try {
-    const { page, limit, title, search, byDate, byCategory, byCompany } = req.query;
+    const { page, limit, title, search, byDate, byCategory, byCompany } =
+      req.query;
 
     const newsData = await getAllNews({
       page,
       limit,
       title,
       search,
-      byDate, 
+      byDate,
       byCategory,
-      byCompany
+      byCompany,
     });
 
     res.status(200).json({

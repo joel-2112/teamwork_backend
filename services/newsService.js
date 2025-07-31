@@ -4,10 +4,13 @@ import fs from "fs";
 import path from "path";
 import { title } from "process";
 import moment from "moment";
-const { News } = db;
+const { News, User } = db;
 
 // service to create news
-export const createNews = async (data, checkOnly = false) => {
+export const createNews = async (userId, data, checkOnly = false) => {
+  const user = await User.findByPk(userId)
+  if(!user) throw new Error("User not found");
+
   const existingNews = await News.findOne({
     where: {
       title: data.title,
@@ -21,7 +24,10 @@ export const createNews = async (data, checkOnly = false) => {
 
   if (checkOnly) return null;
 
-  return await News.create(data);
+  return await News.create({
+    ...data,
+    postedBy: user.id
+  });
 };
 
 // Service to get all news
