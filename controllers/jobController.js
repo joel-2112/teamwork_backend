@@ -12,7 +12,8 @@ import {
 // Create job if it is not already exist
 export const createJob = async (req, res) => {
   try {
-    const job = await createJobService(req.body);
+    const userId = req.user.id;
+    const job = await createJobService(userId, req.body);
     res.status(200).json({
       success: true,
       message: "JOb created successfully",
@@ -29,7 +30,8 @@ export const createJob = async (req, res) => {
 // Retrieve all job
 export const getAllJobs = async (req, res) => {
   try {
-    const { page, limit, category, location, jobType, jobStatus, search } = req.query;
+    const { page, limit, category, location, jobType, jobStatus, search } =
+      req.query;
     const jobs = await getAllJobsService({
       page,
       limit,
@@ -87,7 +89,9 @@ export const updateJob = async (req, res) => {
 // Delete job by id
 export const deleteJob = async (req, res) => {
   try {
-    await deleteJobService(req.params.id);
+    const userId = req.user.id;
+    const jobId = req.params.id;
+    await deleteJobService(jobId, userId);
     res.status(200).json({
       success: true,
       message: "Job deleted successfully.",

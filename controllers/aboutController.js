@@ -13,6 +13,7 @@ import path from "path";
 export const createAbout = async (req, res) => {
   try {
     const { title, content, mission, vision } = req.body;
+    const userId = req.user.id;
     let { values } = req.body;
 
     // Parse and validate values
@@ -48,7 +49,11 @@ export const createAbout = async (req, res) => {
     }
 
     // Check for existing entry
-    const existingAbout = await createAboutService({ title, content }, true);
+    const existingAbout = await createAboutService(
+      userId,
+      { title, content },
+      true
+    );
 
     // Save image if available
     let aboutImage = null;
@@ -59,8 +64,8 @@ export const createAbout = async (req, res) => {
       aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
     }
 
-    // Create about entry
-    const about = await createAboutService({
+    // Create the about
+    const about = await createAboutService(userId, {
       title,
       content,
       aboutImage,
@@ -106,15 +111,15 @@ export const getAboutById = async (req, res) => {
   }
 };
 
-
 export const updateAbout = async (req, res) => {
   try {
     const updatedAbout = await updateAboutService(
       req.params.id,
       req.body,
-      req.file, 
+      req.file,
       req
-    );    res.status(200).json({
+    );
+    res.status(200).json({
       success: true,
       message: `About with id ${req.params.id} is successfully updated.`,
       about: updatedAbout,
@@ -123,7 +128,6 @@ export const updateAbout = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
-
 
 // export const updateAbout = async (req, res) => {
 //   try {
@@ -146,7 +150,9 @@ export const updateAbout = async (req, res) => {
 
 export const deleteAbout = async (req, res) => {
   try {
-    await deleteAboutService(req.params.id);
+    const userId = req.user.id;
+    const aboutId = req.params.id;
+    await deleteAboutService(aboutId, userId);
     res
       .status(200)
       .json({ success: true, message: "About deleted successfully." });

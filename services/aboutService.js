@@ -1,12 +1,15 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import db from "../models/index.js";
-const { About } = db;
 import fs from "fs";
 import path from "path";
 import { saveImageToDisk } from "../utils/saveImage.js";
 
+const { About, User } = db;
+
 // Create about with image
-export const createAboutService = async (data, checkOnly = false) => {
+export const createAboutService = async (userId, data, checkOnly = false) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
   const existingAbout = await About.findOne({
     where: {
       title: data.title,
@@ -22,7 +25,10 @@ export const createAboutService = async (data, checkOnly = false) => {
 
   if (checkOnly) return null;
 
-  return await About.create(data);
+  return await About.create({
+    ...data,
+    postedBy: user.id,
+  });
 };
 
 // Retrieve all about sections with pagination and optional title filter
@@ -33,7 +39,7 @@ export const getAllAboutService = async ({
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = {};
+  const where = { isDeleted: false };
   if (title) where.title = title;
   if (search) {
     where[Op.or] = [
@@ -59,18 +65,21 @@ export const getAllAboutService = async ({
 
 // Retrieve about section by ID
 export const getAboutByIdService = async (id) => {
-  const about = await About.findByPk(id);
+  const about = await About.findOne({ where: { id: id, isDeleted: false } });
   if (!about) throw new Error("About not found");
   return about;
 };
 
 export const updateAboutService = async (id, data, file, req) => {
-  const about = await About.findByPk(id);
+  const about = await About.findOne({ where: { id: id, isDeleted: false } });
   if (!about) throw new Error("About not found");
 
   if (file) {
     if (about.aboutImage) {
-      const oldImagePath = path.join("uploads/assets", path.basename(about.aboutImage));
+      const oldImagePath = path.join(
+        "uploads/assets",
+        path.basename(about.aboutImage)
+      );
       if (fs.existsSync(oldImagePath)) {
         fs.unlinkSync(oldImagePath);
       }
@@ -85,7 +94,8 @@ export const updateAboutService = async (id, data, file, req) => {
     let parsedValues;
 
     try {
-      parsedValues = typeof data.values === "string" ? JSON.parse(data.values) : data.values;
+      parsedValues =
+        typeof data.values === "string" ? JSON.parse(data.values) : data.values;
     } catch (err) {
       throw new Error("Values must be a valid JSON array.");
     }
@@ -180,25 +190,40 @@ export const updateAboutService = async (id, data, file, req) => {
 // };
 
 // Delete about section by id
-export const deleteAboutService = async (id) => {
-  const about = await About.findByPk(id);
-  if (!about) throw new Error("About not found");
+// export const deleteAboutService = async (id) => {
+//   const about = await About.findByPk(id);
+//   if (!about) throw new Error("About not found");
 
-  // Delete associated image if it exists
-  if (about.aboutImage) {
-    const imagePath = path.join(
-      process.cwd(),
-      "uploads/assets",
-      path.basename(about.aboutImage)
-    );
-    try {
-      await fs.promises.unlink(imagePath);
-      console.log(`Deleted image file: ${imagePath}`);
-    } catch (err) {
-      console.error(`Error deleting image file: ${err.message}`);
-    }
-  }
+//   // Delete associated image if it exists
+//   if (about.aboutImage) {
+//     const imagePath = path.join(
+//       process.cwd(),
+//       "uploads/assets",
+//       path.basename(about.aboutImage)
+//     );
+//     try {
+//       await fs.promises.unlink(imagePath);
+//       console.log(`Deleted image file: ${imagePath}`);
+//     } catch (err) {
+//       console.error(`Error deleting image file: ${err.message}`);
+//     }
+//   }
 
-  // Delete the about record from DB
-  return await about.destroy();
+//   // Delete the about record from DB
+//   return await about.destroy();
+// };
+
+export const deleteAboutService = async (aboutId, userId) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found.");
+
+  const about = await About.findOne({ where: { id: id, isDeleted: false } });
+  if (!about) throw new Error("About not found or already deleted.");
+
+  about.isDeleted = true;
+  about.deletedBy = user.id;
+  about.deletedAt = new Date();
+  await about.save();
+
+  return about;
 };

@@ -9,6 +9,8 @@ import morgan from "morgan";
 
 import db from "./models/index.js";
 import errorHandler from "./middlewares/errorHandler.js";
+import "./utils/scheduledTask.js";
+
 
 // Import Routes
 import authRoutes from "./routes/authRoutes.js";

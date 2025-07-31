@@ -195,6 +195,31 @@ Report.belongsTo(User, {
   foreignKey: "statusChangedBy",
   as: "statusUpdatedBy",
 });
+
+User.hasMany(Job, { foreignKey: "postedBy" });
+Job.belongsTo(User, { foreignKey: "postedBy" });
+
+User.hasMany(Job, { foreignKey: "deletedBy" });
+Job.belongsTo(User, { foreignKey: "deletedBy" });
+
+User.hasMany(About, { foreignKey: "postedBy" });
+About.belongsTo(User, { foreignKey: "postedBy" });
+
+User.hasMany(About, { foreignKey: "deletedBy" });
+About.belongsTo(User, { foreignKey: "deletedBy" });
+
+User.hasMany(Event, { foreignKey: "postedBy" });
+Event.belongsTo(User, { foreignKey: "postedBy" });
+
+User.hasMany(Event, { foreignKey: "deletedBy" });
+Event.belongsTo(User, { foreignKey: "deletedBy" });
+
+User.hasMany(News, { foreignKey: "postedBy" });
+News.belongsTo(User, { foreignKey: "postedBy" });
+
+User.hasMany(News, { foreignKey: "deletedBy" });
+News.belongsTo(User, { foreignKey: "deletedBy" });
+
 export default {
   sequelize: db,
   Sequelize,

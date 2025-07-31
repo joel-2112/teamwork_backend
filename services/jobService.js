@@ -1,10 +1,12 @@
 import { Op } from "sequelize";
-import db from "../models/index.js"; // ensure index.js uses ESM exports
-import { title } from "process";
-const { Job, JobApplication } = db;
+import db from "../models/index.js";
+const { Job, JobApplication, User } = db;
 
 // Service to create job if it is not already exist
-export const createJobService = async (data) => {
+export const createJobService = async (userId, data) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+
   const job = await Job.findOne({
     where: {
       title: data.title,
@@ -15,9 +17,11 @@ export const createJobService = async (data) => {
 
   if (job) throw new Error("Job already exist.");
 
-  return await Job.create(data);
+  return await Job.create({
+    ...data,
+    postedBy: user.id,
+  });
 };
-
 
 // Service Retrieve all job with pagination
 export const getAllJobsService = async ({
@@ -30,12 +34,12 @@ export const getAllJobsService = async ({
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = {};
+  const where = { isDeleted: false };
 
   if (category) where.category = category;
   if (location) where.location = { [Op.iLike]: `%${location}%` };
   if (jobType) where.jobType = jobType;
-  if(jobStatus) where.jobStatus = jobStatus;
+  if (jobStatus) where.jobStatus = jobStatus;
   if (search) {
     where[Op.or] = [
       { title: { [Op.iLike]: `%${search}%` } },
@@ -76,7 +80,9 @@ export const getAllJobsService = async ({
 
 // Service to retrieve job by id
 export const getJobByIdService = async (id) => {
-  const job = await Job.findByPk(id, {
+  const where = { id: id, isDeleted: false };
+  const job = await Job.findOne({
+    where,
     include: [
       {
         model: JobApplication,
@@ -96,25 +102,32 @@ export const getJobByIdService = async (id) => {
   return job;
 };
 
-
 // Service Update job by id
 export const updateJobService = async (id, data) => {
-  const job = await Job.findByPk(id);
+  const job = await Job.findOne({ where: { id: id, isDeleted: false } });
   if (!job) throw new Error("Job not found");
   return await job.update(data);
 };
 
-
-// Service to delte job by id
-export const deleteJobService = async (id) => {
-  const job = await Job.findByPk(id);
-  if (!job) throw new Error("Job not found");
-  const applicationCount = await JobApplication.count({ where: { jobId: id } });
+// Service to delete job by id
+export const deleteJobService = async (jobId, userId) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+  const job = await Job.fideOne({ where: { id: jobId, isDeleted: false } });
+  if (!job) throw new Error("Job not found or already deleted.");
+  const applicationCount = await JobApplication.count({
+    where: { jobId: jobId },
+  });
   if (applicationCount > 0)
     throw new Error("Cannot delete job with associated applications");
-  return await job.destroy();
-};
 
+  job.isDeleted = true;
+  job.deletedBy = user.id;
+  job.deletedAt = new Date();
+  await job.save();
+
+  return job;
+};
 
 // Service to retrieve open job
 export const getOpenJobsService = async ({
@@ -126,7 +139,7 @@ export const getOpenJobsService = async ({
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = { jobStatus: "open" };
+  const where = { jobStatus: "open", isDeleted: false };
 
   if (category) where.category = category;
   if (location) where.location = { [Op.iLike]: `%${location}%` };
@@ -170,8 +183,7 @@ export const getOpenJobsService = async ({
 
 // Close the open job
 export const closeOpenJobService = async (id, jobStatus) => {
-  const job = await Job.findByPk(id);
-
+  const job = await Job.findOne({ where: { id: id } });
   if (!job) throw new Error("Job not found.");
   if (job.jobStatus !== "open") throw new Error("Job is already closed");
 
@@ -190,7 +202,7 @@ export const getAllClosedJobService = async ({
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = { jobStatus: "closed" };
+  const where = { jobStatus: "closed", isDeleted: false };
 
   if (category) where.category = category;
   if (location) where.location = { [Op.iLike]: `%${location}%` };
