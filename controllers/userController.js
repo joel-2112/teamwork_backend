@@ -5,6 +5,7 @@ import {
   deleteUserService,
   createAdminUserService,
   updateUserStatusService,
+  userStatisticsService,
 } from "../services/userService.js";
 
 export const getAllUsers = async (req, res) => {
@@ -86,6 +87,22 @@ export const updateUserStatus = async (req, res) => {
       success: true,
       message: `'${user.name}' has been successfully ${status}.`,
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const userStatistics = async (req, res) => {
+  try {
+    const stats = await userStatisticsService();
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "User statistics is successfully sent.",
+        userData: stats,
+      });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

@@ -2,6 +2,8 @@ import { Op } from "sequelize";
 import db from "../models/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import moment from "moment";
+
 const { User, Role, Partnership, Agent } = db;
 
 export const getAllUsersService = async ({
@@ -168,3 +170,81 @@ export const updateUserStatusService = async (id, status) => {
   return user;
 };
 
+// To send user statistics of the company
+export const userStatisticsService = async () => {
+  const adminRole = await Role.findOne({ where: { name: "admin" } });
+  if (!adminRole) throw new Error("Role admin not found.");
+
+  const agentRole = await Role.findOne({ where: { name: "agent" } });
+  if (!agentRole) throw new Error("Role agent not found.");
+
+  const partnerRole = await Role.findOne({ where: { name: "partner" } });
+  if (!partnerRole) throw new Error("Role partner not found.");
+
+  // Time ranges
+  const todayStart = moment().startOf("day").toDate();
+  const todayEnd = moment().endOf("day").toDate();
+
+  const thisWeekStart = moment().startOf("week").toDate(); // Sunday
+  const thisWeekEnd = moment().endOf("week").toDate(); // Saturday
+
+  const lastWeekStart = moment().subtract(1, "weeks").startOf("week").toDate();
+  const lastWeekEnd = moment().subtract(1, "weeks").endOf("week").toDate();
+
+  const monthStart = moment().startOf("month").toDate();
+  const monthEnd = moment().endOf("month").toDate();
+
+  // Count users by time
+  const todayUsers = await User.count({
+    where: {
+      createdAt: {
+        [Op.between]: [todayStart, todayEnd],
+      },
+    },
+  });
+
+  const thisWeekUsers = await User.count({
+    where: {
+      createdAt: {
+        [Op.between]: [thisWeekStart, thisWeekEnd],
+      },
+    },
+  });
+
+  const lastWeekUsers = await User.count({
+    where: {
+      createdAt: {
+        [Op.between]: [lastWeekStart, lastWeekEnd],
+      },
+    },
+  });
+
+  const thisMonthUsers = await User.count({
+    where: {
+      createdAt: {
+        [Op.between]: [monthStart, monthEnd],
+      },
+    },
+  });
+
+  // Role and status counts
+  const allUsers = await User.count();
+  const allAdmins = await User.count({ where: { roleId: adminRole.id } });
+  const allAgents = await User.count({ where: { roleId: agentRole.id } });
+  const allPartners = await User.count({ where: { roleId: partnerRole.id } });
+  const activeUsers = await User.count({ where: { status: "active" } });
+  const inactiveUsers = await User.count({ where: { status: "blocked" } });
+
+  return {
+    totalUsers: allUsers,
+    admins: allAdmins,
+    agents: allAgents,
+    partners: allPartners,
+    activeUsers,
+    inactiveUsers,
+    todayUsers,
+    thisWeekUsers,
+    lastWeekUsers,
+    thisMonthUsers,
+  };
+};
