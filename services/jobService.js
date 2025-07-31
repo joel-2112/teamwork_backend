@@ -1,5 +1,7 @@
 import { Op } from "sequelize";
 import db from "../models/index.js";
+import moment from "moment";
+
 const { Job, JobApplication, User } = db;
 
 // Service to create job if it is not already exist
@@ -241,5 +243,86 @@ export const getAllClosedJobService = async ({
     page: parseInt(page),
     limit: parseInt(limit),
     jobs: rows,
+  };
+};
+
+// To send Job statistics of the company
+export const jobStatisticsService = async () => {
+  const todayStart = moment().startOf("day").toDate();
+  const todayEnd = moment().endOf("day").toDate();
+
+  const thisWeekStart = moment().startOf("week").toDate(); // Sunday
+  const thisWeekEnd = moment().endOf("week").toDate();     // Saturday
+
+  const lastWeekStart = moment().subtract(1, "weeks").startOf("week").toDate();
+  const lastWeekEnd = moment().subtract(1, "weeks").endOf("week").toDate();
+
+  const monthStart = moment().startOf("month").toDate();
+  const monthEnd = moment().endOf("month").toDate();
+
+  const todayJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: {
+        [Op.between]: [todayStart, todayEnd],
+      },
+    },
+  });
+
+  const thisWeekJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: {
+        [Op.between]: [thisWeekStart, thisWeekEnd],
+      },
+    },
+  });
+
+  const lastWeekJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: {
+        [Op.between]: [lastWeekStart, lastWeekEnd],
+      },
+    },
+  });
+
+  const thisMonthJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: {
+        [Op.between]: [monthStart, monthEnd],
+      },
+    },
+  });
+
+  const totalJobs = await Job.count({ where: { isDeleted: false } });
+
+  const openJobs = await Job.count({
+    where: { jobStatus: "open", isDeleted: false },
+  });
+
+  const closedJobs = await Job.count({
+    where: { jobStatus: "closed", isDeleted: false },
+  });
+  const fullTimeJobs = await Job.count({where: {jobType: "full-time", isDeleted: false}})
+  const partTimeJobs = await Job.count({where: {jobType: "part-time", isDeleted: false}})
+  const contractJobs = await Job.count({where: {jobType: "contract", isDeleted: false}})
+  const remoteJobs = await Job.count({where: {jobType: "remote", isDeleted: false}})
+  const internshipJobs = await Job.count({where: {jobType: "internship", isDeleted: false}})
+
+  return {
+    totalJobs,
+    openJobs,
+    closedJobs,
+    todayJobs,
+    thisWeekJobs,
+    lastWeekJobs,
+    thisMonthJobs,
+    fullTimeJobs,
+    partTimeJobs,
+    contractJobs,
+    remoteJobs,
+    internshipJobs
   };
 };

@@ -9,6 +9,7 @@ import {
   deleteJob,
   closeOpenJob,
   getAllClosedJob,
+  jobStatistics
 } from "../controllers/jobController.js";
 import {
   validateParamId,
@@ -51,5 +52,6 @@ router.get("/job/:id", validateParamId, validateRequest, getJobById);
 router.get("/open-job", getOpenJobs);
 router.get("/closed-job", getAllClosedJob);
 router.get("/all-job", getAllJobs);
+router.get("/job-stat", protect, requireRole('admin'), jobStatistics)
 
 export default router;

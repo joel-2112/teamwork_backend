@@ -7,6 +7,7 @@ import {
   getOpenJobsService,
   closeOpenJobService,
   getAllClosedJobService,
+  jobStatisticsService,
 } from "../services/jobService.js";
 
 // Create job if it is not already exist
@@ -171,5 +172,21 @@ export const getAllClosedJob = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+export const jobStatistics = async (req, res) => {
+  try {
+    const stats = await jobStatisticsService();
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Job statistics sent successfully",
+        data: stats,
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

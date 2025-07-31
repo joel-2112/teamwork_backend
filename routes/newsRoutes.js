@@ -34,7 +34,7 @@ router.put(
 router.delete(
   "/delete-news/:id",
   protect,
-  requireRole('admin'),
+  requireRole("admin"),
   validateParamId,
   validateRequest,
   deleteNewsController
