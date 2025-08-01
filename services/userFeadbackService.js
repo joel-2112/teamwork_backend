@@ -77,6 +77,26 @@ export const getAllUserFeedbacksService = async ({
   };
 };
 
+// Calculate and send average rating of feedback
+export const averageRatingService = async () => {
+  const feedbacks = await UserFeedback.findAll();
+
+  if (!feedbacks || feedbacks.length === 0) {
+    return { averageRating: 0, totalFeedbacks: 0 };
+  }
+
+  const totalRating = feedbacks.reduce((sum, feedback) => {
+    return sum + (feedback.rating || 0);
+  }, 0);
+
+  const averageRating = totalRating / feedbacks.length;
+
+  return {
+    averageRating: parseFloat(averageRating.toFixed(1)), // e.g., 4.2
+    totalFeedbacks: feedbacks.length,
+  };
+};
+
 // Retrieve user feedback by ID
 export const getUserFeedbackByIdService = async (id) => {
   const feedback = await UserFeedback.findByPk(id);

@@ -5,6 +5,7 @@ import {
   updateUserFeedbackService,
   deleteUserFeedbackService,
   updateUserFeedbackStatusService,
+  averageRatingService,
 } from "../services/userFeadbackService.js";
 
 export const createUserFeedback = async (req, res) => {
@@ -36,6 +37,26 @@ export const getAllUserFeedbacks = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+export const averageRating = async (req, res) => {
+  try {
+    const result = await averageRatingService();
+
+    res.status(200).json({
+      success: true,
+      message: "Average rating retrieved successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error getting average rating:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve average rating",
+      error: error.message,
+    });
   }
 };
 
@@ -89,13 +110,11 @@ export const updateUserFeedbackStatus = async (req, res) => {
       userId,
       status
     );
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: `You have successfully ${status} feedback with id ${feedbackId}`,
-        feedback: feedback,
-      });
+    res.status(200).json({
+      success: true,
+      message: `You have successfully ${status} feedback with id ${feedbackId}`,
+      feedback: feedback,
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
