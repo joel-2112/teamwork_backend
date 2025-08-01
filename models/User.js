@@ -49,6 +49,21 @@ export default (db, DataTypes) => {
         allowNull: false,
         defaultValue: "active",
       },
+      regionId: {
+        type: DataTypes.INTEGER,
+        references: { model: "regions", key: "id" },
+        allowNull: true,
+      },
+      zoneId: {
+        type: DataTypes.INTEGER,
+        references: { model: "zones", key: "id" },
+        allowNull: true,
+      },
+      woredaId: {
+        type: DataTypes.INTEGER,
+        references: { model: "woredas", key: "id" },
+        allowNull: true,
+      },
     },
     {
       tableName: "users",

@@ -226,6 +226,17 @@ Agent.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(JobApplication, { foreignKey: "userId" });
 JobApplication.belongsTo(User, { foreignKey: "userId" });
 
+User.hasOne(Region, {foreignKey: "regionId"})
+Region.belongsTo(User, { foreignKey: "regionId"})
+
+User.hasOne(Zone, {foreignKey: "zoneId"})
+Zone.belongsTo(User, { foreignKey: "zoneId"})
+
+User.hasOne(Woreda, {foreignKey: "woredaId"})
+Woreda.belongsTo(User, { foreignKey: "woredaId"})
+
+
+
 export default {
   sequelize: db,
   Sequelize,

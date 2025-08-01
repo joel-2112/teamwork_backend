@@ -63,9 +63,7 @@ export const deleteUser = async (req, res) => {
 // Admin can create an other admin
 export const createAdminUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-
-    const newAdmin = await createAdminUserService({ name, email, password });
+    const newAdmin = await createAdminUserService(req.body);
 
     res.status(200).json({
       success: true,
@@ -96,13 +94,11 @@ export const updateUserStatus = async (req, res) => {
 export const userStatistics = async (req, res) => {
   try {
     const stats = await userStatisticsService();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "User statistics is successfully sent.",
-        userData: stats,
-      });
+    res.status(200).json({
+      success: true,
+      message: "User statistics is successfully sent.",
+      userData: stats,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

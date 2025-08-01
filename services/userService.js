@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import moment from "moment";
 
-const { User, Role, Partnership, Agent } = db;
+const { User, Role, Partnership, Agent, Region, Zone, Woreda } = db;
 
 export const getAllUsersService = async ({
   page = 1,
@@ -55,6 +55,10 @@ export const getAllUsersService = async ({
         model: Role,
         attributes: ["id", "name"],
       },
+      {
+        model: Region,
+        attributes: ["id", "name"],
+      }
     ],
     attributes: { exclude: ["password"] },
     order: [["createdAt", "DESC"]],
@@ -107,14 +111,34 @@ export const deleteUserService = async (id) => {
 };
 
 // Service to enable admin create an other admin
-export const createAdminUserService = async ({ name, email, password }) => {
+export const createAdminUserService = async (data) => {
   try {
-    const adminRole = await Role.findOne({ where: { name: "admin" } });
+    const requiredFields = [
+      "name",
+      "email",
+      "password",
+      "regionId",
+      "zoneId",
+      "woredaId",
+      "roleId",
+    ];
+    for (const field of requiredFields) {
+      if (!data[field]) throw new Error(`Missing required field: ${field}`);
+    }
+    const adminRole = await Role.findByPk(data.roleId);
     if (!adminRole) throw new Error("Admin role not found");
+
+    const allowedRoles = ["region admin", "zone admin", "woreda admin"];
+
+    if (!allowedRoles.includes(adminRole.name)) {
+      throw new Error(
+        "Please enter a valid role: region admin, zone admin, or woreda admin"
+      );
+    }
 
     const checkPartner = await Partnership.findOne({
       where: {
-        email,
+        email: data.email,
         status: { [Op.ne]: "cancelled" },
       },
     });
@@ -125,7 +149,7 @@ export const createAdminUserService = async ({ name, email, password }) => {
 
     const checkAgent = await Agent.findOne({
       where: {
-        email,
+        email: data.email,
         agentStatus: { [Op.ne]: "cancelled" },
       },
     });
@@ -134,20 +158,36 @@ export const createAdminUserService = async ({ name, email, password }) => {
         "User has already submitted an agent request, so cannot be admin."
       );
 
-    const existingUser = await User.findOne({ where: { email } });
+    const region = await Region.findByPk(data.regionId);
+    if (!region) throw new Error("Invalid Region");
+
+    const zone = await Zone.findByPk(data.zoneId);
+    if (!zone) throw new Error("Invalid Zone");
+    if (data.regionId != zone.regionId) {
+      throw new Error(
+        ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
+      );
+    }
+
+    const woreda = await Woreda.findByPk(data.woredaId);
+    if (!woreda) throw new Error("Invalid Woreda");
+    if (data.zoneId != woreda.zoneId)
+      throw new Error(
+        `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
+      );
+
+    const existingUser = await User.findOne({ where: { email: data.email } });
     if (existingUser) {
       existingUser.roleId = adminRole.id;
+      existingUser.regionId = data.regionId;
+      existingUser.zoneId = data.zoneId;
+      existingUser.woredaId = data.woredaId;
       await existingUser.save();
       return existingUser;
     }
 
     // Create a new admin user
-    const newUser = await User.create({
-      name,
-      email,
-      password,
-      roleId: adminRole.id,
-    });
+    const newUser = await User.create(data);
 
     return newUser;
   } catch (err) {
@@ -192,13 +232,22 @@ export const userStatisticsService = async () => {
   const weekOneStart = moment(monthStart).toDate();
   const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
 
-  const weekTwoStart = moment(monthStart).add(7, "days").startOf("day").toDate();
+  const weekTwoStart = moment(monthStart)
+    .add(7, "days")
+    .startOf("day")
+    .toDate();
   const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
 
-  const weekThreeStart = moment(monthStart).add(14, "days").startOf("day").toDate();
+  const weekThreeStart = moment(monthStart)
+    .add(14, "days")
+    .startOf("day")
+    .toDate();
   const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
 
-  const weekFourStart = moment(monthStart).add(21, "days").startOf("day").toDate();
+  const weekFourStart = moment(monthStart)
+    .add(21, "days")
+    .startOf("day")
+    .toDate();
   const weekFourEnd = moment(monthEnd).toDate();
 
   // === Count users ===
