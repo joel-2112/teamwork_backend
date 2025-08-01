@@ -13,7 +13,7 @@ import path from "path";
 export const createNewsController = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { title, content, publishDate, category, author, readTime } =
+    const { title, content, publishDate, category, author, readTime, deadline } =
       req.body;
 
     // Duplicate check
