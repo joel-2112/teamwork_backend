@@ -45,7 +45,7 @@ const docTypes = [
 
 
   if (
-    (["picture", "pictures", "aboutImage", "imageUrl"].includes(file.fieldname) &&
+    (["picture", "pictures", "aboutImage", "profilePicture", "imageUrl"].includes(file.fieldname) &&
       imageTypes.includes(file.mimetype)) ||
     (["videoUrl", "videos"].includes(file.fieldname) && videoTypes.includes(file.mimetype)) ||
     (["document", "coverLetter", "requirementFile", "fileUrl"].includes(file.fieldname) && docTypes.includes(file.mimetype))

@@ -11,18 +11,55 @@ import {
   getAllApprovedAgentsService,
   cancelAgentService,
 } from "../services/agentService.js";
+import path from "path";
+import { saveImageToDisk } from "../utils/saveImage.js"; // You must have a helper like this
+
+
+// export const createAgent = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const agent = await createAgentService(userId, req.body);
+//     res
+//       .status(201)
+//       .json({ success: true, message: "Agent created successfully.", agent });
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
 
 export const createAgent = async (req, res) => {
   try {
     const userId = req.user.id;
-    const agent = await createAgentService(userId, req.body);
-    res
-      .status(201)
-      .json({ success: true, message: "Agent created successfully.", agent });
+
+    // Handle image upload
+    let profilePicture = null;
+    if (req.file) {
+      const uniqueName = `agent-${Date.now()}${path.extname(req.file.originalname)}`;
+      saveImageToDisk(req.file.buffer, uniqueName);
+      profilePicture = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Profile picture is required.",
+      });
+    }
+
+    const agent = await createAgentService(userId, {
+      ...req.body,
+      profilePicture,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Agent created successfully.",
+      agent,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Agent creation error:", error);
+    res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 export const getAllAgents = async (req, res) => {
   try {

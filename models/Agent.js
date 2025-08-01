@@ -112,6 +112,10 @@ export default (db, DataTypes) => {
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
       },
+      profilePicture: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
