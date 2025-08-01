@@ -31,10 +31,10 @@ export const createAgent = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Handle image upload
     let profilePicture = null;
     if (req.file) {
-      const uniqueName = `agent-${Date.now()}${path.extname(req.file.originalname)}`;
+      const ext = path.extname(req.file.originalname);
+      const uniqueName = `agent-${Date.now()}${ext}`;
       saveImageToDisk(req.file.buffer, uniqueName);
       profilePicture = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
     } else {
@@ -44,9 +44,15 @@ export const createAgent = async (req, res) => {
       });
     }
 
+    // Handle multiple languages
+    const languages = Array.isArray(req.body.languages)
+      ? req.body.languages
+      : [req.body.languages];
+
     const agent = await createAgentService(userId, {
       ...req.body,
       profilePicture,
+      languages,
     });
 
     res.status(201).json({
@@ -59,6 +65,7 @@ export const createAgent = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 
 export const getAllAgents = async (req, res) => {

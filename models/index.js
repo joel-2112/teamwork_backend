@@ -226,13 +226,10 @@ Agent.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(JobApplication, { foreignKey: "userId" });
 JobApplication.belongsTo(User, { foreignKey: "userId" });
 
-Region.hasMany(User, {foreignKey: "regionId"})
-User.belongsTo(Region, { foreignKey: "regionId"})
+User.belongsTo(Region, { foreignKey: "regionId",})
 
-Zone.hasMany(User, {foreignKey: "zoneId"})
 User.belongsTo(Zone, { foreignKey: "zoneId"})
 
-Woreda.hasMany(User, {foreignKey: "woredaId"})
 User.belongsTo(Woreda, { foreignKey: "woredaId"})
 
 

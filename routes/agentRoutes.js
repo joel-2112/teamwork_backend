@@ -18,7 +18,7 @@ import upload from "../middlewares/upload.js";
 router.post(
   "/apply-agent",
   protect,
-  upload.single("profilePicture"),
+  upload.single("profilePicture"), 
   createAgent
 );
 router.get("/all-agents", protect, requireRole("admin"), getAllAgents);

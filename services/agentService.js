@@ -75,9 +75,19 @@ const { Agent, Partnership, Woreda, Zone, Region, User, Role } = db;
 // };
 
 
-
 export const createAgentService = async (userId, data) => {
-  const { regionId, zoneId, woredaId, email, phoneNumber, profilePicture, ...rest } = data;
+  const {
+    regionId,
+    zoneId,
+    woredaId,
+    phoneNumber,
+    profilePicture,
+    ...rest
+  } = data;
+
+  const parsedRegionId = Number(regionId);
+  const parsedZoneId = Number(zoneId);
+  const parsedWoredaId = Number(woredaId);
 
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found.");
@@ -85,64 +95,53 @@ export const createAgentService = async (userId, data) => {
   const checkPartner = await Partnership.findOne({
     where: {
       email: user.email,
-      status: {
-        [Op.ne]: "cancelled",
-      },
+      status: { [Op.ne]: "cancelled" },
     },
   });
   if (checkPartner)
-    throw new Error(
-      "You have already submitted partnership request, can not send agent request"
-    );
+    throw new Error("You have already submitted partnership request, cannot send agent request");
 
   const isExist = await Agent.findOne({ where: { userId: user.id } });
   if (isExist) throw new Error("You have already submitted agent request");
 
-  const phoneCheck = await Agent.findOne({
-    where: { phoneNumber: phoneNumber },
-  });
+  const phoneCheck = await Agent.findOne({ where: { phoneNumber } });
   if (phoneCheck) throw new Error("You have already used this phone number");
 
-  const emailCheck = await Agent.findOne({
-    where: { email },
-  });
+  const emailCheck = await Agent.findOne({ where: { email: user.email } });
   if (emailCheck) throw new Error("You have already used this email");
 
-  const region = await Region.findByPk(regionId);
+  const region = await Region.findByPk(parsedRegionId);
   if (!region) throw new Error("Invalid Region");
 
-  const zone = await Zone.findByPk(zoneId);
+  const zone = await Zone.findByPk(parsedZoneId);
   if (!zone) throw new Error("Invalid Zone");
-  if (regionId !== zone.regionId)
-    throw new Error(
-      ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
-    );
 
-  const woreda = await Woreda.findByPk(woredaId);
+  if (parsedRegionId !== zone.regionId)
+    throw new Error(`Zone ${zone.name} is not in region ${region.name}, please enter correct zone.`);
+
+  const woreda = await Woreda.findByPk(parsedWoredaId);
   if (!woreda) throw new Error("Invalid Woreda");
-  if (zoneId !== woreda.zoneId)
-    throw new Error(
-      `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
-    );
+
+  if (parsedZoneId !== woreda.zoneId)
+    throw new Error(`Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`);
 
   const agent = await Agent.create({
     ...rest,
-    regionId,
-    zoneId,
-    woredaId,
-    email,
+    regionId: parsedRegionId,
+    zoneId: parsedZoneId,
+    woredaId: parsedWoredaId,
+    email: user.email,
+    fullName: user.name,
     phoneNumber,
     userId: user.id,
     profilePicture,
   });
 
-  // Send confirmation email
   await sendAgentRequestConfirmationEmail({
     userEmail: user.email,
     fullName: user.name,
   });
 
-  // Convert to plain object and replace IDs with names
   const agentData = agent.toJSON();
 
   return {
@@ -152,6 +151,7 @@ export const createAgentService = async (userId, data) => {
     woreda: woreda.name,
   };
 };
+
 
 
 // Retrieve all agent
