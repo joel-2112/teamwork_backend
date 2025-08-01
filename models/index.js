@@ -220,6 +220,12 @@ News.belongsTo(User, { foreignKey: "postedBy" });
 User.hasMany(News, { foreignKey: "deletedBy" });
 News.belongsTo(User, { foreignKey: "deletedBy" });
 
+User.hasOne(Agent, { foreignKey: "userId" });
+Agent.belongsTo(User, { foreignKey: "userId" });
+
+User.hasMany(JobApplication, { foreignKey: "userId" });
+JobApplication.belongsTo(User, { foreignKey: "userId" });
+
 export default {
   sequelize: db,
   Sequelize,

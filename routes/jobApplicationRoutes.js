@@ -11,7 +11,15 @@ import {
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/upload.js";
 
-router.post("/apply", upload.single("document"), protect, createJobApplication);
+router.post(
+  "/apply",
+  upload.fields([
+    { name: "document", maxCount: 1 },
+    { name: "coverLetter", maxCount: 1 },
+  ]),
+  protect,
+  createJobApplication
+);
 router.get("/job-applications/:jobId", protect, requireRole('admin'), getApplicationsByJobId);
 router.get("/applications/:id", protect, requireRole('admin'), getJobApplicationById);
 router.put("/update-status/:id", protect, requireRole('admin'), updateApplicationStatus);

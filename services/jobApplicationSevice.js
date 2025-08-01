@@ -1,11 +1,16 @@
-import { sendApplicationResultEmail, sendJobApplicationConfirmationEmail } from "../utils/sendApplicationResult.js";
+import {
+  sendApplicationResultEmail,
+  sendJobApplicationConfirmationEmail,
+} from "../utils/sendApplicationResult.js";
 import fs from "fs";
 import path from "path";
 import db from "../models/index.js";
 const { Job, JobApplication, User } = db;
 
 // Create job
-export const createJobApplicationService = async (data) => {
+export const createJobApplicationService = async (userId, data) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found.");
   const job = await Job.findByPk(data.jobId);
   if (!job) throw new Error("Job not found");
   if (job.jobStatus !== "open") throw new Error("Job is closed");
@@ -26,8 +31,11 @@ export const createJobApplicationService = async (data) => {
     fullName: data.applicantFullName,
     jobTitle: job.jobTitle || "the position",
   });
-  
-  return await JobApplication.create(data);
+
+  return await JobApplication.create({
+    ...data,
+    userId: user.id,
+  });
 };
 
 // Retrieve all applications for one job by jobId and change the status of application into reviewed
@@ -100,9 +108,10 @@ export const updateApplicationStatusService = async (id, status) => {
   });
 
   if (!application) throw new Error("Job application not found");
- if (application.status !== "applied" && application.status !== "reviewed")
-  throw new Error("Application status other than 'applied' or 'reviewed' cannot be updated.");
-
+  if (application.status !== "applied" && application.status !== "reviewed")
+    throw new Error(
+      "Application status other than 'applied' or 'reviewed' cannot be updated."
+    );
 
   // Update status
   const updatedApplication = await application.update({ status });
@@ -119,27 +128,44 @@ export const updateApplicationStatusService = async (id, status) => {
 };
 
 // Delete application by id with  its resume
-export const deleteApplicationService = async (id) => {
-  const application = await JobApplication.findByPk(id);
-  if (!application) throw new Error("Job application not found");
+// export const deleteApplicationService = async (id) => {
+//   const application = await JobApplication.findByPk(id);
+//   if (!application) throw new Error("Job application not found");
 
-  // Delete the resume file if it exists
-  if (application.resume) {
-    const resumePath = path.join(
-      process.cwd(),
-      "uploads/documents",
-      path.basename(application.resume)
-    );
-    try {
-      await fs.promises.unlink(resumePath);
-      console.log(`Deleted image file: ${resumePath}`);
-    } catch (err) {
-      console.error(`Error deleting image file: ${err.message}`);
-    }
-  }
+//   // Delete the resume file if it exists
+//   if (application.resume) {
+//     const resumePath = path.join(
+//       process.cwd(),
+//       "uploads/documents",
+//       path.basename(application.resume)
+//     );
+//     try {
+//       await fs.promises.unlink(resumePath);
+//       console.log(`Deleted image file: ${resumePath}`);
+//     } catch (err) {
+//       console.error(`Error deleting image file: ${err.message}`);
+//     }
+//   }
 
-  // Delete the application from the DB
-  return await application.destroy();
+//   // Delete the application from the DB
+//   return await application.destroy();
+// };
+
+export const deleteApplicationService = async (applicationId, userId) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+
+  const application = await JobApplication.findOne({
+    where: { id: applicationId, isDeleted: false },
+  });
+  if (!application) throw new Error("Application not found or already deleted");
+
+  application.isDeleted = true;
+  application.deletedBy = user.id;
+  application.deletedAt = new Date();
+  await application.save();
+
+  return application;
 };
 
 // User can get all their job applications

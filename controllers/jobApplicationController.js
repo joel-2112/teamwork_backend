@@ -13,37 +13,52 @@ import path from "path";
 // Create ( apply for the job ) if the user with the same email and job is not applied
 export const createJobApplication = async (req, res) => {
   try {
-    // If file uploaded, delay saving it until DB creation succeeds
-    const file = req.file;
-    let filePath = null;
+    const userId = req.user.id;
+    const files = req.files || {};
+    let documentUrl = null;
+    let coverLetterUrl = null;
 
-    // Temporarily exclude resume to validate everything first
     const data = { ...req.body };
 
-    if (file && file.fieldname === "document") {
-      data.resume = "temp-path-to-resume";
+    // Temporarily set paths for validation
+    if (files.document && files.document.length > 0) {
+      data.resume = "temp-path-to-resume"; // temp placeholder
     }
 
-    // Try to create the application (resume field is required)
-    const application = await createJobApplicationService(data);
+    if (files.coverLetter && files.coverLetter.length > 0) {
+      data.coverLetter = "temp-path-to-coverLetter"; // temp placeholder
+    }
 
-    // If success, then save the file to disk
-    if (file && file.fieldname === "document") {
-      const documentsDir = path.join("uploads", "documents");
+    // Create application record in DB
+    const application = await createJobApplicationService(userId, data);
 
-      if (!fs.existsSync(documentsDir)) {
-        fs.mkdirSync(documentsDir, { recursive: true });
-      }
+    const uploadDir = path.join("uploads", "documents");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
+    // Save document (resume)
+    if (files.document && files.document.length > 0) {
+      const file = files.document[0];
       const ext = path.extname(file.originalname);
       const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-      filePath = path.join(documentsDir, fileName);
-
-      // Save file from memory
+      const filePath = path.join(uploadDir, fileName);
       fs.writeFileSync(filePath, file.buffer);
 
-      // Update the application with real resume path
-      await application.update({ resume: filePath });
+      documentUrl = `${req.protocol}://${req.get("host")}/uploads/documents/${fileName}`;
+      await application.update({ resume: documentUrl });
+    }
+
+    // Save coverLetter
+    if (files.coverLetter && files.coverLetter.length > 0) {
+      const file = files.coverLetter[0];
+      const ext = path.extname(file.originalname);
+      const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      const filePath = path.join(uploadDir, fileName);
+      fs.writeFileSync(filePath, file.buffer);
+
+      coverLetterUrl = `${req.protocol}://${req.get("host")}/uploads/documents/${fileName}`;
+      await application.update({ coverLetter: coverLetterUrl });
     }
 
     res.status(201).json({ success: true, data: application });
@@ -57,10 +72,10 @@ export const createJobApplication = async (req, res) => {
         message: "You have already applied for this job.",
       });
     }
-
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Retrieve job application for one job by job id
 export const getApplicationsByJobId = async (req, res) => {
@@ -117,7 +132,9 @@ export const updateApplicationStatus = async (req, res) => {
 // Delete application
 export const deleteJobApplication = async (req, res) => {
   try {
-    await deleteApplicationService(req.params.id);
+    const userId = req.user.id;
+    const applicationId = req.params.id;
+    await deleteApplicationService(applicationId, userId);
     res
       .status(200)
       .json({ success: true, message: "Application deleted successfully." });

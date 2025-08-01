@@ -60,13 +60,42 @@ export default (db, DataTypes) => {
         },
       },
       coverLetter: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       resume: {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      bio: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        }
+      },
+      isDeleted: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+      deletedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: "users",
+          key: "id",
+        }
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      }
     },
     {
       tableName: "job-applications",

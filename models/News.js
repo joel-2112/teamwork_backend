@@ -44,10 +44,14 @@ export default (db, DataTypes) => {
         allowNull: false,
       },
       readTime: {
-        type: DataTypes.INTEGER, 
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
-       postedBy: {
+      deadline: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      postedBy: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {

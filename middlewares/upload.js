@@ -48,7 +48,7 @@ const docTypes = [
     (["picture", "pictures", "aboutImage", "imageUrl"].includes(file.fieldname) &&
       imageTypes.includes(file.mimetype)) ||
     (["videoUrl", "videos"].includes(file.fieldname) && videoTypes.includes(file.mimetype)) ||
-    (["document", "requirementFile", "fileUrl"].includes(file.fieldname) && docTypes.includes(file.mimetype))
+    (["document", "coverLetter", "requirementFile", "fileUrl"].includes(file.fieldname) && docTypes.includes(file.mimetype))
 
   ) {
     cb(null, true);

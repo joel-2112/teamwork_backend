@@ -181,53 +181,63 @@ export const userStatisticsService = async () => {
   const partnerRole = await Role.findOne({ where: { name: "partner" } });
   if (!partnerRole) throw new Error("Role partner not found.");
 
-  // Time ranges
+  // === Time ranges ===
   const todayStart = moment().startOf("day").toDate();
   const todayEnd = moment().endOf("day").toDate();
 
-  const thisWeekStart = moment().startOf("week").toDate(); // Sunday
-  const thisWeekEnd = moment().endOf("week").toDate(); // Saturday
+  const monthStart = moment().startOf("month");
+  const monthEnd = moment().endOf("month");
 
-  const lastWeekStart = moment().subtract(1, "weeks").startOf("week").toDate();
-  const lastWeekEnd = moment().subtract(1, "weeks").endOf("week").toDate();
+  // Divide the current month into four weeks
+  const weekOneStart = moment(monthStart).toDate();
+  const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
 
-  const monthStart = moment().startOf("month").toDate();
-  const monthEnd = moment().endOf("month").toDate();
+  const weekTwoStart = moment(monthStart).add(7, "days").startOf("day").toDate();
+  const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
 
-  // Count users by time
+  const weekThreeStart = moment(monthStart).add(14, "days").startOf("day").toDate();
+  const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
+
+  const weekFourStart = moment(monthStart).add(21, "days").startOf("day").toDate();
+  const weekFourEnd = moment(monthEnd).toDate();
+
+  // === Count users ===
   const todayUsers = await User.count({
     where: {
-      createdAt: {
-        [Op.between]: [todayStart, todayEnd],
-      },
+      createdAt: { [Op.between]: [todayStart, todayEnd] },
     },
   });
 
-  const thisWeekUsers = await User.count({
+  const weekOneUsers = await User.count({
     where: {
-      createdAt: {
-        [Op.between]: [thisWeekStart, thisWeekEnd],
-      },
+      createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
     },
   });
 
-  const lastWeekUsers = await User.count({
+  const weekTwoUsers = await User.count({
     where: {
-      createdAt: {
-        [Op.between]: [lastWeekStart, lastWeekEnd],
-      },
+      createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
+    },
+  });
+
+  const weekThreeUsers = await User.count({
+    where: {
+      createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
+    },
+  });
+
+  const weekFourUsers = await User.count({
+    where: {
+      createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
     },
   });
 
   const thisMonthUsers = await User.count({
     where: {
-      createdAt: {
-        [Op.between]: [monthStart, monthEnd],
-      },
+      createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
     },
   });
 
-  // Role and status counts
   const allUsers = await User.count();
   const allAdmins = await User.count({ where: { roleId: adminRole.id } });
   const allAgents = await User.count({ where: { roleId: agentRole.id } });
@@ -243,8 +253,10 @@ export const userStatisticsService = async () => {
     activeUsers,
     inactiveUsers,
     todayUsers,
-    thisWeekUsers,
-    lastWeekUsers,
     thisMonthUsers,
+    weekOneUsers,
+    weekTwoUsers,
+    weekThreeUsers,
+    weekFourUsers,
   };
 };

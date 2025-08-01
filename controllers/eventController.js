@@ -15,6 +15,7 @@ import path from "path";
 // Create event
 export const createEventController = async (req, res) => {
   try {
+    const userId = req.user.id;
     const { title, description, location, eventDate } = req.body;
 
     // Validate images
@@ -26,7 +27,7 @@ export const createEventController = async (req, res) => {
     }
 
     // Create event
-    const event = await createEvent({
+    const event = await createEvent(userId, {
       title,
       description,
       location,
@@ -38,7 +39,7 @@ export const createEventController = async (req, res) => {
       files.map((file) => {
         const uniqueName = `event-${Date.now()}-${file.originalname}`;
         saveImageToDisk(file.buffer, uniqueName);
-        const imageUrl = `/uploads/assets/${uniqueName}`;
+        const imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
         return Image.create({ eventId: event.id, imageUrl });
       })
     );
@@ -190,10 +191,13 @@ export const updateEventController = async (req, res) => {
 // Delete event by id
 export const deleteEventController = async (req, res) => {
   try {
-    await deleteEvent(req.params.id);
+    const userId = req.user.id;
+    const eventId = req.params.id;
+    const deletedEvent = await deleteEvent(eventId, userId);
     res.status(200).json({
       success: true,
       message: "Event and its images deleted successfully.",
+      deletedEvent,
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });

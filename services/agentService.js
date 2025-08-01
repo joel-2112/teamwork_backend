@@ -27,7 +27,7 @@ export const createAgentService = async (userId, data) => {
       "You have already submitted partnership request, can not send agent request"
     );
 
-  const isExist = await Agent.findOne({ where: { email: email } });
+  const isExist = await Agent.findOne({ where: { userId: user.id } });
   if (isExist) throw new Error("You have already submitted agent request");
 
   const phoneCheck = await Agent.findOne({
@@ -52,7 +52,10 @@ export const createAgentService = async (userId, data) => {
       `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
     );
 
-  const agent = await Agent.create(data);
+  const agent = await Agent.create({
+    ...data,
+    userId: user.id,
+  });
 
   // Send confirmation email
   await sendAgentRequestConfirmationEmail({
@@ -231,6 +234,7 @@ export const deleteAgentService = async (userId, agentId) => {
 
   agent.isDeleted = true;
   agent.deletedBy = userId;
+  agent.deletedAt = new Date();
   await agent.save();
 
   return agent;

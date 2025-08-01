@@ -112,6 +112,14 @@ export default (db, DataTypes) => {
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
       },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "id"
+        },
+      },
       isDeleted: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -125,6 +133,10 @@ export default (db, DataTypes) => {
           key: "id",
         },
       },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      }
     },
     {
       tableName: "agents",
