@@ -58,6 +58,14 @@ export const getAllUsersService = async ({
       {
         model: Region,
         attributes: ["id", "name"],
+      },
+      {
+        model: Zone,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Woreda,
+        attributes: ["id", "name"],
       }
     ],
     attributes: { exclude: ["password"] },
@@ -87,6 +95,18 @@ export const getUserByIdService = async (id) => {
         model: Role,
         attributes: ["id", "name"],
       },
+      {
+        model: Region,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Zone,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Woreda,
+        attributes: ["id", "name"],
+      }
     ],
     attributes: { exclude: ["password"] },
   });
