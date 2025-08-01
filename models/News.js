@@ -43,10 +43,6 @@ export default (db, DataTypes) => {
         type: DataTypes.ENUM(["teamwork", "others"]),
         allowNull: false,
       },
-      readTime: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
       deadline: {
         type: DataTypes.DATE,
         allowNull: false,
