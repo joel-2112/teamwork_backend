@@ -50,12 +50,28 @@ export const protect = async (req, res, next) => {
 };
 
 // Check user role to access protected route
-export const requireRole = (roleName) => {
+// export const requireRole = (roleName) => {
+//   return async (req, res, next) => {
+//     if (!req.user || !req.user.Role || req.user.Role.name !== roleName) {
+//       return res.status(403).json({
+//         success: false,
+//         error: `Requires ${roleName} role`,
+//       });
+//     }
+
+//     next();
+//   };
+// };
+
+// Check user role to access protected route
+export const requireRole = (...allowedRoles) => {
   return async (req, res, next) => {
-    if (!req.user || !req.user.Role || req.user.Role.name !== roleName) {
+    const userRole = req.user?.Role?.name;
+
+    if (!userRole || !allowedRoles.includes(userRole)) {
       return res.status(403).json({
         success: false,
-        error: `Requires ${roleName} role`,
+        error: `Access denied. Requires one of: ${allowedRoles.join(", ")}`,
       });
     }
 

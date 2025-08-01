@@ -8,7 +8,8 @@ import {
   deleteOrder,
   updateServiceOrderStatus,
   cancelOrder,
-  getMyOrders
+  getMyOrders,
+  orderStatistics
 } from "../controllers/serviceOrderController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/upload.js"
@@ -22,5 +23,6 @@ router.delete("/delete/:id", protect, deleteOrder);
 router.put("/update-status/:id", protect, requireRole('admin'), updateServiceOrderStatus);
 router.put("/cancel-order/:id", protect, cancelOrder);
 router.get("/my-orders", protect, getMyOrders);
+router.get("/order-stat", protect, requireRole('admin'), orderStatistics)
 
 export default router;

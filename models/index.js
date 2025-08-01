@@ -232,7 +232,7 @@ User.belongsTo(Region, { foreignKey: "regionId"})
 Zone.hasMany(User, {foreignKey: "zoneId"})
 User.belongsTo(Zone, { foreignKey: "zoneId"})
 
-Woreda.hasOne(User, {foreignKey: "woredaId"})
+Woreda.hasMany(User, {foreignKey: "woredaId"})
 User.belongsTo(Woreda, { foreignKey: "woredaId"})
 
 

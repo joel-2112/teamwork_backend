@@ -7,6 +7,7 @@ import {
   updateOrderStatusService,
   cancelOrderService,
   getMyOrdersService,
+  ordersStatisticsService,
 } from "../services/serviceOrderService.js";
 import db from "../models/index.js";
 import path from "path";
@@ -207,5 +208,22 @@ export const getMyOrders = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const orderStatistics = async (req, res) => {
+  try {
+    const orderStat = await ordersStatisticsService();
+    res
+      .status(200)
+      .json({
+        success: true,
+        message:
+          "All statistics of order in the company retrieved successfully",
+        orderStat,
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
