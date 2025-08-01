@@ -60,6 +60,8 @@ export const getAllUserFeedbacksService = async ({
   const bugReportsCount = await UserFeedback.count({
     where: { feedbackType: "bug_report" },
   });
+  const resolvedFeedback = await UserFeedback.count({ where: {status: "resolved", isDeleted: false}})
+  const pendingFeedback = await UserFeedback.count({ where: {status: "sent", isDeleted: false}})
 
   return {
     total: count,
@@ -67,6 +69,8 @@ export const getAllUserFeedbacksService = async ({
     complaints: complaintsCount,
     praises: praisesCount,
     bugReports: bugReportsCount,
+    resolved: resolvedFeedback,
+    pending: pendingFeedback,
     page: parseInt(page),
     limit: parseInt(limit),
     feedbacks: rows,
