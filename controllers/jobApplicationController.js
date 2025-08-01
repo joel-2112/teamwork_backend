@@ -5,6 +5,7 @@ import {
   updateApplicationStatusService,
   deleteApplicationService,
   getAllMyJobApplicationService,
+  applicationStatisticsService,
 } from "../services/jobApplicationSevice.js";
 import { Sequelize } from "sequelize";
 import fs from "fs";
@@ -75,7 +76,6 @@ export const createJobApplication = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // Retrieve job application for one job by job id
 export const getApplicationsByJobId = async (req, res) => {
@@ -151,3 +151,19 @@ export const getAllMyJobApplication = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+export const applicationStatistics = async (req, res) => {
+  try {
+    const appStat = await applicationStatisticsService();
+
+    res.status(200).json({
+      success: true,
+      message: "All application statistics is successfully retrieved.",
+      applicationStatus: appStat,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

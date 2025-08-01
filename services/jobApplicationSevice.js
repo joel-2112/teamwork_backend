@@ -195,3 +195,32 @@ export const getAllMyJobApplicationService = async (userId) => {
 
   return applications;
 };
+
+// To send job application statistics
+export const applicationStatisticsService = async () => {
+  const totalApplication = await JobApplication.count();
+  const appliedApplication = await JobApplication.count({
+    where: { status: "applied", isDeleted: false },
+  });
+  const reviewedApplication = await JobApplication.count({
+    where: { status: "reviewed", isDeleted: false },
+  });
+  const interviewedApplication = await JobApplication.count({
+    where: { status: "interviewed", isDeleted: false },
+  });
+  const hiredApplication = await JobApplication.count({
+    where: { status: "hired", isDeleted: false },
+  });
+  const rejectedApplication = await JobApplication.count({
+    where: { status: "rejected", isDeleted: false },
+  });
+
+  return {
+    totalApplication,
+    appliedApplication,
+    reviewedApplication,
+    interviewedApplication,
+    hiredApplication,
+    rejectedApplication,
+  }
+};
