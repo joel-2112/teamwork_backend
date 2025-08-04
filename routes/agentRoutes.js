@@ -18,10 +18,15 @@ import upload from "../middlewares/upload.js";
 router.post(
   "/apply-agent",
   protect,
-  upload.single("profilePicture"), 
+  upload.single("profilePicture"),
   createAgent
 );
-router.get("/all-agents", protect, requireRole("admin"), getAllAgents);
+router.get(
+  "/all-agents",
+  protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
+  getAllAgents
+);
 router.get("/agent/:id", protect, requireRole("admin"), getAgentById);
 router.put("/update/:id", protect, updateAgent);
 router.delete("/delete/:id", protect, requireRole("admin"), deleteAgent);

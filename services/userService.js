@@ -148,11 +148,11 @@ export const createAdminUserService = async (data) => {
     const adminRole = await Role.findByPk(data.roleId);
     if (!adminRole) throw new Error("Admin role not found");
 
-    const allowedRoles = ["region admin", "zone admin", "woreda admin"];
+    const allowedRoles = ["regionAdmin", "zoneAdmin", "woredaAdmin"];
 
     if (!allowedRoles.includes(adminRole.name)) {
       throw new Error(
-        "Please enter a valid role: region admin, zone admin, or woreda admin"
+        "Please enter a valid role: regionadmin, zoneAdmin, or woredaAdmin"
       );
     }
 

@@ -24,13 +24,11 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Attach user to request object
-    req.user = await User.findByPk(decoded.userId, {
+    const user  = await User.findByPk(decoded.userId, {
       attributes: ["id", "name", "email", "roleId"],
-      include: {
-        model: db.Role,
-        attributes: ["name"],
-      },
+      include: [{ model: Role, as: "Role" }],
     });
+    req.user = user;
 
     if (!req.user) {
       const error = new Error("Not authorized, user not found");

@@ -18,8 +18,10 @@ const { Report } = db;
 
 export const createReport = async (req, res) => {
   try {
-    const { title, description, category, regionId, zoneId, woredaId } =
-      req.body;
+    const { title, description, category } = req.body;
+    const regionId = parseInt(req.body.regionId);
+    const zoneId = parseInt(req.body.zoneId);
+    const woredaId = parseInt(req.body.woredaId);
     const userId = req.user.id;
     const files = req.files;
 
@@ -28,13 +30,14 @@ export const createReport = async (req, res) => {
       !title ||
       !description ||
       !category ||
-      !regionId ||
-      !zoneId ||
-      !woredaId
+      isNaN(regionId) ||
+      isNaN(zoneId) ||
+      isNaN(woredaId)
     ) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required fields" });
+      return res.status(400).json({
+        success: false,
+        message: "Missing or invalid required fields",
+      });
     }
 
     // Check if the report already exists
@@ -56,12 +59,12 @@ export const createReport = async (req, res) => {
       });
     }
 
-    // Proceed with saving files after the check
+    // File handling
     let imageUrl = null;
     let videoUrl = null;
     let fileUrl = null;
 
-    if (files?.imageUrl && files.imageUrl.length > 0) {
+    if (files?.imageUrl?.length) {
       const imageFile = files.imageUrl[0];
       const imageName = `image-${Date.now()}${path.extname(imageFile.originalname)}`;
       const imagePath = path.join("uploads/assets", imageName);
@@ -70,7 +73,7 @@ export const createReport = async (req, res) => {
       imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${imageName}`;
     }
 
-    if (files?.videoUrl && files.videoUrl.length > 0) {
+    if (files?.videoUrl?.length) {
       const videoFile = files.videoUrl[0];
       const videoName = `video-${Date.now()}${path.extname(videoFile.originalname)}`;
       const videoPath = path.join("uploads/assets", videoName);
@@ -79,7 +82,7 @@ export const createReport = async (req, res) => {
       videoUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${videoName}`;
     }
 
-    if (files?.fileUrl && files.fileUrl.length > 0) {
+    if (files?.fileUrl?.length) {
       const docFile = files.fileUrl[0];
       const docName = `doc-${Date.now()}${path.extname(docFile.originalname)}`;
       const docPath = path.join("uploads/documents", docName);
@@ -88,7 +91,7 @@ export const createReport = async (req, res) => {
       fileUrl = `${req.protocol}://${req.get("host")}/uploads/documents/${docName}`;
     }
 
-    // Create report after everything is prepared
+    // Create report
     const report = await createReportService({
       title,
       description,
@@ -112,6 +115,7 @@ export const createReport = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getAllReports = async (req, res) => {
   try {

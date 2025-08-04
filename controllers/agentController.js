@@ -70,13 +70,16 @@ export const createAgent = async (req, res) => {
 
 export const getAllAgents = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, agentType, sex } = req.query;
-    const filters = { search, agentType, sex };
+    const { page = 1, limit = 10, search, agentType, sex, regionId, zoneId, woredaId } = req.query;
+    const filters = { search, agentType, sex, regionId, zoneId, woredaId };
+
     const result = await getAllAgentsService(
       parseInt(page),
       parseInt(limit),
-      filters
+      filters,
+      req.user // 👈 pass the logged-in user
     );
+
     res.status(200).json({
       data: result.rows,
       total: result.count,
@@ -88,6 +91,7 @@ export const getAllAgents = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 export const getAgentById = async (req, res) => {
   try {

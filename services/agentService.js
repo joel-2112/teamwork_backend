@@ -158,10 +158,10 @@ export const createAgentService = async (userId, data) => {
 export const getAllAgentsService = async (
   page = 1,
   limit = 10,
-  filters = {}
+  filters = {},
+  user
 ) => {
-  console.log("getAllAgents filters:", filters);
-  const { search } = filters;
+  const { search, regionId, zoneId, woredaId } = filters;
   const where = { isDeleted: false };
 
   if (search) {
@@ -173,12 +173,22 @@ export const getAllAgentsService = async (
     ];
   }
 
+  // Filter by query params if provided
+  if (regionId) where.regionId = regionId;
+  if (zoneId) where.zoneId = zoneId;
+  if (woredaId) where.woredaId = woredaId;
 
+  // Role-based filtering
+  const userRole = user?.Role?.name;
 
-  if (filters.agentType) where.agentType = filters.agentType;
-  if (filters.sex) where.sex = filters.sex;
+  if (userRole === "regionAdmin") {
+    where.regionId = user.regionId;
+  } else if (userRole === "zoneAdmin") {
+    where.zoneId = user.zoneId;
+  } else if (userRole === "woredaAdmin") {
+    where.woredaId = user.woredaId;
+  }
 
-  console.log("Where clause:", where);
   const offset = (page - 1) * limit;
 
   try {
@@ -197,6 +207,7 @@ export const getAllAgentsService = async (
     throw error;
   }
 };
+
 
 // Retrieve agent by ID
 export const getAgentByIdService = async (id) => {
