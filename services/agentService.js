@@ -173,6 +173,8 @@ export const getAllAgentsService = async (
     ];
   }
 
+
+
   if (filters.agentType) where.agentType = filters.agentType;
   if (filters.sex) where.sex = filters.sex;
 

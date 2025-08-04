@@ -1,6 +1,7 @@
 import db from "../models/index.js";
 import path from "path";
 import fs, { stat } from "fs";
+import { Op } from "sequelize";
 import {
   createReportService,
   getAllReportsService,

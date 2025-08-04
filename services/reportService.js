@@ -1,7 +1,7 @@
-import { report } from "process";
 import db from "../models/index.js";
 import fs from "fs";
 import path from "path";
+import { Op } from "sequelize";
 
 const { Report, User, Region, Zone, Woreda } = db;
 
