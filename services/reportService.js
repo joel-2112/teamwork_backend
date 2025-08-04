@@ -43,10 +43,9 @@ export const getAllReportsService = async (
         required: false,
       },
     ],
-    // attributes: { exclude: ["isDeleted", "deletedBy", "deletedAt"] },
-    distinct: true,
-    page: parseInt(page),
     limit: parseInt(limit),
+    offset: offset,
+    distinct: true,
   });
 
   return {
