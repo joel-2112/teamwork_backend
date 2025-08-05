@@ -14,7 +14,7 @@ import {
   getAllDeletedReportsService,
 } from "../services/reportService.js";
 
-const { Report } = db;
+const { Report, User } = db;
 
 export const createReport = async (req, res) => {
   try {
@@ -25,15 +25,11 @@ export const createReport = async (req, res) => {
     const userId = req.user.id;
     const files = req.files;
 
+    const user = await User.findByPk(userId);
+    if (!user) throw new Error("User not found.");
+
     // Basic validation
-    if (
-      !title ||
-      !description ||
-      !category ||
-      isNaN(regionId) ||
-      isNaN(zoneId) ||
-      isNaN(woredaId)
-    ) {
+    if (!title || !description || !category) {
       return res.status(400).json({
         success: false,
         message: "Missing or invalid required fields",
@@ -45,9 +41,9 @@ export const createReport = async (req, res) => {
       where: {
         title,
         description,
-        regionId,
-        zoneId,
-        woredaId,
+        regionId: user.regionId,
+        zoneId: user.zoneId,
+        woredaId: user.woredaId,
       },
     });
 
@@ -96,13 +92,13 @@ export const createReport = async (req, res) => {
       title,
       description,
       category,
-      regionId,
-      zoneId,
-      woredaId,
       imageUrl,
       videoUrl,
       fileUrl,
-      createdBy: userId,
+      regionId: user.regionId,
+      zoneId: user.zoneId,
+      woredaId: user.woredaId,
+      createdBy: user.id,
     });
 
     return res.status(201).json({
@@ -116,11 +112,18 @@ export const createReport = async (req, res) => {
   }
 };
 
-
-
 export const getAllReports = async (req, res) => {
   try {
-    const { page, limit, category, status, search, regionId, zoneId, woredaId } = req.query;
+    const {
+      page,
+      limit,
+      category,
+      status,
+      search,
+      regionId,
+      zoneId,
+      woredaId,
+    } = req.query;
 
     const reports = await getAllReportsService(
       req.user,
@@ -144,7 +147,6 @@ export const getAllReports = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export const getReportsById = async (req, res) => {
   try {
@@ -231,7 +233,11 @@ export const updateReportStatus = async (req, res) => {
     const reportId = req.params.id;
     const { status } = req.body;
 
-    const updatedReport = await updateReportStatusService(reportId, user, status);
+    const updatedReport = await updateReportStatusService(
+      reportId,
+      user,
+      status
+    );
 
     res.status(200).json({
       success: true,
@@ -243,7 +249,6 @@ export const updateReportStatus = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export const deleteReport = async (req, res) => {
   try {

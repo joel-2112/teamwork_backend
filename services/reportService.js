@@ -24,34 +24,52 @@ export const getAllReportsService = async (
 ) => {
   const offset = (page - 1) * limit;
   const where = { isDeleted: false };
+  const userRole = user?.Role?.name;
 
   if (category) where.category = category;
   if (status) where.status = status;
 
-  // Search support
+  // Search filters
   if (search) {
     where[Op.or] = [
-      { title: { [Op.iLike]: `%${search}%` } }, 
-      { description: { [Op.iLike]: `%${search}%` } }, 
+      { title: { [Op.iLike]: `%${search}%` } },
+      { description: { [Op.iLike]: `%${search}%` } },
     ];
   }
 
-  // Role-based filtering
-  const userRole = user?.Role?.name;
+  // Role-based access control
+  let allowedReporterRoleName = null;
 
-  if (userRole === "regionAdmin") {
-    where.regionId = user.regionId;
+  if (userRole === "woredaAdmin") {
+    where.woredaId = user.woredaId;
+    allowedReporterRoleName = "agent";
   } else if (userRole === "zoneAdmin") {
     where.zoneId = user.zoneId;
-  } else if (userRole === "woredaAdmin") {
-    where.woredaId = user.woredaId;
+    allowedReporterRoleName = "woredaAdmin";
+  } else if (userRole === "regionAdmin") {
+    where.regionId = user.regionId;
+    allowedReporterRoleName = "zoneAdmin";
+  } else if (userRole === "admin") {
+    allowedReporterRoleName = "regionAdmin";
   }
 
-  // Optional filtering (admins or explicit filters)
+  // Override geography filtering if explicitly provided
   if (regionId) where.regionId = regionId;
   if (zoneId) where.zoneId = zoneId;
   if (woredaId) where.woredaId = woredaId;
 
+  // Get allowed roleId for creator filter
+  let allowedReporterRoleId = null;
+  if (allowedReporterRoleName) {
+    const role = await Role.findOne({
+      where: { name: allowedReporterRoleName },
+    });
+    if (role) {
+      allowedReporterRoleId = role.id;
+    }
+  }
+
+  // Query reports with filtering on the creator's role
   const { count, rows } = await Report.findAndCountAll({
     where,
     include: [
@@ -61,8 +79,17 @@ export const getAllReportsService = async (
       {
         model: User,
         as: "reportedBy",
-        attributes: ["name", "email", "id"],
-        required: false,
+        attributes: [
+          "id",
+          "name",
+          "email",
+          "roleId",
+          "regionId",
+          "zoneId",
+          "woredaId",
+        ],
+        where: allowedReporterRoleId ? { roleId: allowedReporterRoleId } : {},
+        required: true,
       },
     ],
     limit: parseInt(limit),
@@ -250,15 +277,21 @@ export const updateReportStatusService = async (reportId, user, status) => {
   // Role-based access check
   const userRole = user?.Role?.name;
   if (userRole === "regionAdmin" && user.regionId !== report.regionId) {
-    throw new Error("You are not authorized to update this report (region mismatch).");
+    throw new Error(
+      "You are not authorized to update this report (region mismatch)."
+    );
   }
 
   if (userRole === "zoneAdmin" && user.zoneId !== report.zoneId) {
-    throw new Error("You are not authorized to update this report (zone mismatch).");
+    throw new Error(
+      "You are not authorized to update this report (zone mismatch)."
+    );
   }
 
   if (userRole === "woredaAdmin" && user.woredaId !== report.woredaId) {
-    throw new Error("You are not authorized to update this report (woreda mismatch).");
+    throw new Error(
+      "You are not authorized to update this report (woreda mismatch)."
+    );
   }
 
   // Allow only admin or valid scope
@@ -269,7 +302,6 @@ export const updateReportStatusService = async (reportId, user, status) => {
 
   return updatedReport;
 };
-
 
 // Delete Reports by ID
 export const deleteReportService = async (reportId, userId) => {

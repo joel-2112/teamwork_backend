@@ -18,6 +18,7 @@ const router = express.Router();
 router.post(
   "/create-report",
   protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin", "agent"),
   upload.fields([
     { name: "imageUrl", maxCount: 5 },
     { name: "videoUrl", maxCount: 3 },
@@ -41,11 +42,16 @@ router.get(
   requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   getAllReports
 );
-router.get("/report/:id", protect, requireRole("admin"), getReportsById);
+router.get(
+  "/report/:id",
+  protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
+  getReportsById
+);
 router.put(
   "/update-status/:id",
   protect,
-  requireRole(["admin", "regionAdmin", "zoneAdmin", "woredaAdmin"]),
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   updateReportStatus
 );
 router.delete("/delete/:id", protect, requireRole("admin"), deleteReport);
