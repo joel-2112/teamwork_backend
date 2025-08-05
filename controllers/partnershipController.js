@@ -7,6 +7,7 @@ import {
   updatePartnershipStatusService,
   getMyPartnershipsService,
   cancelMyPartnershipRequestService,
+  allPartnershipService,
 } from "../services/partershipService.js";
 
 export const createPartnership = async (req, res) => {
@@ -44,6 +45,20 @@ export const getAllPartnerships = async (req, res) => {
       statistics: partnerships,
     });
   } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const allPartnership = async (req, res) => {
+  try {
+    const partner = await allPartnershipService();
+    res.status(200).json({
+      success: true,
+      message: "All partner request is retrieved successfully.",
+      partner,
+    });
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -133,13 +148,11 @@ export const cancelMyPartnershipRequest = async (req, res) => {
       userId
     );
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Partnership request has been successfully canceled",
-        partner: cancelledPartner,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Partnership request has been successfully canceled",
+      partner: cancelledPartner,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

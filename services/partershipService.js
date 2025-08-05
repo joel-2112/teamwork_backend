@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import {
   sendPartnershipRequestConfirmationEmail,
   sendPartnershipStatusUpdateEmail,
@@ -133,6 +133,17 @@ export const getAllPartnershipsService = async ({
     limit: parseInt(limit),
     partnerships: rows,
   };
+};
+
+// send all partnership for the public api
+export const allPartnershipService = async () => {
+  const partners = await Partnership.findAll({ where: { isDeleted: false } });
+
+  if (!partners || partners.length === 0) {
+    throw new Error("No partners found.");
+  }
+
+  return partners;
 };
 
 // get partnership by ID

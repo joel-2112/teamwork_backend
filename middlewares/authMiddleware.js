@@ -76,16 +76,19 @@ export const protect = async (req, res, next) => {
 
 // Check user role to access protected route
 export const requireRole = (...allowedRoles) => {
+  const roles = allowedRoles.flat(); // this flattens the input to a single array
+
   return async (req, res, next) => {
     const userRole = req.user?.Role?.name;
 
-    if (!userRole || !allowedRoles.includes(userRole)) {
+    if (!userRole || !roles.includes(userRole)) {
       return res.status(403).json({
         success: false,
-        error: `Access denied. Requires one of: ${allowedRoles.join(", ")}`,
+        error: `Access denied. Requires one of: ${roles.join(", ")}`,
       });
     }
 
     next();
   };
 };
+

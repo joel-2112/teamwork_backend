@@ -38,7 +38,7 @@ router.put(
 router.get(
   "/all-reports",
   protect,
-  requireRole(["admin", "regionAdmin", "zoneAdmin", "woredaAdmin"]),
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   getAllReports
 );
 router.get("/report/:id", protect, requireRole("admin"), getReportsById);
