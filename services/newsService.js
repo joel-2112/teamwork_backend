@@ -104,6 +104,7 @@ export const getAllNews = async ({
 
   const weekNews = await News.count({
     where: {
+      isDeleted: false,
       publishDate: {
         [Op.gte]: weekStart,
         [Op.lte]: weekEnd,
@@ -113,6 +114,7 @@ export const getAllNews = async ({
 
   const monthNews = await News.count({
     where: {
+      isDeleted: false,
       publishDate: {
         [Op.gte]: monthStart,
         [Op.lte]: monthEnd,
