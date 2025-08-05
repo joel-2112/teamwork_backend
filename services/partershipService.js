@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import {
   sendPartnershipRequestConfirmationEmail,
   sendPartnershipStatusUpdateEmail,

@@ -11,6 +11,7 @@ import {
   updateReportStatus,
   deleteReport,
   getDeletedReports,
+  reportStatistics,
 } from "../controllers/reportController.js";
 
 const router = express.Router();
@@ -60,6 +61,12 @@ router.get(
   protect,
   requireRole("admin"),
   getDeletedReports
+);
+router.get(
+  "/report-stat",
+  protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
+  reportStatistics
 );
 router.get("/my-reports", protect, getMyReports);
 router.put("/cancel/:id", protect, cancelReport);

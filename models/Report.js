@@ -66,6 +66,7 @@ export default (db, DataTypes) => {
         ]),
         allowNull: false,
       },
+      
       status: {
         type: DataTypes.ENUM(
           "pending",

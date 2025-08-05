@@ -1,6 +1,7 @@
 import db from "../models/index.js";
 import fs from "fs";
 import path from "path";
+import moment from "moment";
 import { Op } from "sequelize";
 
 const { Report, User, Region, Zone, Woreda, Role } = db;
@@ -362,5 +363,114 @@ export const getAllDeletedReportsService = async (
     page: parseInt(page),
     limit: parseInt(limit),
     reports: rows,
+  };
+};
+
+// To send Report status in the overall company
+export const reportStatisticsService = async () => {
+  // === Time ranges ===
+  const todayStart = moment().startOf("day").toDate();
+  const todayEnd = moment().endOf("day").toDate();
+
+  const monthStart = moment().startOf("month");
+  const monthEnd = moment().endOf("month");
+
+  // Divide the current month into four weeks
+  const weekOneStart = moment(monthStart).toDate();
+  const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
+
+  const weekTwoStart = moment(monthStart)
+    .add(7, "days")
+    .startOf("day")
+    .toDate();
+  const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
+
+  const weekThreeStart = moment(monthStart)
+    .add(14, "days")
+    .startOf("day")
+    .toDate();
+  const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
+
+  const weekFourStart = moment(monthStart)
+    .add(21, "days")
+    .startOf("day")
+    .toDate();
+  const weekFourEnd = moment(monthEnd).toDate();
+
+  // === Count users ===
+  const todayReports = await Report.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [todayStart, todayEnd] },
+    },
+  });
+
+  const weekOneReports = await Report.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
+    },
+  });
+
+  const weekTwoReports = await Report.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
+    },
+  });
+
+  const weekThreeReports = await Report.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
+    },
+  });
+
+  const weekFourReports = await Report.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
+    },
+  });
+
+  const thisMonthReports = await Report.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
+    },
+  });
+
+  const totalReports = await Report.count({ where: { isDeleted: false } });
+
+  const pendingReports = await Report.count({
+    where: { status: "pending", isDeleted: false },
+  });
+
+  const openReports = await Report.count({
+    where: { status: "open", isDeleted: false },
+  });
+  const in_progress = await Report.count({
+    where: { status: "in_progress", isDeleted: false },
+  });
+  const cancelledReports = await Report.count({
+    where: { status: "cancelled", isDeleted: false },
+  });
+  const resolvedReports = await Report.count({
+    where: { status: "resolved", isDeleted: false },
+  });
+
+  return {
+    totalReports,
+    todayReports,
+    weekOneReports,
+    weekTwoReports,
+    weekThreeReports,
+    weekFourReports,
+    thisMonthReports,
+    pendingReports,
+    openReports,
+    in_progress,
+    cancelledReports,
+    resolvedReports,
   };
 };

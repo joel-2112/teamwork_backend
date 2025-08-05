@@ -12,6 +12,7 @@ import {
   updateReportStatusService,
   deleteReportService,
   getAllDeletedReportsService,
+  reportStatisticsService
 } from "../services/reportService.js";
 
 const { Report, User } = db;
@@ -282,6 +283,23 @@ export const getDeletedReports = async (req, res) => {
       message: "All deleted report retrieved successfully.",
       report: deletedReport,
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+export const reportStatistics = async (req, res) => {
+  try {
+    const stats = await reportStatisticsService();
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Report statistics sent successfully",
+        stats,
+      });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
