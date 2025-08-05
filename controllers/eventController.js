@@ -121,7 +121,6 @@ export const updateEventController = async (req, res) => {
     const { title, description, eventDate, location } = req.body;
     const eventId = req.params.id;
 
-    // Load event with images to delete old images if needed
     const event = await Event.findByPk(eventId, {
       include: [{ model: Image, as: "images" }],
     });
@@ -130,10 +129,8 @@ export const updateEventController = async (req, res) => {
       return res.status(404).json({ message: "Event not found." });
     }
 
-    // Update event fields using service
     await updateEvent(eventId, title, description, location, eventDate);
 
-    // Handle new images if uploaded
     const files = req.files || [];
     if (files.length > 0) {
       if (files.length > 5) {
@@ -142,7 +139,7 @@ export const updateEventController = async (req, res) => {
         });
       }
 
-      // Delete old images from disk and DB
+      // Delete old images
       await Promise.all(
         event.images.map(async (img) => {
           const imagePath = path.join(
@@ -164,7 +161,10 @@ export const updateEventController = async (req, res) => {
         files.map((file) => {
           const uniqueName = `event-${Date.now()}-${file.originalname}`;
           saveImageToDisk(file.buffer, uniqueName);
-          const imageUrl = `/uploads/assets/${uniqueName}`;
+
+          // Build full image URL
+          const imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+
           return Image.create({ eventId: event.id, imageUrl });
         })
       );
@@ -177,17 +177,17 @@ export const updateEventController = async (req, res) => {
       });
     }
 
-    // No image update, just event updated
     res.status(200).json({
       success: true,
       message: "Event updated successfully.",
-      event: event,
+      event,
     });
   } catch (error) {
     console.error(error);
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 // Delete event by id
 export const deleteEventController = async (req, res) => {
