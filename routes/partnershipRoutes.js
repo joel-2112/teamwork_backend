@@ -10,18 +10,33 @@ import {
   updatePartnershipStatus,
   getMyPartnerships,
   cancelMyPartnershipRequest,
-  allPartnership
+  allPartnership,
 } from "../controllers/partnershipController.js";
-import { protect, requireRole } from "../middlewares/authMiddleware.js"
+import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
 router.post("/apply-partnership", protect, createPartnership);
-router.get("/all-partnerships", protect, requireRole('admin'), getAllPartnerships);
-router.get("/partnership/:id", protect, requireRole('admin'), getPartnershipById);
-router.put("/update-status/:id", protect, requireRole('admin'), updatePartnershipStatus);
+router.get(
+  "/all-partnerships",
+  protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
+  getAllPartnerships
+);
+router.get(
+  "/partnership/:id",
+  protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
+  getPartnershipById
+);
+router.put(
+  "/update-status/:id",
+  protect,
+  requireRole("admin"),
+  updatePartnershipStatus
+);
 router.put("/update/:id", protect, updatePartnership);
 router.delete("/delete/:id", protect, deletePartnership);
-router.put("/cancel/:id", protect, cancelMyPartnershipRequest)
+router.put("/cancel/:id", protect, cancelMyPartnershipRequest);
 router.get("/my-partnerships", protect, getMyPartnerships);
-router.get("/all-partner", allPartnership)
+router.get("/all-partner", allPartnership);
 
 export default router;
