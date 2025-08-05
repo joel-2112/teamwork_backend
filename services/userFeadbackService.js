@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import db from "../models/index.js";
 const { UserFeedback, User } = db;
 
@@ -32,11 +32,21 @@ export const getAllUserFeedbacksService = async ({
   limit = 10,
   status,
   feedbackType,
+  search,
 } = {}) => {
   const offset = (page - 1) * limit;
   const where = {};
   if (status) where.status = status;
   if (feedbackType) where.feedbackType = feedbackType;
+  if (search) {
+    where[Op.or] = [
+      { address: { [Op.iLike]: `%${search}%` } },
+      { companyName: { [Op.iLike]: `%${search}%` } },
+      { message: { [Op.iLike]: `%${search}%` } },
+      { fullName: { [Op.iLike]: `%${search}%` } },
+       { email: { [Op.iLike]: `%${search}%` } },
+    ];
+  }
 
   const { count, rows } = await UserFeedback.findAndCountAll({
     where,
@@ -149,4 +159,23 @@ export const updateUserFeedbackStatusService = async (
 
   const updatedFeedback = await feedback.update({ status });
   return updatedFeedback;
+};
+
+
+// To send feedback testimony
+export const testimonyServices = async () => {
+  const testimonies = await UserFeedback.findAll({
+    where: {
+      rating: {
+        [Op.gte]: 4,
+      },
+      feedbackType: {
+        [Op.in]: ["suggestion", "praise"],
+      },
+      isDeleted: false, // optional: if you soft-delete feedbacks
+    },
+    order: [["createdAt", "DESC"]],
+  });
+
+  return testimonies;
 };

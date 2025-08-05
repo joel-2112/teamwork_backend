@@ -158,7 +158,7 @@ export const getAllAgentsService = async (
   filters = {},
   user
 ) => {
-  const { search, regionId, zoneId, woredaId } = filters;
+  const { search, regionId, zoneId, woredaId, agentType, sex } = filters;
   const where = { isDeleted: false };
 
   if (search) {
@@ -174,6 +174,8 @@ export const getAllAgentsService = async (
   if (regionId) where.regionId = regionId;
   if (zoneId) where.zoneId = zoneId;
   if (woredaId) where.woredaId = woredaId;
+  if (agentType) where.agentType = agentType;
+  if (sex) where.sex = sex;
 
   // Role-based filtering
   const userRole = user?.Role?.name;

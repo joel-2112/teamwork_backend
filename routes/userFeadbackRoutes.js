@@ -8,7 +8,8 @@ import {
   updateUserFeedback,
   deleteUserFeedback,
   updateUserFeedbackStatus,
-  averageRating
+  averageRating,
+  testimony
 } from "../controllers/userFeedbackController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js"
 
@@ -19,5 +20,6 @@ router.put("/update/:id", protect, requireRole('admin'), updateUserFeedback);
 router.delete("/delete/:id", protect, requireRole('admin'), deleteUserFeedback);
 router.put("/update-status/:id", protect, requireRole('admin'), updateUserFeedbackStatus);
 router.get("/average-rating", averageRating)
+router.get("/testimony", testimony)
 
 export default router;

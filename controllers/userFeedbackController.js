@@ -6,6 +6,7 @@ import {
   deleteUserFeedbackService,
   updateUserFeedbackStatusService,
   averageRatingService,
+  testimonyServices,
 } from "../services/userFeadbackService.js";
 
 export const createUserFeedback = async (req, res) => {
@@ -23,12 +24,13 @@ export const createUserFeedback = async (req, res) => {
 
 export const getAllUserFeedbacks = async (req, res) => {
   try {
-    const { page, limit, status, feedbackType } = req.query;
+    const { page, limit, status, feedbackType, search } = req.query;
     const feedbacks = await getAllUserFeedbacksService({
       page,
       limit,
       status,
       feedbackType,
+      search,
     });
     res.status(200).json({
       success: true,
@@ -39,7 +41,6 @@ export const getAllUserFeedbacks = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export const averageRating = async (req, res) => {
   try {
@@ -117,5 +118,21 @@ export const updateUserFeedbackStatus = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const testimony = async (req, res) => {
+  try {
+    const testimony = await testimonyServices();
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Testimony retrieved successfully.",
+        testimony,
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

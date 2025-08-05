@@ -84,29 +84,33 @@ export const getAllOrdersService = async (
   user
 ) => {
   const { search, status, regionId, zoneId, woredaId } = filters;
-  const where = { isDeleted: false };
+  const baseWhere = { isDeleted: false };
 
-  // Role-based filtering
+  // Role-based filtering (affects both count and data)
   const userRole = user?.Role?.name;
-
   if (userRole === "regionAdmin") {
-    where.regionId = user.regionId;
+    baseWhere.regionId = user.regionId;
   } else if (userRole === "zoneAdmin") {
-    where.zoneId = user.zoneId;
+    baseWhere.zoneId = user.zoneId;
   } else if (userRole === "woredaAdmin") {
-    where.woredaId = user.woredaId;
+    baseWhere.woredaId = user.woredaId;
   }
 
-  
+  // Total count without status/search filters
+  const totalOrder = await ServiceOrder.count({
+    where: baseWhere,
+  });
 
-  // Optional filters (will further narrow results)
-  if (status) where.status = status;
-  if (regionId) where.regionId = regionId;
-  if (zoneId) where.zoneId = zoneId;
-  if (woredaId) where.woredaId = woredaId;
+  // Build a filtered `where` object for search + status
+  const filteredWhere = { ...baseWhere };
+
+  if (status) filteredWhere.status = status;
+  if (regionId) filteredWhere.regionId = regionId;
+  if (zoneId) filteredWhere.zoneId = zoneId;
+  if (woredaId) filteredWhere.woredaId = woredaId;
 
   if (search) {
-    where[Op.or] = [
+    filteredWhere[Op.or] = [
       { orderTitle: { [Op.iLike]: `%${search}%` } },
       { fullName: { [Op.iLike]: `%${search}%` } },
       { sector: { [Op.iLike]: `%${search}%` } },
@@ -118,7 +122,7 @@ export const getAllOrdersService = async (
   const offset = (page - 1) * limit;
 
   const { count, rows } = await ServiceOrder.findAndCountAll({
-    where,
+    where: filteredWhere,
     include: [
       { model: Region, as: "Region", required: false },
       { model: Zone, as: "Zone", required: false },
@@ -129,7 +133,7 @@ export const getAllOrdersService = async (
     offset,
   });
 
-  // Status counts
+  // Status counts (also use only baseWhere + role-based restrictions)
   const statusTypes = [
     "pending",
     "reviewed",
@@ -143,12 +147,12 @@ export const getAllOrdersService = async (
   const statusCounts = {};
   for (const type of statusTypes) {
     statusCounts[`${type}Order`] = await ServiceOrder.count({
-      where: { ...where, status: type },
+      where: { ...baseWhere, status: type },
     });
   }
 
   return {
-    totalOrder: count,
+    totalOrder, 
     ...statusCounts,
     page: parseInt(page),
     limit: parseInt(limit),
