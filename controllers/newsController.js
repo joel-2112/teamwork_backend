@@ -4,6 +4,7 @@ import {
   getNewsById,
   updateNews,
   deleteNews,
+  newsStatistics,
 } from "../services/newsService.js";
 import { saveImageToDisk } from "../utils/saveImage.js";
 import fs from "fs";
@@ -36,7 +37,7 @@ export const createNewsController = async (req, res) => {
       publishDate,
       category,
       author,
-      deadline
+      deadline,
     });
 
     res.status(201).json({
@@ -98,12 +99,14 @@ export const getNewsByIdController = async (req, res) => {
 // Update news by id
 export const updateNewsController = async (req, res) => {
   try {
-    const news = await updateNews(req.params.id, req.body);
-    res
-      .status(200)
-      .json({ success: true, message: "News update successfully.", news });
+    const news = await updateNews(req.params.id, req.body, req.file, req);
+    res.status(200).json({
+      success: true,
+      message: `News with id ${req.params.id} is successfully updated.`,
+      news,
+    });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -118,5 +121,22 @@ export const deleteNewsController = async (req, res) => {
       .json({ success: true, message: "News deleted successfully." });
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+export const newsStatisticsController = async (req, res) => {
+  try {
+    const newsStat = await newsStatistics();
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "News statistics is successfully sent.",
+        newsStat,
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

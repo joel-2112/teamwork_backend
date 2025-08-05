@@ -123,9 +123,10 @@ export const sendOrderStatusUpdateEmail = async ({
   }
 };
 
-
-
-export const sendAgentRequestConfirmationEmail = async ({ userEmail, fullName }) => {
+export const sendAgentRequestConfirmationEmail = async ({
+  userEmail,
+  fullName,
+}) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -162,14 +163,19 @@ export const sendAgentRequestConfirmationEmail = async ({ userEmail, fullName })
     await transporter.sendMail(mailOptions);
     console.log(`Agent request confirmation email sent to ${userEmail}`);
   } catch (error) {
-    console.error("Error sending agent request confirmation email:", error.message);
+    console.error(
+      "Error sending agent request confirmation email:",
+      error.message
+    );
   }
 };
 
-
-
 // utils/sendEmail.js
-export const sendAgentStatusUpdateEmail = async ({ userEmail, fullName, agentStatus }) => {
+export const sendAgentStatusUpdateEmail = async ({
+  userEmail,
+  fullName,
+  agentStatus,
+}) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -184,15 +190,18 @@ export const sendAgentStatusUpdateEmail = async ({ userEmail, fullName, agentSta
     let statusMessage = "";
     switch (agentStatus) {
       case "reviewed":
-        statusMessage = "Your agent request has been <strong>reviewed</strong>. We will notify you of the final decision soon.";
+        statusMessage =
+          "Your agent request has been <strong>reviewed</strong>. We will notify you of the final decision soon.";
         break;
       case "accepted":
-        statusMessage = "Congratulations! Your agent request has been <strong style='color:green;'>accepted</strong>.";
+        statusMessage =
+          "Congratulations! Your agent request has been <strong style='color:green;'>accepted</strong>.";
         break;
       case "rejected":
-        statusMessage = "We regret to inform you that your agent request has been <strong style='color:red;'>rejected</strong>.";
+        statusMessage =
+          "We regret to inform you that your agent request has been <strong style='color:red;'>rejected</strong>.";
         break;
-         case "cancelled":
+      case "cancelled":
         statusMessage =
           "You have <strong style='color:red;'>cancelled</strong> your agent request. If this was a mistake, please submit a new request.";
         break;
@@ -227,9 +236,10 @@ export const sendAgentStatusUpdateEmail = async ({ userEmail, fullName, agentSta
   }
 };
 
-
-
-export const sendPartnershipRequestConfirmationEmail = async ({ userEmail, fullName }) => {
+export const sendPartnershipRequestConfirmationEmail = async ({
+  userEmail,
+  fullName,
+}) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -266,13 +276,18 @@ export const sendPartnershipRequestConfirmationEmail = async ({ userEmail, fullN
     await transporter.sendMail(mailOptions);
     console.log(`Partnership request confirmation email sent to ${userEmail}`);
   } catch (error) {
-    console.error("Error sending partnership request confirmation email:", error.message);
+    console.error(
+      "Error sending partnership request confirmation email:",
+      error.message
+    );
   }
 };
 
-
-
-export const sendPartnershipStatusUpdateEmail = async ({ userEmail, fullName, status }) => {
+export const sendPartnershipStatusUpdateEmail = async ({
+  userEmail,
+  fullName,
+  status,
+}) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -322,8 +337,62 @@ export const sendPartnershipStatusUpdateEmail = async ({ userEmail, fullName, st
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Partnership status update email (${status}) sent to ${userEmail}`);
+    console.log(
+      `Partnership status update email (${status}) sent to ${userEmail}`
+    );
   } catch (error) {
-    console.error("Error sending partnership status update email:", error.message);
+    console.error(
+      "Error sending partnership status update email:",
+      error.message
+    );
+  }
+};
+
+// To send password forgot link
+export const sendPasswordResetEmail = async ({
+  userEmail,
+  fullName,
+  resetLink,
+}) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+
+
+    const mailOptions = {
+      from: `"TeamWork IT Solution" <${process.env.EMAIL_USER}>`,
+      to: userEmail,
+      subject: `Password Reset Request`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
+          <h2 style="color: #d93025;">Password Reset Request</h2>
+          <p>Dear <strong>${fullName}</strong>,</p>
+
+          <p>We received a request to reset your password for your <strong>TeamWork IT Solution</strong> account.</p>
+
+          <p>Click the link below to reset your password. This link will expire in <strong>15 minutes</strong>:</p>
+          <p><a href="${resetLink}" style="color: #1a73e8;">Reset Password</a></p>
+
+          <p>If you didn’t request this, you can ignore this email. Your password will remain unchanged.</p>
+
+          <br/>
+          <p>Best regards,</p>
+          <p><strong>TeamWork IT Solution</strong></p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Password reset email sent to ${userEmail}`);
+  } catch (error) {
+    console.error("Error sending password reset email:", error.message);
   }
 };

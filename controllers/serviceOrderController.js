@@ -86,8 +86,8 @@ export const createServiceOrder = async (req, res) => {
 
 export const getAllOrders = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, status } = req.query;
-    const filters = { search, status };
+    const { page = 1, limit = 10, search, status, regionId, zoneId, woredaId } = req.query;
+    const filters = { search, status, regionId, zoneId, woredaId };
 
     const {
       totalOrder,
@@ -95,11 +95,11 @@ export const getAllOrders = async (req, res) => {
       reviewedOrder,
       acceptedOrder,
       rejectedOrder,
-      inprogressOrder,
+      in_progressOrder,
       cancelledOrder,
       completedOrder,
       rows,
-    } = await getAllOrdersService(parseInt(page), parseInt(limit), filters);
+    } = await getAllOrdersService(parseInt(page), parseInt(limit), filters, req.user);
 
     res.status(200).json({
       success: true,
@@ -110,7 +110,7 @@ export const getAllOrders = async (req, res) => {
         reviewedOrder,
         acceptedOrder,
         rejectedOrder,
-        inprogressOrder,
+        in_progressOrder,
         cancelledOrder,
         completedOrder,
         page: parseInt(page),
@@ -124,6 +124,7 @@ export const getAllOrders = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getOrderById = async (req, res) => {
   try {

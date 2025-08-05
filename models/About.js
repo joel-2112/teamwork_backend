@@ -13,7 +13,6 @@ export default (db, DataTypes) => {
         allowNull: false,
         validate: {
           notEmpty: true,
-          len: [3, 100],
         },
       },
       aboutImage: {
@@ -28,7 +27,6 @@ export default (db, DataTypes) => {
         allowNull: false,
         validate: {
           notEmpty: true,
-          len: [10, 5000],
         },
       },
       mission: {
@@ -36,7 +34,6 @@ export default (db, DataTypes) => {
         allowNull: false,
         validate: {
           notEmpty: true,
-          len: [10, 1000],
         },
       },
       vision: {
@@ -44,7 +41,6 @@ export default (db, DataTypes) => {
         allowNull: false,
         validate: {
           notEmpty: true,
-          len: [10, 1000],
         },
       },
       values: {

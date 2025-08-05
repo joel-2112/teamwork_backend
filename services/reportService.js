@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { Op } from "sequelize";
 
-const { Report, User, Region, Zone, Woreda } = db;
+const { Report, User, Region, Zone, Woreda, Role } = db;
 
 export const createReportService = async (data) => {
   const report = await Report.create(data);
@@ -12,23 +12,45 @@ export const createReportService = async (data) => {
 
 // Retrieve all reports with pagination and filtration
 export const getAllReportsService = async (
+  user,
   page = 1,
   limit = 10,
   category,
   status,
-  search
+  search,
+  regionId,
+  zoneId,
+  woredaId
 ) => {
   const offset = (page - 1) * limit;
   const where = { isDeleted: false };
 
   if (category) where.category = category;
   if (status) where.status = status;
+
+  // Search support
   if (search) {
     where[Op.or] = [
-      { title: { [Op.iLike]: `%${search}%` } },
-      { description: { [Op.iLike]: `%${search}%` } },
+      { title: { [Op.iLike]: `%${search}%` } }, 
+      { description: { [Op.iLike]: `%${search}%` } }, 
     ];
   }
+
+  // Role-based filtering
+  const userRole = user?.Role?.name;
+
+  if (userRole === "regionAdmin") {
+    where.regionId = user.regionId;
+  } else if (userRole === "zoneAdmin") {
+    where.zoneId = user.zoneId;
+  } else if (userRole === "woredaAdmin") {
+    where.woredaId = user.woredaId;
+  }
+
+  // Optional filtering (admins or explicit filters)
+  if (regionId) where.regionId = regionId;
+  if (zoneId) where.zoneId = zoneId;
+  if (woredaId) where.woredaId = woredaId;
 
   const { count, rows } = await Report.findAndCountAll({
     where,
@@ -44,7 +66,7 @@ export const getAllReportsService = async (
       },
     ],
     limit: parseInt(limit),
-    offset: offset,
+    offset,
     distinct: true,
   });
 
@@ -216,26 +238,38 @@ export const cancelReportService = async (reportId, userId) => {
 };
 
 // update reports status except cancelled status
-export const updateReportStatusService = async (reportId, userId, status) => {
+export const updateReportStatusService = async (reportId, user, status) => {
   const report = await Report.findOne({
     where: { id: reportId, isDeleted: false },
   });
+
   if (!report) throw new Error("Report not found.");
-
-  const user = await User.findByPk(userId);
-  if (!user) throw new Error("User not found.");
-
   if (report.status === "cancelled")
     throw new Error("You can not update status of cancelled report.");
 
-  const updatedReport = await report.update({ status });
+  // Role-based access check
+  const userRole = user?.Role?.name;
+  if (userRole === "regionAdmin" && user.regionId !== report.regionId) {
+    throw new Error("You are not authorized to update this report (region mismatch).");
+  }
 
+  if (userRole === "zoneAdmin" && user.zoneId !== report.zoneId) {
+    throw new Error("You are not authorized to update this report (zone mismatch).");
+  }
+
+  if (userRole === "woredaAdmin" && user.woredaId !== report.woredaId) {
+    throw new Error("You are not authorized to update this report (woreda mismatch).");
+  }
+
+  // Allow only admin or valid scope
+  const updatedReport = await report.update({ status });
   updatedReport.statusChangedBy = user.id;
   updatedReport.changedAt = new Date();
   await updatedReport.save();
 
   return updatedReport;
 };
+
 
 // Delete Reports by ID
 export const deleteReportService = async (reportId, userId) => {

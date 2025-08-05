@@ -7,7 +7,8 @@ import {
   updateApplicationStatus,
   deleteJobApplication,
   getAllMyJobApplication,
-  applicationStatistics
+  applicationStatistics,
+  countApplicationsPerJob
 } from "../controllers/jobApplicationController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/upload.js";
@@ -27,5 +28,6 @@ router.put("/update-status/:id", protect, requireRole('admin'), updateApplicatio
 router.delete("/delete/:id", protect, requireRole('admin'), deleteJobApplication);
 router.get("/my-applications", protect, getAllMyJobApplication);
 router.get("/application-stat", protect, requireRole('admin'), applicationStatistics)
+router.get("/application-job", protect, requireRole('admin'), countApplicationsPerJob)
 
 export default router;

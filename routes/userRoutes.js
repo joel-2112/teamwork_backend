@@ -8,7 +8,10 @@ import {
   deleteUser,
   createAdminUser,
   updateUserStatus,
-  userStatistics
+  userStatistics,
+  changePassword,
+  forgotPassword,
+  resetPassword
 } from "../controllers/userController.js";
 import {
   createUserValidator,
@@ -32,5 +35,8 @@ router.put("/update/:id", protect, requireRole('admin'), updateUser);
 router.put("/update-status/:id", protect, requireRole('admin'), updateUserStatus)
 router.delete("/delete/:id", protect, requireRole('admin'), deleteUser);
 router.get("/user-stat", protect, requireRole('admin'), userStatistics);
+router.put("/change-password", protect, changePassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 export default router;

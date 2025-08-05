@@ -2,6 +2,7 @@ import {
   sendApplicationResultEmail,
   sendJobApplicationConfirmationEmail,
 } from "../utils/sendApplicationResult.js";
+import { Sequelize } from "sequelize";
 import fs from "fs";
 import path from "path";
 import db from "../models/index.js";
@@ -222,5 +223,31 @@ export const applicationStatisticsService = async () => {
     interviewedApplication,
     hiredApplication,
     rejectedApplication,
-  }
+  };
+};
+
+export const countApplicationsPerJobService = async () => {
+  const jobsWithCounts = await Job.findAll({
+    attributes: [
+      "id",
+      "title",
+      "companyName",
+      "jobStatus",
+      [Sequelize.fn("COUNT", Sequelize.col("applications.id")), "totalApplications"]
+    ],
+    include: [
+      {
+        model: JobApplication,
+        as: "applications",
+        attributes: [],
+        where: { isDeleted: false }, 
+        required: false, 
+      },
+    ],
+    where: { isDeleted: false }, 
+    group: ["Job.id"],
+    raw: true,
+  });
+
+  return jobsWithCounts;
 };

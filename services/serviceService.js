@@ -66,6 +66,21 @@ export const updateServiceService = async (id, data) => {
 export const deleteServiceService = async (id) => {
   const service = await Service.findByPk(id);
   if (!service) throw new Error("Service not found");
-  // Finally delete the event itself
+
+  // Check if this service is used in any service orders
+  const existingOrder = await ServiceOrder.findOne({
+    where: {
+      serviceId: id,
+      isDeleted: false, // optional: exclude soft-deleted orders
+    },
+  });
+
+  if (existingOrder) {
+    throw new Error(
+      "Cannot delete this service because it has already been ordered."
+    );
+  }
+
+  // Safe to delete
   return await service.destroy();
 };

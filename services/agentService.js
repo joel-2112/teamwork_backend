@@ -74,16 +74,9 @@ const { Agent, Partnership, Woreda, Zone, Region, User, Role } = db;
 //   };
 // };
 
-
 export const createAgentService = async (userId, data) => {
-  const {
-    regionId,
-    zoneId,
-    woredaId,
-    phoneNumber,
-    profilePicture,
-    ...rest
-  } = data;
+  const { regionId, zoneId, woredaId, phoneNumber, profilePicture, ...rest } =
+    data;
 
   const parsedRegionId = Number(regionId);
   const parsedZoneId = Number(zoneId);
@@ -99,7 +92,9 @@ export const createAgentService = async (userId, data) => {
     },
   });
   if (checkPartner)
-    throw new Error("You have already submitted partnership request, cannot send agent request");
+    throw new Error(
+      "You have already submitted partnership request, cannot send agent request"
+    );
 
   const isExist = await Agent.findOne({ where: { userId: user.id } });
   if (isExist) throw new Error("You have already submitted agent request");
@@ -117,13 +112,17 @@ export const createAgentService = async (userId, data) => {
   if (!zone) throw new Error("Invalid Zone");
 
   if (parsedRegionId !== zone.regionId)
-    throw new Error(`Zone ${zone.name} is not in region ${region.name}, please enter correct zone.`);
+    throw new Error(
+      `Zone ${zone.name} is not in region ${region.name}, please enter correct zone.`
+    );
 
   const woreda = await Woreda.findByPk(parsedWoredaId);
   if (!woreda) throw new Error("Invalid Woreda");
 
   if (parsedZoneId !== woreda.zoneId)
-    throw new Error(`Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`);
+    throw new Error(
+      `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
+    );
 
   const agent = await Agent.create({
     ...rest,
@@ -151,8 +150,6 @@ export const createAgentService = async (userId, data) => {
     woreda: woreda.name,
   };
 };
-
-
 
 // Retrieve all agent
 export const getAllAgentsService = async (
@@ -191,23 +188,17 @@ export const getAllAgentsService = async (
 
   const offset = (page - 1) * limit;
 
-  try {
-    return await Agent.findAndCountAll({
-      where,
-      limit,
-      offset,
-      include: [
-        { model: Region, as: "Region", required: false },
-        { model: Zone, as: "Zone", required: false },
-        { model: Woreda, as: "Woreda", required: false },
-      ],
-    });
-  } catch (error) {
-    console.error("Error in getAllAgents:", error);
-    throw error;
-  }
+  return await Agent.findAndCountAll({
+    where,
+    limit,
+    offset,
+    include: [
+      { model: Region, as: "Region", required: false },
+      { model: Zone, as: "Zone", required: false },
+      { model: Woreda, as: "Woreda", required: false },
+    ],
+  });
 };
-
 
 // Retrieve agent by ID
 export const getAgentByIdService = async (id) => {

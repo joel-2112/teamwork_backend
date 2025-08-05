@@ -6,6 +6,7 @@ import {
   getNewsByIdController,
   updateNewsController,
   deleteNewsController,
+  newsStatisticsController,
 } from "../controllers/newsController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import { validateRequest } from "../middlewares/validators/validateRequest.js";
@@ -27,6 +28,7 @@ router.post(
 );
 router.put(
   "/update-news/:id",
+  upload.single("picture"),
   protect,
   requireRole("admin"),
   updateNewsController
@@ -44,6 +46,12 @@ router.get(
   validateParamId,
   validateRequest,
   getNewsByIdController
+);
+router.get(
+  "/news-stat",
+  protect,
+  requireRole("admin"),
+  newsStatisticsController
 );
 router.get("/all-news", getAllNewsController);
 

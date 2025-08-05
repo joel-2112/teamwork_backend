@@ -1,9 +1,10 @@
 import db from "../models/index.js";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import fs from "fs";
 import path from "path";
-import { title } from "process";
 import moment from "moment";
+import { saveImageToDisk } from "../utils/saveImage.js";
+
 const { News, User } = db;
 
 // service to create news
@@ -139,9 +140,28 @@ export const getNewsById = async (id) => {
 };
 
 // Service to update news by id
-export const updateNews = async (id, data) => {
+export const updateNews = async (id, data, file, req) => {
   const news = await News.findOne({ where: { id: id, isDeleted: false } });
   if (!news) throw new Error("News not found");
+
+  if (file) {
+    // Delete old image if it exists
+    if (news.imageUrl) {
+      const oldImagePath = path.join(
+        "uploads/assets",
+        path.basename(news.imageUrl)
+      );
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    // Save new image
+    const uniqueName = `picture-${Date.now()}${path.extname(file.originalname)}`;
+    saveImageToDisk(file.buffer, uniqueName);
+    data.imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+  }
+
   return await news.update(data);
 };
 
@@ -182,4 +202,112 @@ export const deleteNews = async (newsId, userId) => {
   await news.save();
 
   return news;
+};
+
+export const newsStatistics = async () => {
+  const now = moment().toDate(); // current time
+
+  // === Time ranges ===
+  const todayStart = moment().startOf("day").toDate();
+  const todayEnd = moment().endOf("day").toDate();
+
+  const monthStart = moment().startOf("month");
+  const monthEnd = moment().endOf("month");
+
+  const weekOneStart = moment(monthStart).toDate();
+  const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
+
+  const weekTwoStart = moment(monthStart)
+    .add(7, "days")
+    .startOf("day")
+    .toDate();
+  const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
+
+  const weekThreeStart = moment(monthStart)
+    .add(14, "days")
+    .startOf("day")
+    .toDate();
+  const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
+
+  const weekFourStart = moment(monthStart)
+    .add(21, "days")
+    .startOf("day")
+    .toDate();
+  const weekFourEnd = moment(monthEnd).toDate();
+
+  // === Count news ===
+  const todayNews = await News.count({
+    where: {
+      isDeleted: false,
+      publishDate: { [Op.between]: [todayStart, todayEnd] },
+    },
+  });
+
+  const weekOneNews = await News.count({
+    where: {
+      isDeleted: false,
+      publishDate: { [Op.between]: [weekOneStart, weekOneEnd] },
+    },
+  });
+
+  const weekTwoNews = await News.count({
+    where: {
+      isDeleted: false,
+      publishDate: { [Op.between]: [weekTwoStart, weekTwoEnd] },
+    },
+  });
+
+  const weekThreeNews = await News.count({
+    where: {
+      isDeleted: false,
+      publishDate: { [Op.between]: [weekThreeStart, weekThreeEnd] },
+    },
+  });
+
+  const weekFourNews = await News.count({
+    where: {
+      isDeleted: false,
+      publishDate: { [Op.between]: [weekFourStart, weekFourEnd] },
+    },
+  });
+
+  const thisMonthNews = await News.count({
+    where: {
+      isDeleted: false,
+      publishDate: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
+    },
+  });
+
+  const allNews = await News.count({
+    where: { isDeleted: false },
+  });
+
+  const publishedNews = await News.count({
+    where: {
+      isDeleted: false,
+      publishDate: { [Op.lte]: now },
+    },
+  });
+
+  const draftNews = await News.count({
+    where: {
+      isDeleted: false,
+      publishDate: { [Op.gt]: now },
+    },
+  });
+
+  const archivedNews = await News.count({ where: { isDeleted: true } });
+
+  return {
+    todayNews,
+    weekOneNews,
+    weekTwoNews,
+    weekThreeNews,
+    weekFourNews,
+    thisMonthNews,
+    allNews,
+    publishedNews,
+    draftNews,
+    archivedNews,
+  };
 };

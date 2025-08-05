@@ -55,7 +55,7 @@ export const getAllJobsService = async ({
     include: [
       {
         model: JobApplication,
-        as: "JobApplications",
+        as: "applications",
         required: false,
         attributes: [
           "id",
@@ -72,8 +72,10 @@ export const getAllJobsService = async ({
     offset: parseInt(offset),
   });
 
+  const totalJobs = await Job.count({ where: { isDeleted: false } });
+
   return {
-    total: count,
+    total: totalJobs,
     page: parseInt(page),
     limit: parseInt(limit),
     jobs: rows,
@@ -88,7 +90,7 @@ export const getJobByIdService = async (id) => {
     include: [
       {
         model: JobApplication,
-        as: "JobApplications",
+        as: "applications",
         required: false,
         attributes: [
           "id",
@@ -159,7 +161,7 @@ export const getOpenJobsService = async ({
     include: [
       {
         model: JobApplication,
-        as: "JobApplications",
+        as: "applications",
         required: false,
         attributes: [
           "id",
@@ -222,7 +224,7 @@ export const getAllClosedJobService = async ({
     include: [
       {
         model: JobApplication,
-        as: "JobApplications",
+        as: "applications",
         required: false,
         attributes: [
           "id",
@@ -248,71 +250,77 @@ export const getAllClosedJobService = async ({
 
 // To send Job statistics of the company
 export const jobStatisticsService = async () => {
-   // === Time ranges ===
-    const todayStart = moment().startOf("day").toDate();
-    const todayEnd = moment().endOf("day").toDate();
-  
-    const monthStart = moment().startOf("month");
-    const monthEnd = moment().endOf("month");
-  
-    // Divide the current month into four weeks
-    const weekOneStart = moment(monthStart).toDate();
-    const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
-  
-    const weekTwoStart = moment(monthStart)
-      .add(7, "days")
-      .startOf("day")
-      .toDate();
-    const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
-  
-    const weekThreeStart = moment(monthStart)
-      .add(14, "days")
-      .startOf("day")
-      .toDate();
-    const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
-  
-    const weekFourStart = moment(monthStart)
-      .add(21, "days")
-      .startOf("day")
-      .toDate();
-    const weekFourEnd = moment(monthEnd).toDate();
-  
-    // === Count users ===
-    const todayJobs = await Job.count({
-      where: {
-        createdAt: { [Op.between]: [todayStart, todayEnd] },
-      },
-    });
-  
-    const weekOneJobs = await Job.count({
-      where: {
-        createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
-      },
-    });
-  
-    const weekTwoJobs = await Job.count({
-      where: {
-        createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
-      },
-    });
-  
-    const weekThreeJobs = await Job.count({
-      where: {
-        createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
-      },
-    });
-  
-    const weekFourJobs = await Job.count({
-      where: {
-        createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
-      },
-    });
-  
-    const thisMonthJobs = await Job.count({
-      where: {
-        createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
-      },
-    });
+  // === Time ranges ===
+  const todayStart = moment().startOf("day").toDate();
+  const todayEnd = moment().endOf("day").toDate();
+
+  const monthStart = moment().startOf("month");
+  const monthEnd = moment().endOf("month");
+
+  // Divide the current month into four weeks
+  const weekOneStart = moment(monthStart).toDate();
+  const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
+
+  const weekTwoStart = moment(monthStart)
+    .add(7, "days")
+    .startOf("day")
+    .toDate();
+  const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
+
+  const weekThreeStart = moment(monthStart)
+    .add(14, "days")
+    .startOf("day")
+    .toDate();
+  const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
+
+  const weekFourStart = moment(monthStart)
+    .add(21, "days")
+    .startOf("day")
+    .toDate();
+  const weekFourEnd = moment(monthEnd).toDate();
+
+  // === Count users ===
+  const todayJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [todayStart, todayEnd] },
+    },
+  });
+
+  const weekOneJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
+    },
+  });
+
+  const weekTwoJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
+    },
+  });
+
+  const weekThreeJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
+    },
+  });
+
+  const weekFourJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
+    },
+  });
+
+  const thisMonthJobs = await Job.count({
+    where: {
+      isDeleted: false,
+      createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
+    },
+  });
 
   const totalJobs = await Job.count({ where: { isDeleted: false } });
 
@@ -323,11 +331,21 @@ export const jobStatisticsService = async () => {
   const closedJobs = await Job.count({
     where: { jobStatus: "closed", isDeleted: false },
   });
-  const fullTimeJobs = await Job.count({where: {jobType: "full-time", isDeleted: false}})
-  const partTimeJobs = await Job.count({where: {jobType: "part-time", isDeleted: false}})
-  const contractJobs = await Job.count({where: {jobType: "contract", isDeleted: false}})
-  const remoteJobs = await Job.count({where: {jobType: "remote", isDeleted: false}})
-  const internshipJobs = await Job.count({where: {jobType: "internship", isDeleted: false}})
+  const fullTimeJobs = await Job.count({
+    where: { jobType: "full-time", isDeleted: false },
+  });
+  const partTimeJobs = await Job.count({
+    where: { jobType: "part-time", isDeleted: false },
+  });
+  const contractJobs = await Job.count({
+    where: { jobType: "contract", isDeleted: false },
+  });
+  const remoteJobs = await Job.count({
+    where: { jobType: "remote", isDeleted: false },
+  });
+  const internshipJobs = await Job.count({
+    where: { jobType: "internship", isDeleted: false },
+  });
 
   return {
     totalJobs,
@@ -343,6 +361,6 @@ export const jobStatisticsService = async () => {
     partTimeJobs,
     contractJobs,
     remoteJobs,
-    internshipJobs
+    internshipJobs,
   };
 };

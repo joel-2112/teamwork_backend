@@ -10,7 +10,7 @@ import {
   cancelReport,
   updateReportStatus,
   deleteReport,
-  getDeletedReports
+  getDeletedReports,
 } from "../controllers/reportController.js";
 
 const router = express.Router();
@@ -35,11 +35,26 @@ router.put(
   ]),
   updateReport
 );
-router.get("/all-reports", protect, requireRole('admin'), getAllReports);
-router.get("/report/:id", protect, requireRole('admin'), getReportsById);
-router.put("/update-status/:id", protect, requireRole('admin'), updateReportStatus);
-router.delete("/delete/:id", protect, requireRole('admin'), deleteReport)
-router.get("/deleted-reports", protect, requireRole('admin'), getDeletedReports)
+router.get(
+  "/all-reports",
+  protect,
+  requireRole(["admin", "regionAdmin", "zoneAdmin", "woredaAdmin"]),
+  getAllReports
+);
+router.get("/report/:id", protect, requireRole("admin"), getReportsById);
+router.put(
+  "/update-status/:id",
+  protect,
+  requireRole(["admin", "regionAdmin", "zoneAdmin", "woredaAdmin"]),
+  updateReportStatus
+);
+router.delete("/delete/:id", protect, requireRole("admin"), deleteReport);
+router.get(
+  "/deleted-reports",
+  protect,
+  requireRole("admin"),
+  getDeletedReports
+);
 router.get("/my-reports", protect, getMyReports);
 router.put("/cancel/:id", protect, cancelReport);
 

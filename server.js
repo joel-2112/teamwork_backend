@@ -11,7 +11,6 @@ import db from "./models/index.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import "./utils/scheduledTask.js";
 
-
 // Import Routes
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -31,6 +30,7 @@ import aboutRoutes from "./routes/aboutRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
 import roleRouote from "./routes/roleRoute.js";
 import reportRoute from "./routes/reportRoute.js";
+import messageRoute from "./routes/messageRoutes.js";
 
 // Initialize Express
 const app = express();
@@ -89,6 +89,7 @@ app.use("/api/v1/user-feedbacks", userFeedbackRoutes);
 app.use("/api/v1/abouts", aboutRoutes);
 app.use("/api/v1/services", serviceRoutes);
 app.use("/api/v1/reports", reportRoute);
+app.use("/api/v1/messages", messageRoute);
 
 // Error handling middleware
 app.use(errorHandler);

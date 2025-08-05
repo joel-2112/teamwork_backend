@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
-const { User, Role } = db;
+const { User, Role, Region, Zone, Woreda } = db;
 
 export const protect = async (req, res, next) => {
   try {
@@ -24,9 +24,22 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Attach user to request object
-    const user  = await User.findByPk(decoded.userId, {
-      attributes: ["id", "name", "email", "roleId"],
-      include: [{ model: Role, as: "Role" }],
+    const user = await User.findByPk(decoded.userId, {
+      attributes: [
+        "id",
+        "name",
+        "email",
+        "roleId",
+        "regionId",
+        "zoneId",
+        "woredaId",
+      ],
+      include: [
+        { model: Role, as: "Role" },
+        { model: Region, attributes: ["id", "name"] },
+        { model: Zone, attributes: ["id", "name"] },
+        { model: Woreda, attributes: ["id", "name"] },
+      ],
     });
     req.user = user;
 

@@ -6,9 +6,10 @@ import {
   deleteApplicationService,
   getAllMyJobApplicationService,
   applicationStatisticsService,
+  countApplicationsPerJobService,
 } from "../services/jobApplicationSevice.js";
 import { Sequelize } from "sequelize";
-import fs from "fs";
+import fs, { stat } from "fs";
 import path from "path";
 
 // Create ( apply for the job ) if the user with the same email and job is not applied
@@ -167,3 +168,17 @@ export const applicationStatistics = async (req, res) => {
   }
 };
 
+export const countApplicationsPerJob = async (req, res) => {
+  try {
+    const jobs = await countApplicationsPerJobService();
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Application statistics id retrieved successfully.",
+        stat: jobs,
+      });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

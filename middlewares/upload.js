@@ -60,7 +60,7 @@ const docTypes = [
 const upload = multer({
   storage: memoryStorage,
   fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 5 MB
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB
 });
 
 export default upload;

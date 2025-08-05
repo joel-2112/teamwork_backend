@@ -117,28 +117,34 @@ export const createReport = async (req, res) => {
 };
 
 
+
 export const getAllReports = async (req, res) => {
   try {
-    const { page, limit, category, status, search } = req.query;
+    const { page, limit, category, status, search, regionId, zoneId, woredaId } = req.query;
 
     const reports = await getAllReportsService(
+      req.user,
       page,
       limit,
       category,
       status,
-      search
+      search,
+      regionId,
+      zoneId,
+      woredaId
     );
 
     res.status(200).json({
       success: true,
-      message: "All reports retrieved successfully.",
+      message: "Reports retrieved successfully",
       statistics: reports,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getReportsById = async (req, res) => {
   try {
@@ -221,25 +227,23 @@ export const cancelReport = async (req, res) => {
 
 export const updateReportStatus = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const user = req.user;
     const reportId = req.params.id;
     const { status } = req.body;
-    const updatedReport = await updateReportStatusService(
-      reportId,
-      userId,
-      status
-    );
+
+    const updatedReport = await updateReportStatusService(reportId, user, status);
 
     res.status(200).json({
       success: true,
-      message: `Report with id ${req.params.id} is successfully ${status}.`,
+      message: `Report with ID ${reportId} successfully updated to '${status}'.`,
       report: updatedReport,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const deleteReport = async (req, res) => {
   try {

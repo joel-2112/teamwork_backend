@@ -1,4 +1,4 @@
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import db from "../models/index.js";
 import fs from "fs";
 import path from "path";
@@ -217,7 +217,7 @@ export const deleteAboutService = async (aboutId, userId) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found.");
 
-  const about = await About.findOne({ where: { id: id, isDeleted: false } });
+  const about = await About.findOne({ where: { id: aboutId, isDeleted: false } });
   if (!about) throw new Error("About not found or already deleted.");
 
   about.isDeleted = true;

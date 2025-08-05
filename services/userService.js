@@ -1,8 +1,9 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import db from "../models/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import moment from "moment";
+import { sendPasswordResetEmail } from "../utils/sendEmail.js";
 
 const { User, Role, Partnership, Agent, Region, Zone, Woreda } = db;
 
@@ -66,7 +67,7 @@ export const getAllUsersService = async ({
       {
         model: Woreda,
         attributes: ["id", "name"],
-      }
+      },
     ],
     attributes: { exclude: ["password"] },
     order: [["createdAt", "DESC"]],
@@ -106,7 +107,7 @@ export const getUserByIdService = async (id) => {
       {
         model: Woreda,
         attributes: ["id", "name"],
-      }
+      },
     ],
     attributes: { exclude: ["password"] },
   });
@@ -230,16 +231,152 @@ export const updateUserStatusService = async (id, status) => {
   return user;
 };
 
+// Change password
+export const changePasswordService = async (user, data) => {
+  // First, fetch user with password only (no includes yet)
+  const foundUser = await User.findByPk(user.id);
+  if (!foundUser) throw new Error("User not found.");
+
+  const requiredFields = [
+    "currentPassword",
+    "newPassword",
+    "confirmNewPassword",
+  ];
+  for (const field of requiredFields) {
+    if (!data[field]) throw new Error(`Missing required field: ${field}`);
+  }
+
+  const isMatch = await bcrypt.compare(
+    data.currentPassword,
+    foundUser.password
+  );
+  if (!isMatch)
+    throw new Error("Invalid current password, please enter the correct one.");
+
+  const checkPrev = await bcrypt.compare(data.newPassword, foundUser.password);
+  if (checkPrev)
+    throw new Error(
+      "You can not use the previous password please use new password."
+    );
+
+  if (data.newPassword !== data.confirmNewPassword)
+    throw new Error("New password must be confirmed correctly.");
+
+  foundUser.password = data.newPassword;
+  await foundUser.save();
+
+  // Re-fetch user (excluding password) with associations
+  const updatedUser = await User.findByPk(user.id, {
+    include: [
+      {
+        model: Role,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Region,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Zone,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Woreda,
+        attributes: ["id", "name"],
+      },
+    ],
+    attributes: { exclude: ["password"] },
+  });
+
+  return {
+    id: updatedUser.id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    role: updatedUser.Role.name,
+    status: updatedUser.status,
+    region: updatedUser.Region?.name,
+    zone: updatedUser.Zone?.name,
+    Woreda: updatedUser.Woreda?.name,
+  };
+};
+
+// Service file
+export const forgotPasswordService = async (email, clientUrl) => {
+  const user = await User.findOne({ where: { email } });
+  if (!user) throw new Error("No account registered with this email.");
+
+  const resetToken = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_RESET_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  // clientUrl is already passed in from controller
+  const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
+
+  await sendPasswordResetEmail({
+    userEmail: user.email,
+    fullName: user.name,
+    resetLink,
+  });
+
+  return { message: "Password reset link sent to your email." };
+};
+
+export const resetPasswordService = async (
+  token,
+  newPassword,
+  confirmNewPassword
+) => {
+  if (newPassword !== confirmNewPassword) {
+    throw new Error("Passwords do not match.");
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
+  } catch (error) {
+    throw new Error("Invalid or expired token.");
+  }
+
+  const user = await User.findByPk(decoded.userId);
+  if (!user) {
+    throw new Error("User not found.");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return { message: "Password has been reset successfully." };
+};
+
 // To send user statistics of the company
 export const userStatisticsService = async () => {
-  const adminRole = await Role.findOne({ where: { name: "admin" } });
-  if (!adminRole) throw new Error("Role admin not found.");
+  // === Fetch all required roles in one query ===
+  const roleNames = [
+    "admin",
+    "agent",
+    "partner",
+    "regionAdmin",
+    "zoneAdmin",
+    "woredaAdmin",
+  ];
 
-  const agentRole = await Role.findOne({ where: { name: "agent" } });
-  if (!agentRole) throw new Error("Role agent not found.");
+  const roles = await Role.findAll({
+    where: { name: { [Op.in]: roleNames } },
+  });
 
-  const partnerRole = await Role.findOne({ where: { name: "partner" } });
-  if (!partnerRole) throw new Error("Role partner not found.");
+  const roleMap = {};
+  for (const role of roles) {
+    roleMap[role.name] = role.id;
+  }
+
+  // Ensure all roles are found
+  for (const roleName of roleNames) {
+    if (!roleMap[roleName]) {
+      throw new Error(`Role ${roleName} not found.`);
+    }
+  }
 
   // === Time ranges ===
   const todayStart = moment().startOf("day").toDate();
@@ -248,77 +385,56 @@ export const userStatisticsService = async () => {
   const monthStart = moment().startOf("month");
   const monthEnd = moment().endOf("month");
 
-  // Divide the current month into four weeks
-  const weekOneStart = moment(monthStart).toDate();
-  const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
+  const weeks = [
+    [moment(monthStart).toDate(), moment(monthStart).add(6, "days").endOf("day").toDate()],
+    [moment(monthStart).add(7, "days").startOf("day").toDate(), moment(monthStart).add(13, "days").endOf("day").toDate()],
+    [moment(monthStart).add(14, "days").startOf("day").toDate(), moment(monthStart).add(20, "days").endOf("day").toDate()],
+    [moment(monthStart).add(21, "days").startOf("day").toDate(), monthEnd.toDate()],
+  ];
 
-  const weekTwoStart = moment(monthStart)
-    .add(7, "days")
-    .startOf("day")
-    .toDate();
-  const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
-
-  const weekThreeStart = moment(monthStart)
-    .add(14, "days")
-    .startOf("day")
-    .toDate();
-  const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
-
-  const weekFourStart = moment(monthStart)
-    .add(21, "days")
-    .startOf("day")
-    .toDate();
-  const weekFourEnd = moment(monthEnd).toDate();
-
-  // === Count users ===
-  const todayUsers = await User.count({
-    where: {
-      createdAt: { [Op.between]: [todayStart, todayEnd] },
-    },
-  });
-
-  const weekOneUsers = await User.count({
-    where: {
-      createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
-    },
-  });
-
-  const weekTwoUsers = await User.count({
-    where: {
-      createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
-    },
-  });
-
-  const weekThreeUsers = await User.count({
-    where: {
-      createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
-    },
-  });
-
-  const weekFourUsers = await User.count({
-    where: {
-      createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
-    },
-  });
-
-  const thisMonthUsers = await User.count({
-    where: {
-      createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
-    },
-  });
-
-  const allUsers = await User.count();
-  const allAdmins = await User.count({ where: { roleId: adminRole.id } });
-  const allAgents = await User.count({ where: { roleId: agentRole.id } });
-  const allPartners = await User.count({ where: { roleId: partnerRole.id } });
-  const activeUsers = await User.count({ where: { status: "active" } });
-  const inactiveUsers = await User.count({ where: { status: "blocked" } });
+  // === Count queries in parallel ===
+  const [
+    allUsers,
+    activeUsers,
+    inactiveUsers,
+    todayUsers,
+    thisMonthUsers,
+    weekOneUsers,
+    weekTwoUsers,
+    weekThreeUsers,
+    weekFourUsers,
+    allAdmins,
+    allAgents,
+    allPartners,
+    allRegionAdmins,
+    allZoneAdmins,
+    allWoredaAdmins,
+  ] = await Promise.all([
+    User.count(),
+    User.count({ where: { status: "active" } }),
+    User.count({ where: { status: "blocked" } }),
+    User.count({ where: { createdAt: { [Op.between]: [todayStart, todayEnd] } } }),
+    User.count({ where: { createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] } } }),
+    User.count({ where: { createdAt: { [Op.between]: weeks[0] } } }),
+    User.count({ where: { createdAt: { [Op.between]: weeks[1] } } }),
+    User.count({ where: { createdAt: { [Op.between]: weeks[2] } } }),
+    User.count({ where: { createdAt: { [Op.between]: weeks[3] } } }),
+    User.count({ where: { roleId: roleMap["admin"] } }),
+    User.count({ where: { roleId: roleMap["agent"] } }),
+    User.count({ where: { roleId: roleMap["partner"] } }),
+    User.count({ where: { roleId: roleMap["regionAdmin"] } }),
+    User.count({ where: { roleId: roleMap["zoneAdmin"] } }),
+    User.count({ where: { roleId: roleMap["woredaAdmin"] } }),
+  ]);
 
   return {
     totalUsers: allUsers,
     admins: allAdmins,
     agents: allAgents,
     partners: allPartners,
+    regionAdmins: allRegionAdmins,
+    zoneAdmins: allZoneAdmins,
+    woredaAdmins: allWoredaAdmins,
     activeUsers,
     inactiveUsers,
     todayUsers,

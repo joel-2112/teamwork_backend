@@ -80,11 +80,26 @@ export const createServiceOrderService = async (orderData, userId) => {
 export const getAllOrdersService = async (
   page = 1,
   limit = 10,
-  filters = {}
+  filters = {},
+  user
 ) => {
   const { search, status, regionId, zoneId, woredaId } = filters;
   const where = { isDeleted: false };
 
+  // Role-based filtering
+  const userRole = user?.Role?.name;
+
+  if (userRole === "regionAdmin") {
+    where.regionId = user.regionId;
+  } else if (userRole === "zoneAdmin") {
+    where.zoneId = user.zoneId;
+  } else if (userRole === "woredaAdmin") {
+    where.woredaId = user.woredaId;
+  }
+
+  
+
+  // Optional filters (will further narrow results)
   if (status) where.status = status;
   if (regionId) where.regionId = regionId;
   if (zoneId) where.zoneId = zoneId;
@@ -101,6 +116,7 @@ export const getAllOrdersService = async (
   }
 
   const offset = (page - 1) * limit;
+
   const { count, rows } = await ServiceOrder.findAndCountAll({
     where,
     include: [
@@ -113,43 +129,34 @@ export const getAllOrdersService = async (
     offset,
   });
 
-  const pendingOrder = await ServiceOrder.count({
-    where: { status: "pending" },
-  });
-  const reviewedOrder = await ServiceOrder.count({
-    where: { status: "reviewed" },
-  });
-  const acceptedOrder = await ServiceOrder.count({
-    where: { status: "accepted" },
-  });
-  const rejectedOrder = await ServiceOrder.count({
-    where: { status: "rejected" },
-  });
-  const inprogressOrder = await ServiceOrder.count({
-    where: { status: "in_progress" },
-  });
-  const cancelledOrder = await ServiceOrder.count({
-    where: { status: "cancelled" },
-  });
-  const completedOrder = await ServiceOrder.count({
-    where: { status: "completed" },
-  });
+  // Status counts
+  const statusTypes = [
+    "pending",
+    "reviewed",
+    "accepted",
+    "rejected",
+    "in_progress",
+    "cancelled",
+    "completed",
+  ];
+
+  const statusCounts = {};
+  for (const type of statusTypes) {
+    statusCounts[`${type}Order`] = await ServiceOrder.count({
+      where: { ...where, status: type },
+    });
+  }
 
   return {
     totalOrder: count,
-    pendingOrder: pendingOrder,
-    reviewedOrder: reviewedOrder,
-    acceptedOrder: acceptedOrder,
-    rejectedOrder: rejectedOrder,
-    inprogressOrder: inprogressOrder,
-    cancelledOrder: cancelledOrder,
-    completedOrder: completedOrder,
+    ...statusCounts,
     page: parseInt(page),
     limit: parseInt(limit),
     offset,
     rows,
   };
 };
+
 
 // Get order by ID
 export const getOrderByIdService = async (id) => {
