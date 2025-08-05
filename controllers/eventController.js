@@ -4,6 +4,7 @@ import {
   getEventById,
   updateEvent,
   deleteEvent,
+  eventStatisticsService,
 } from "../services/eventService.js";
 import db from "../models/index.js";
 const { Image, Event } = db;
@@ -201,5 +202,22 @@ export const deleteEventController = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const eventStatisticsController = async (req, res) => {
+  try {
+    const eventStat = await eventStatisticsService();
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Event Statistics is sent successfully.",
+        eventStat,
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

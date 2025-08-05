@@ -6,6 +6,7 @@ import {
   getEventByIdController,
   updateEventController,
   deleteEventController,
+  eventStatisticsController,
 } from "../controllers/eventController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/upload.js";
@@ -47,7 +48,12 @@ router.get(
   validateRequest,
   getEventByIdController
 );
-
+router.get(
+  "/event-stat",
+  protect,
+  requireRole("admin"),
+  eventStatisticsController
+);
 router.get("/all-event", getAllEventsController);
 
 export default router;

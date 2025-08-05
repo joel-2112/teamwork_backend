@@ -2,6 +2,8 @@ import db from "../models/index.js";
 import { Op, where } from "sequelize";
 import fs from "fs";
 import path from "path";
+import moment from "moment";
+import { Sequelize } from "sequelize";
 const { Event, Image, User } = db;
 
 // Create event if it is not exist
@@ -144,4 +146,50 @@ export const deleteEvent = async (eventId, userId) => {
   await event.save();
 
   return event;
+};
+
+// SEnd event statistics
+export const eventStatisticsService = async () => {
+  const now = moment();
+  const twoHoursLater = moment().add(2, "hours");
+
+  const totalEvents = await Event.count({
+    where: {
+      isDeleted: false,
+    },
+  });
+
+  const upcomingEvents = await Event.count({
+    where: {
+      isDeleted: false,
+      eventDate: {
+        [db.Sequelize.Op.gt]: twoHoursLater.toDate(), // after 2 hours later
+      },
+    },
+  });
+
+  const ongoingEvents = await Event.count({
+    where: {
+      isDeleted: false,
+      eventDate: {
+        [db.Sequelize.Op.between]: [now.toDate(), twoHoursLater.toDate()], // eventDate is between now and 2 hours later
+      },
+    },
+  });
+
+  const completedEvents = await Event.count({
+    where: {
+      isDeleted: false,
+      eventDate: {
+        [db.Sequelize.Op.lt]: now.toDate(), // before now
+      },
+    },
+  });
+
+  return {
+    totalEvents,
+    upcomingEvents,
+    ongoingEvents,
+    completedEvents,
+  };
 };
