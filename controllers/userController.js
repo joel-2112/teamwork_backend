@@ -14,8 +14,8 @@ import { getClientUrl } from "../utils/getClientUrl.js";
 
 export const getAllUsers = async (req, res) => {
   try {
-    const { page, limit, status, search } = req.query;
-    const users = await getAllUsersService({ page, limit, status, search });
+    const { page, limit, status, search, roleId } = req.query;
+    const users = await getAllUsersService({ page, limit, status, search, roleId });
     res.status(200).json({
       success: true,
       message: "All user successfully retrieved.",

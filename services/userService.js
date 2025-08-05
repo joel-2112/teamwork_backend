@@ -1,4 +1,4 @@
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import db from "../models/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -12,20 +12,25 @@ export const getAllUsersService = async ({
   limit = 10,
   status,
   search,
+  roleId,
 } = {}) => {
   const parsedPage = Math.max(1, parseInt(page) || 1);
   const parsedLimit = Math.min(100, parseInt(limit) || 10);
   const offset = (parsedPage - 1) * parsedLimit;
 
-  const where = {};
-  if (status) where.status = status;
-
+  // Build filtered query for paginated results
+  const filteredWhere = {};
+  if (status) filteredWhere.status = status;
+  if (roleId) filteredWhere.roleId = roleId;
   if (search) {
-    where[Op.or] = [
+    filteredWhere[Op.or] = [
       { name: { [Op.iLike]: `%${search}%` } },
       { email: { [Op.iLike]: `%${search}%` } },
     ];
   }
+
+  // Base where for stats (should NOT include search or status filter)
+  const baseWhere = {}; 
 
   // Get all required roles in one query
   const roles = await Role.findAll({
@@ -38,46 +43,35 @@ export const getAllUsersService = async ({
     roleMap[role.name] = role.id;
   }
 
-  // Parallelize user role/status counts
-  const [blockedUser, activeUser, totalAdmin, totalAgent, totalPartner] =
+  // Parallelize counts (based on full DB, not filtered query)
+  const [totalUser, blockedUser, activeUser, totalAdmin, totalAgent, totalPartner] =
     await Promise.all([
-      User.count({ where: { status: "blocked" } }),
-      User.count({ where: { status: "active" } }),
-      User.count({ where: { roleId: roleMap.admin } }),
-      User.count({ where: { roleId: roleMap.agent } }),
-      User.count({ where: { roleId: roleMap.partner } }),
+      User.count({ where: baseWhere }),
+      User.count({ where: { ...baseWhere, status: "blocked" } }),
+      User.count({ where: { ...baseWhere, status: "active" } }),
+      User.count({ where: { ...baseWhere, roleId: roleMap.admin } }),
+      User.count({ where: { ...baseWhere, roleId: roleMap.agent } }),
+      User.count({ where: { ...baseWhere, roleId: roleMap.partner } }),
     ]);
 
-  // Get paginated users
+  // Get paginated, filtered users
   const { count, rows } = await User.findAndCountAll({
-    where,
+    where: filteredWhere,
     include: [
-      {
-        model: Role,
-        attributes: ["id", "name"],
-      },
-      {
-        model: Region,
-        attributes: ["id", "name"],
-      },
-      {
-        model: Zone,
-        attributes: ["id", "name"],
-      },
-      {
-        model: Woreda,
-        attributes: ["id", "name"],
-      },
+      { model: Role, attributes: ["id", "name"] },
+      { model: Region, attributes: ["id", "name"] },
+      { model: Zone, attributes: ["id", "name"] },
+      { model: Woreda, attributes: ["id", "name"] },
     ],
     attributes: { exclude: ["password"] },
     order: [["createdAt", "DESC"]],
     limit: parsedLimit,
     offset,
-    distinct: true, // ensures correct count with join
+    distinct: true,
   });
 
   return {
-    totalUser: count,
+    totalUser,
     totalAdmin,
     totalAgent,
     totalPartner,
@@ -386,10 +380,22 @@ export const userStatisticsService = async () => {
   const monthEnd = moment().endOf("month");
 
   const weeks = [
-    [moment(monthStart).toDate(), moment(monthStart).add(6, "days").endOf("day").toDate()],
-    [moment(monthStart).add(7, "days").startOf("day").toDate(), moment(monthStart).add(13, "days").endOf("day").toDate()],
-    [moment(monthStart).add(14, "days").startOf("day").toDate(), moment(monthStart).add(20, "days").endOf("day").toDate()],
-    [moment(monthStart).add(21, "days").startOf("day").toDate(), monthEnd.toDate()],
+    [
+      moment(monthStart).toDate(),
+      moment(monthStart).add(6, "days").endOf("day").toDate(),
+    ],
+    [
+      moment(monthStart).add(7, "days").startOf("day").toDate(),
+      moment(monthStart).add(13, "days").endOf("day").toDate(),
+    ],
+    [
+      moment(monthStart).add(14, "days").startOf("day").toDate(),
+      moment(monthStart).add(20, "days").endOf("day").toDate(),
+    ],
+    [
+      moment(monthStart).add(21, "days").startOf("day").toDate(),
+      monthEnd.toDate(),
+    ],
   ];
 
   // === Count queries in parallel ===
@@ -413,8 +419,14 @@ export const userStatisticsService = async () => {
     User.count(),
     User.count({ where: { status: "active" } }),
     User.count({ where: { status: "blocked" } }),
-    User.count({ where: { createdAt: { [Op.between]: [todayStart, todayEnd] } } }),
-    User.count({ where: { createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] } } }),
+    User.count({
+      where: { createdAt: { [Op.between]: [todayStart, todayEnd] } },
+    }),
+    User.count({
+      where: {
+        createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
+      },
+    }),
     User.count({ where: { createdAt: { [Op.between]: weeks[0] } } }),
     User.count({ where: { createdAt: { [Op.between]: weeks[1] } } }),
     User.count({ where: { createdAt: { [Op.between]: weeks[2] } } }),
