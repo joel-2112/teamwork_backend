@@ -11,21 +11,6 @@ import {
   getAllApprovedAgentsService,
   cancelAgentService,
 } from "../services/agentService.js";
-import path from "path";
-import { saveImageToDisk } from "../utils/saveImage.js"; // You must have a helper like this
-
-
-// export const createAgent = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const agent = await createAgentService(userId, req.body);
-//     res
-//       .status(201)
-//       .json({ success: true, message: "Agent created successfully.", agent });
-//   } catch (error) {
-//     res.status(400).json({ error: error.message });
-//   }
-// };
 
 export const createAgent = async (req, res) => {
   try {
@@ -33,10 +18,7 @@ export const createAgent = async (req, res) => {
 
     let profilePicture = null;
     if (req.file) {
-      const ext = path.extname(req.file.originalname);
-      const uniqueName = `agent-${Date.now()}${ext}`;
-      saveImageToDisk(req.file.buffer, uniqueName);
-      profilePicture = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+      profilePicture = req.file.path; // Cloudinary URL
     } else {
       return res.status(400).json({
         success: false,
@@ -44,7 +26,7 @@ export const createAgent = async (req, res) => {
       });
     }
 
-    // Handle multiple languages
+    // Normalize languages
     const languages = Array.isArray(req.body.languages)
       ? req.body.languages
       : [req.body.languages];
@@ -66,11 +48,18 @@ export const createAgent = async (req, res) => {
   }
 };
 
-
-
 export const getAllAgents = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, agentType, sex, regionId, zoneId, woredaId } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      agentType,
+      sex,
+      regionId,
+      zoneId,
+      woredaId,
+    } = req.query;
     const filters = { search, agentType, sex, regionId, zoneId, woredaId };
 
     const result = await getAllAgentsService(
@@ -91,7 +80,6 @@ export const getAllAgents = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 export const getAgentById = async (req, res) => {
   try {
@@ -134,13 +122,11 @@ export const cancelAgent = async (req, res) => {
 
     const agent = await cancelAgentService(agentId, userId);
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "You have successfully cancel agent request.",
-        agent: agent,
-      });
+    res.status(200).json({
+      success: true,
+      message: "You have successfully cancel agent request.",
+      agent: agent,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

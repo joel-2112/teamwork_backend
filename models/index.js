@@ -78,7 +78,7 @@ Job.hasMany(JobApplication, {
   foreignKey: "jobId",
   onDelete: "CASCADE",
 });
-JobApplication.belongsTo(Job, { foreignKey: "jobId", as: "job" });
+JobApplication.belongsTo(Job, { foreignKey: "jobId", as: "Job" });
 
 User.hasMany(RefreshToken, {
   foreignKey: "userId",

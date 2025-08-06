@@ -1,5 +1,4 @@
 import express from "express";
-import upload from "../middlewares/upload.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import {
   createReport,
@@ -13,26 +12,28 @@ import {
   getDeletedReports,
   reportStatistics,
 } from "../controllers/reportController.js";
-
+import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
 const router = express.Router();
+
 
 router.post(
   "/create-report",
   protect,
   requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin", "agent"),
-  upload.fields([
+  cloudinaryUpload.fields([
     { name: "imageUrl", maxCount: 5 },
     { name: "videoUrl", maxCount: 3 },
     { name: "fileUrl", maxCount: 1 },
   ]),
   createReport
 );
+
 router.put(
   "/update/:id",
   protect,
-  upload.fields([
-    { name: "imageUrl", maxCount: 1 },
-    { name: "videoUrl", maxCount: 1 },
+  cloudinaryUpload.fields([
+    { name: "imageUrl", maxCount: 5 },
+    { name: "videoUrl", maxCount: 3 },
     { name: "fileUrl", maxCount: 1 },
   ]),
   updateReport

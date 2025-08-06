@@ -56,36 +56,21 @@ export const createReport = async (req, res) => {
       });
     }
 
-    // File handling
+    // Extract secure URLs from files uploaded to Cloudinary
     let imageUrl = null;
     let videoUrl = null;
     let fileUrl = null;
 
     if (files?.imageUrl?.length) {
-      const imageFile = files.imageUrl[0];
-      const imageName = `image-${Date.now()}${path.extname(imageFile.originalname)}`;
-      const imagePath = path.join("uploads/assets", imageName);
-      fs.mkdirSync("uploads/assets", { recursive: true });
-      fs.writeFileSync(imagePath, imageFile.buffer);
-      imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${imageName}`;
+      imageUrl = files.imageUrl[0].path; // Cloudinary secure URL
     }
 
     if (files?.videoUrl?.length) {
-      const videoFile = files.videoUrl[0];
-      const videoName = `video-${Date.now()}${path.extname(videoFile.originalname)}`;
-      const videoPath = path.join("uploads/assets", videoName);
-      fs.mkdirSync("uploads/assets", { recursive: true });
-      fs.writeFileSync(videoPath, videoFile.buffer);
-      videoUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${videoName}`;
+      videoUrl = files.videoUrl[0].path; // Cloudinary secure URL
     }
 
     if (files?.fileUrl?.length) {
-      const docFile = files.fileUrl[0];
-      const docName = `doc-${Date.now()}${path.extname(docFile.originalname)}`;
-      const docPath = path.join("uploads/documents", docName);
-      fs.mkdirSync("uploads/documents", { recursive: true });
-      fs.writeFileSync(docPath, docFile.buffer);
-      fileUrl = `${req.protocol}://${req.get("host")}/uploads/documents/${docName}`;
+      fileUrl = files.fileUrl[0].path; // Cloudinary secure URL
     }
 
     // Create report
@@ -112,6 +97,7 @@ export const createReport = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getAllReports = async (req, res) => {
   try {
@@ -172,8 +158,7 @@ export const updateReport = async (req, res) => {
       reportId,
       userId,
       req.body,
-      req.files,
-      req
+      req.files
     );
 
     res.status(200).json({
@@ -186,6 +171,7 @@ export const updateReport = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getMyReports = async (req, res) => {
   try {

@@ -133,20 +133,8 @@ export const updateReportService = async (
   reportId,
   userId,
   data,
-  files,
-  req
+  files
 ) => {
-  // Helper function to delete old file
-  const deleteFileIfExists = (filePath) => {
-    const basePath = filePath.includes("/uploads/documents/")
-      ? "uploads/documents"
-      : "uploads/assets";
-    const fullPath = path.join(basePath, path.basename(filePath));
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-    }
-  };
-
   const report = await Report.findOne({
     where: { id: reportId, isDeleted: false },
   });
@@ -161,42 +149,25 @@ export const updateReportService = async (
   if (report.status !== "pending")
     throw new Error("You can only update a report with pending status.");
 
-  // Handle image replacement
-  if (files?.imageUrl && files.imageUrl.length > 0) {
-    if (report.imageUrl) deleteFileIfExists(report.imageUrl);
-
-    const imageFile = files.imageUrl[0];
-    const imageName = `image-${Date.now()}${path.extname(imageFile.originalname)}`;
-    const imagePath = path.join("uploads/assets", imageName);
-    fs.writeFileSync(imagePath, imageFile.buffer);
-    data.imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${imageName}`;
+  // Replace image if new one uploaded
+  if (files?.imageUrl?.length > 0) {
+    data.imageUrl = files.imageUrl[0].path; 
   }
 
-  // Handle video replacement
-  if (files?.videoUrl && files.videoUrl.length > 0) {
-    if (report.videoUrl) deleteFileIfExists(report.videoUrl);
-
-    const videoFile = files.videoUrl[0];
-    const videoName = `video-${Date.now()}${path.extname(videoFile.originalname)}`;
-    const videoPath = path.join("uploads/assets", videoName);
-    fs.writeFileSync(videoPath, videoFile.buffer);
-    data.videoUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${videoName}`;
+  // Replace video if new one uploaded
+  if (files?.videoUrl?.length > 0) {
+    data.videoUrl = files.videoUrl[0].path; 
   }
 
-  // Handle document replacement
-  if (files?.fileUrl && files.fileUrl.length > 0) {
-    if (report.fileUrl) deleteFileIfExists(report.fileUrl);
-
-    const docFile = files.fileUrl[0];
-    const docName = `doc-${Date.now()}${path.extname(docFile.originalname)}`;
-    const docPath = path.join("uploads/documents", docName);
-    fs.writeFileSync(docPath, docFile.buffer);
-    data.fileUrl = `${req.protocol}://${req.get("host")}/uploads/documents/${docName}`;
+  // Replace document if new one uploaded
+  if (files?.fileUrl?.length > 0) {
+    data.fileUrl = files.fileUrl[0].path; 
   }
 
   const updatedReport = await report.update(data);
   return updatedReport;
 };
+
 
 // Retrieve my reports
 export const getMyReportsService = async (

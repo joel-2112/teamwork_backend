@@ -17,49 +17,32 @@ export const createJobApplication = async (req, res) => {
   try {
     const userId = req.user.id;
     const files = req.files || {};
-    let documentUrl = null;
-    let coverLetterUrl = null;
 
     const data = { ...req.body };
 
-    // Temporarily set paths for validation
+    // Assign temporary values for validation (real values will be set after DB creation)
     if (files.document && files.document.length > 0) {
-      data.resume = "temp-path-to-resume"; // temp placeholder
+      data.resume = "placeholder-resume"; // satisfies validation
     }
 
     if (files.coverLetter && files.coverLetter.length > 0) {
-      data.coverLetter = "temp-path-to-coverLetter"; // temp placeholder
+      data.coverLetter = "placeholder-cover-letter"; // satisfies optional or required
     }
 
-    // Create application record in DB
+    // Step 1: Create DB record first
     const application = await createJobApplicationService(userId, data);
 
-    const uploadDir = path.join("uploads", "documents");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    // Step 2: Upload URLs from Cloudinary response
+    let resumeUrl = null;
+    let coverLetterUrl = null;
 
-    // Save document (resume)
     if (files.document && files.document.length > 0) {
-      const file = files.document[0];
-      const ext = path.extname(file.originalname);
-      const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-      const filePath = path.join(uploadDir, fileName);
-      fs.writeFileSync(filePath, file.buffer);
-
-      documentUrl = `${req.protocol}://${req.get("host")}/uploads/documents/${fileName}`;
-      await application.update({ resume: documentUrl });
+      resumeUrl = files.document[0].path; // Cloudinary URL
+      await application.update({ resume: resumeUrl });
     }
 
-    // Save coverLetter
     if (files.coverLetter && files.coverLetter.length > 0) {
-      const file = files.coverLetter[0];
-      const ext = path.extname(file.originalname);
-      const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-      const filePath = path.join(uploadDir, fileName);
-      fs.writeFileSync(filePath, file.buffer);
-
-      coverLetterUrl = `${req.protocol}://${req.get("host")}/uploads/documents/${fileName}`;
+      coverLetterUrl = files.coverLetter[0].path; // Cloudinary URL
       await application.update({ coverLetter: coverLetterUrl });
     }
 
@@ -77,6 +60,7 @@ export const createJobApplication = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Retrieve job application for one job by job id
 export const getApplicationsByJobId = async (req, res) => {

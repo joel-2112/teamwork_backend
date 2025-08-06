@@ -13,14 +13,15 @@ import {
   cancelAgent,
 } from "../controllers/agentController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import upload from "../middlewares/upload.js";
+import cloudinaryUpload from "../middlewares/cloudinaryUpload.js"; 
 
 router.post(
   "/apply-agent",
   protect,
-  upload.single("profilePicture"),
+  cloudinaryUpload.single("profilePicture"), 
   createAgent
 );
+
 router.get(
   "/all-agents",
   protect,

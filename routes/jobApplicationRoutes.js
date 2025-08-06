@@ -8,26 +8,56 @@ import {
   deleteJobApplication,
   getAllMyJobApplication,
   applicationStatistics,
-  countApplicationsPerJob
+  countApplicationsPerJob,
 } from "../controllers/jobApplicationController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import upload from "../middlewares/upload.js";
+import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
 
 router.post(
   "/apply",
-  upload.fields([
+  cloudinaryUpload.fields([
     { name: "document", maxCount: 1 },
     { name: "coverLetter", maxCount: 1 },
   ]),
   protect,
   createJobApplication
 );
-router.get("/job-applications/:jobId", protect, requireRole('admin'), getApplicationsByJobId);
-router.get("/applications/:id", protect, requireRole('admin'), getJobApplicationById);
-router.put("/update-status/:id", protect, requireRole('admin'), updateApplicationStatus);
-router.delete("/delete/:id", protect, requireRole('admin'), deleteJobApplication);
+router.get(
+  "/job-applications/:jobId",
+  protect,
+  requireRole("admin"),
+  getApplicationsByJobId
+);
+router.get(
+  "/applications/:id",
+  protect,
+  requireRole("admin"),
+  getJobApplicationById
+);
+router.put(
+  "/update-status/:id",
+  protect,
+  requireRole("admin"),
+  updateApplicationStatus
+);
+router.delete(
+  "/delete/:id",
+  protect,
+  requireRole("admin"),
+  deleteJobApplication
+);
 router.get("/my-applications", protect, getAllMyJobApplication);
-router.get("/application-stat", protect, requireRole('admin'), applicationStatistics)
-router.get("/application-job", protect, requireRole('admin'), countApplicationsPerJob)
+router.get(
+  "/application-stat",
+  protect,
+  requireRole("admin"),
+  applicationStatistics
+);
+router.get(
+  "/application-job",
+  protect,
+  requireRole("admin"),
+  countApplicationsPerJob
+);
 
 export default router;
