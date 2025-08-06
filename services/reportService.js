@@ -1,6 +1,4 @@
 import db from "../models/index.js";
-import fs from "fs";
-import path from "path";
 import moment from "moment";
 import { Op } from "sequelize";
 
@@ -338,97 +336,103 @@ export const getAllDeletedReportsService = async (
 };
 
 // To send Report status in the overall company
-export const reportStatisticsService = async () => {
-  // === Time ranges ===
+export const reportStatisticsService = async (user) => {
+  const userRole = user?.Role?.name;
+
   const todayStart = moment().startOf("day").toDate();
   const todayEnd = moment().endOf("day").toDate();
 
   const monthStart = moment().startOf("month");
   const monthEnd = moment().endOf("month");
 
-  // Divide the current month into four weeks
   const weekOneStart = moment(monthStart).toDate();
   const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
 
-  const weekTwoStart = moment(monthStart)
-    .add(7, "days")
-    .startOf("day")
-    .toDate();
+  const weekTwoStart = moment(monthStart).add(7, "days").startOf("day").toDate();
   const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
 
-  const weekThreeStart = moment(monthStart)
-    .add(14, "days")
-    .startOf("day")
-    .toDate();
+  const weekThreeStart = moment(monthStart).add(14, "days").startOf("day").toDate();
   const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
 
-  const weekFourStart = moment(monthStart)
-    .add(21, "days")
-    .startOf("day")
-    .toDate();
+  const weekFourStart = moment(monthStart).add(21, "days").startOf("day").toDate();
   const weekFourEnd = moment(monthEnd).toDate();
 
-  // === Count users ===
-  const todayReports = await Report.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [todayStart, todayEnd] },
-    },
+  // Role mapping
+  const reporterRoleMap = {
+    admin: "regionAdmin",
+    regionAdmin: "zoneAdmin",
+    zoneAdmin: "woredaAdmin",
+    woredaAdmin: "agent",
+  };
+
+  const allowedReporterRole = reporterRoleMap[userRole];
+
+  // Get allowedReporterRoleId
+  let allowedReporterRoleId = null;
+  if (allowedReporterRole) {
+    const role = await Role.findOne({ where: { name: allowedReporterRole } });
+    if (role) allowedReporterRoleId = role.id;
+  }
+
+  // === Build base query ===
+  const baseWhere = {
+    isDeleted: false,
+  };
+
+  if (userRole === "regionAdmin") {
+    baseWhere.regionId = user.regionId;
+  } else if (userRole === "zoneAdmin") {
+    baseWhere.zoneId = user.zoneId;
+  } else if (userRole === "woredaAdmin") {
+    baseWhere.woredaId = user.woredaId;
+  }
+
+  const include = allowedReporterRoleId
+    ? [
+        {
+          model: User,
+          as: "reportedBy",
+          attributes: [],
+          where: { roleId: allowedReporterRoleId },
+          required: true,
+        },
+      ]
+    : [];
+
+  // === Count queries ===
+  const countReports = async (extraWhere = {}) =>
+    await Report.count({
+      where: { ...baseWhere, ...extraWhere },
+      include,
+    });
+
+  const totalReports = await countReports();
+  const todayReports = await countReports({
+    createdAt: { [Op.between]: [todayStart, todayEnd] },
   });
 
-  const weekOneReports = await Report.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
-    },
+  const weekOneReports = await countReports({
+    createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
+  });
+  const weekTwoReports = await countReports({
+    createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
+  });
+  const weekThreeReports = await countReports({
+    createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
+  });
+  const weekFourReports = await countReports({
+    createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
   });
 
-  const weekTwoReports = await Report.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
-    },
+  const thisMonthReports = await countReports({
+    createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
   });
 
-  const weekThreeReports = await Report.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
-    },
-  });
-
-  const weekFourReports = await Report.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
-    },
-  });
-
-  const thisMonthReports = await Report.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
-    },
-  });
-
-  const totalReports = await Report.count({ where: { isDeleted: false } });
-
-  const pendingReports = await Report.count({
-    where: { status: "pending", isDeleted: false },
-  });
-
-  const openReports = await Report.count({
-    where: { status: "open", isDeleted: false },
-  });
-  const in_progress = await Report.count({
-    where: { status: "in_progress", isDeleted: false },
-  });
-  const cancelledReports = await Report.count({
-    where: { status: "cancelled", isDeleted: false },
-  });
-  const resolvedReports = await Report.count({
-    where: { status: "resolved", isDeleted: false },
-  });
+  const pendingReports = await countReports({ status: "pending" });
+  const openReports = await countReports({ status: "open" });
+  const in_progress = await countReports({ status: "in_progress" });
+  const cancelledReports = await countReports({ status: "cancelled" });
+  const resolvedReports = await countReports({ status: "resolved" });
 
   return {
     totalReports,

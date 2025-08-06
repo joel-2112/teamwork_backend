@@ -278,14 +278,12 @@ export const getDeletedReports = async (req, res) => {
 
 export const reportStatistics = async (req, res) => {
   try {
-    const stats = await reportStatisticsService();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Report statistics sent successfully",
-        stats,
-      });
+    const stats = await reportStatisticsService(req.user);
+    res.status(200).json({
+      success: true,
+      message: "Report statistics sent successfully",
+      stats,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

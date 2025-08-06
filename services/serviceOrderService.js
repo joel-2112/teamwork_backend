@@ -364,7 +364,7 @@ export const getMyOrdersService = async (userId, page = 1, limit = 10) => {
 // To send the statistics of the service order of the company
 export const ordersStatisticsService = async () => {
   const web = await Service.findOne({
-    where: { title: "Custom Software Development" },
+    where: { title: "Web Development" },
   });
   if (!web) throw new Error("Web development service is not found");
 

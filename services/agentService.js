@@ -102,23 +102,27 @@ export const getAllAgentsService = async (
     ];
   }
 
-  // Filter by query params if provided
+  // Optional filters from query params
   if (regionId) where.regionId = regionId;
   if (zoneId) where.zoneId = zoneId;
   if (woredaId) where.woredaId = woredaId;
   if (agentType) where.agentType = agentType;
   if (sex) where.sex = sex;
 
-  // Role-based filtering
+  // Role-based location + agentType filtering
   const userRole = user?.Role?.name;
 
   if (userRole === "regionAdmin") {
     where.regionId = user.regionId;
+    where.agentType = "Region";
   } else if (userRole === "zoneAdmin") {
     where.zoneId = user.zoneId;
+    where.agentType = "Zone";
   } else if (userRole === "woredaAdmin") {
     where.woredaId = user.woredaId;
+    where.agentType = "Woreda";
   }
+  // 'admin' can see all agent types and locations — no change needed
 
   const offset = (page - 1) * limit;
 
