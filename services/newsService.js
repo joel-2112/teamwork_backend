@@ -1,9 +1,8 @@
 import db from "../models/index.js";
-import { Op, where } from "sequelize";
-import fs from "fs";
-import path from "path";
+import { Op } from "sequelize";
 import moment from "moment";
-import { saveImageToDisk } from "../utils/saveImage.js";
+import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
+import { v2 as cloudinary } from "cloudinary";
 
 const { News, User } = db;
 
@@ -146,26 +145,22 @@ export const updateNews = async (id, data, file, req) => {
   const news = await News.findOne({ where: { id: id, isDeleted: false } });
   if (!news) throw new Error("News not found");
 
-  if (file) {
-    // Delete old image if it exists
+  if (file && file.path) {
+    // Delete old image from Cloudinary if it exists
     if (news.imageUrl) {
-      const oldImagePath = path.join(
-        "uploads/assets",
-        path.basename(news.imageUrl)
-      );
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
+      const publicId = extractPublicIdFromUrl(news.imageUrl);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
       }
     }
 
-    // Save new image
-    const uniqueName = `picture-${Date.now()}${path.extname(file.originalname)}`;
-    saveImageToDisk(file.buffer, uniqueName);
-    data.imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+    // Save new image (already uploaded to Cloudinary via multer)
+    data.imageUrl = file.path;
   }
 
   return await news.update(data);
 };
+
 
 // Service to delete news by id
 // export const deleteNews = async (id) => {

@@ -6,9 +6,6 @@ import {
   updateAboutService,
   deleteAboutService,
 } from "../services/aboutService.js";
-import { saveImageToDisk } from "../utils/saveImage.js";
-import fs from "fs";
-import path from "path";
 
 export const createAbout = async (req, res) => {
   try {
@@ -48,23 +45,16 @@ export const createAbout = async (req, res) => {
       }
     }
 
-    // Check for existing entry
-    const existingAbout = await createAboutService(
-      userId,
-      { title, content },
-      true
-    );
+    // Check for existing about section
+    await createAboutService(userId, { title, content }, true);
 
-    // Save image if available
+    // Use Cloudinary-uploaded image
     let aboutImage = null;
-    if (req.file) {
-      const uniqueName = `picture-${Date.now()}${path.extname(req.file.originalname)}`;
-      const savedPath = saveImageToDisk(req.file.buffer, uniqueName);
-
-      aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+    if (req.file && req.file.path) {
+      aboutImage = req.file.path; // Cloudinary URL
     }
 
-    // Create the about
+    // Create the about entry
     const about = await createAboutService(userId, {
       title,
       content,
@@ -83,6 +73,7 @@ export const createAbout = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
 
 export const getAllAbout = async (req, res) => {
   try {
@@ -128,6 +119,7 @@ export const updateAbout = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 // export const updateAbout = async (req, res) => {
 //   try {

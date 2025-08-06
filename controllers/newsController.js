@@ -6,9 +6,6 @@ import {
   deleteNews,
   newsStatistics,
 } from "../services/newsService.js";
-import { saveImageToDisk } from "../utils/saveImage.js";
-import fs from "fs";
-import path from "path";
 
 // Create news
 export const createNewsController = async (req, res) => {
@@ -17,19 +14,14 @@ export const createNewsController = async (req, res) => {
     const { title, content, publishDate, category, author, deadline } =
       req.body;
 
-    // Duplicate check
+    // Check for duplicate news
+    await createNews(userId, { title, content }, true);
 
-    const existingNews = await createNews(userId, { title, content }, true);
-
-    // Save image to disk only if file exists and news is valid
     let imageUrl = null;
-    if (req.file) {
-      const uniqueName = `picture-${Date.now()}${path.extname(req.file.originalname)}`;
-      const savedPath = saveImageToDisk(req.file.buffer, uniqueName);
-      imageUrl = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+    if (req.file && req.file.path) {
+      imageUrl = req.file.path; // Cloudinary returns public URL
     }
 
-    // Now create the news
     const news = await createNews(userId, {
       title,
       content,
@@ -128,13 +120,11 @@ export const newsStatisticsController = async (req, res) => {
   try {
     const newsStat = await newsStatistics();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "News statistics is successfully sent.",
-        newsStat,
-      });
+    res.status(200).json({
+      success: true,
+      message: "News statistics is successfully sent.",
+      newsStat,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

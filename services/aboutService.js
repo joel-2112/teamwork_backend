@@ -1,9 +1,7 @@
 import { Op } from "sequelize";
 import db from "../models/index.js";
-import fs from "fs";
-import path from "path";
-import { saveImageToDisk } from "../utils/saveImage.js";
-
+import { v2 as cloudinary } from "cloudinary";
+import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
 const { About, User } = db;
 
 // Create about with image
@@ -70,26 +68,26 @@ export const getAboutByIdService = async (id) => {
   return about;
 };
 
+// Update about with its image
 export const updateAboutService = async (id, data, file, req) => {
-  const about = await About.findOne({ where: { id: id, isDeleted: false } });
+  const about = await About.findOne({ where: { id, isDeleted: false } });
   if (!about) throw new Error("About not found");
 
-  if (file) {
+  // Handle Cloudinary image update
+  if (file && file.path) {
+    // Delete old image from Cloudinary
     if (about.aboutImage) {
-      const oldImagePath = path.join(
-        "uploads/assets",
-        path.basename(about.aboutImage)
-      );
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
+      const publicId = extractPublicIdFromUrl(about.aboutImage);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
       }
     }
 
-    const uniqueName = `picture-${Date.now()}${path.extname(file.originalname)}`;
-    saveImageToDisk(file.buffer, uniqueName);
-    data.aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
+    // Assign new image URL from Cloudinary
+    data.aboutImage = file.path;
   }
 
+  // Handle values update
   if (data.values) {
     let parsedValues;
 

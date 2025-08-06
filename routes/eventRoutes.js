@@ -9,7 +9,7 @@ import {
   eventStatisticsController,
 } from "../controllers/eventController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import upload from "../middlewares/upload.js";
+import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
 import {
   createEventValidator,
   validateParamId,
@@ -18,7 +18,7 @@ import { validateRequest } from "../middlewares/validators/validateRequest.js";
 
 router.post(
   "/create-event",
-  upload.array("pictures", 5),
+  cloudinaryUpload.array("pictures", 5),
   protect,
   requireRole("admin"),
   createEventValidator,
@@ -27,7 +27,7 @@ router.post(
 );
 router.put(
   "/update/:id",
-  upload.array("pictures", 5),
+  cloudinaryUpload.array("pictures", 5),
   protect,
   requireRole("admin"),
   validateParamId,
