@@ -192,7 +192,7 @@ export const updateEventController = async (req, res) => {
     console.error("Error updating event:", error);
     return res
       .status(500)
-      .json({ success: false, message: error.message || "Server error" });
+      .json({ success: false, message: error });
   }
 };
 
