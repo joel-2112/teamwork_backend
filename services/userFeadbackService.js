@@ -35,7 +35,7 @@ export const getAllUserFeedbacksService = async ({
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = {};
+  const where = { isDeleted: false };
   if (status) where.status = status;
   if (feedbackType) where.feedbackType = feedbackType;
   if (search) {
@@ -44,7 +44,7 @@ export const getAllUserFeedbacksService = async ({
       { companyName: { [Op.iLike]: `%${search}%` } },
       { message: { [Op.iLike]: `%${search}%` } },
       { fullName: { [Op.iLike]: `%${search}%` } },
-       { email: { [Op.iLike]: `%${search}%` } },
+      { email: { [Op.iLike]: `%${search}%` } },
     ];
   }
 
@@ -70,8 +70,12 @@ export const getAllUserFeedbacksService = async ({
   const bugReportsCount = await UserFeedback.count({
     where: { feedbackType: "bug_report" },
   });
-  const resolvedFeedback = await UserFeedback.count({ where: {status: "resolved", isDeleted: false}})
-  const pendingFeedback = await UserFeedback.count({ where: {status: "sent", isDeleted: false}})
+  const resolvedFeedback = await UserFeedback.count({
+    where: { status: "resolved", isDeleted: false },
+  });
+  const pendingFeedback = await UserFeedback.count({
+    where: { status: "sent", isDeleted: false },
+  });
 
   return {
     total: count,
@@ -89,7 +93,7 @@ export const getAllUserFeedbacksService = async ({
 
 // Calculate and send average rating of feedback
 export const averageRatingService = async () => {
-  const feedbacks = await UserFeedback.findAll();
+  const feedbacks = await UserFeedback.findAll({ where: { isDeleted: false } });
 
   if (!feedbacks || feedbacks.length === 0) {
     return { averageRating: 0, totalFeedbacks: 0 };
@@ -109,7 +113,9 @@ export const averageRatingService = async () => {
 
 // Retrieve user feedback by ID
 export const getUserFeedbackByIdService = async (id) => {
-  const feedback = await UserFeedback.findByPk(id);
+  const feedback = await UserFeedback.findOne({
+    where: { id, isDeleted: false },
+  });
   if (!feedback) throw new Error("Feedback not found");
 
   feedback.status = "reviewed";
@@ -118,10 +124,11 @@ export const getUserFeedbackByIdService = async (id) => {
   return feedback;
 };
 
-
 // Update user feedback by ID
 export const updateUserFeedbackService = async (id, data) => {
-  const feedback = await UserFeedback.findByPk(id);
+  const feedback = await UserFeedback.findOne({
+    where: { id, isDeleted: false },
+  });
   if (!feedback) throw new Error("Feedback not found");
   if (data.rating && (data.rating < 1 || data.rating > 5)) {
     throw new Error("Rating must be between 1 and 5");
@@ -131,7 +138,9 @@ export const updateUserFeedbackService = async (id, data) => {
 
 // Delete user feedback by ID
 export const deleteUserFeedbackService = async (feedbackId, userId) => {
-  const feedback = await UserFeedback.findByPk(feedbackId);
+  const feedback = await UserFeedback.findOne({
+    where: { id: feedbackId, isDeleted: false },
+  });
   if (!feedback) throw new Error("Feedback not found");
 
   const user = await User.findByPk(userId);
@@ -151,7 +160,9 @@ export const updateUserFeedbackStatusService = async (
   userId,
   status
 ) => {
-  const feedback = await UserFeedback.findByPk(feedbackId);
+  const feedback = await UserFeedback.findOne({
+    where: { id: feedbackId, isDeleted: false },
+  });
   if (!feedback) throw new Error("Feedback not found");
 
   const user = await User.findByPk(userId);
@@ -160,7 +171,6 @@ export const updateUserFeedbackStatusService = async (
   const updatedFeedback = await feedback.update({ status });
   return updatedFeedback;
 };
-
 
 // To send feedback testimony
 export const testimonyServices = async () => {
