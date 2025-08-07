@@ -179,7 +179,7 @@ export const updateAgentDataService = async (agentId, userId, data) => {
   if (data.zoneId) {
     const zone = await Zone.findByPk(data.zoneId);
     if (!zone) throw new Error("Invalid Zone");
-    if (data.regionId !== zone.regionId)
+    if (data.regionId || agent.regionId !== zone.regionId)
       throw new Error(
         `Zone ${zone.name} is not in region ${data.regionId}, please enter correct zone.`
       );
@@ -188,7 +188,7 @@ export const updateAgentDataService = async (agentId, userId, data) => {
   if (data.woredaId) {
     const woreda = await Woreda.findByPk(data.woredaId);
     if (!woreda) throw new Error("Invalid Woreda");
-    if (data.zoneId !== woreda.zoneId)
+    if (data.zoneId || agent.zoneId !== woreda.zoneId)
       throw new Error(
         `Woreda ${woreda.name} is not in zone ${data.zoneId}, please enter correct woreda.`
       );
