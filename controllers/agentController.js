@@ -96,10 +96,17 @@ export const updateAgent = async (req, res) => {
     const userId = req.user.id;
 
     let updatedData = { ...req.body };
+
+    if (updatedData.languages && typeof updatedData.languages === "string") {
+      updatedData.languages = updatedData.languages
+        .split(",")
+        .map((lang) => lang.trim());
+    }
+
     console.log(updatedData);
 
     if (req.file && req.file.path) {
-      updatedData.profilePicture = req.file.path; 
+      updatedData.profilePicture = req.file.path;
     }
 
     const agent = await updateAgentDataService(agentId, userId, updatedData);
