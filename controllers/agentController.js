@@ -94,7 +94,16 @@ export const updateAgent = async (req, res) => {
   try {
     const agentId = req.params.id;
     const userId = req.user.id;
-    const agent = await updateAgentDataService(agentId, userId, req.body);
+
+    let updatedData = { ...req.body };
+    console.log(updatedData);
+
+    if (req.file && req.file.path) {
+      updatedData.profilePicture = req.file.path; 
+    }
+
+    const agent = await updateAgentDataService(agentId, userId, updatedData);
+
     res.status(200).json(agent);
   } catch (error) {
     res.status(400).json({ error: error.message });

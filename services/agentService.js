@@ -4,6 +4,7 @@ import {
   sendAgentRequestConfirmationEmail,
   sendAgentStatusUpdateEmail,
 } from "../utils/sendEmail.js";
+import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
 
 const { Agent, Partnership, Woreda, Zone, Region, User, Role } = db;
 
@@ -158,11 +159,69 @@ export const getAgentByIdService = async (id) => {
 };
 
 // Update agent by ID
+// export const updateAgentDataService = async (agentId, userId, data) => {
+//   const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
+//   if (!agent) throw new Error("Agent not found");
+
+//   const user = await User.findByPk(userId);
+//   if (!user) throw new Error("User not found");
+
+//   if (agent.email !== user.email)
+//     throw new Error("User email does not match agent email");
+
+//   if (agent.agentStatus !== "pending" && agent.agentStatus !== "reviewed")
+//     throw new Error("Agent status is not pending or reviewed, cannot update");
+
+//   if (data.regionId) {
+//     const region = await Region.findByPk(data.regionId);
+//     if (!region) throw new Error("Invalid Region");
+//   }
+
+//   if (data.zoneId) {
+//     const zone = await Zone.findByPk(data.zoneId);
+//     if (!zone) throw new Error("Invalid Zone");
+//     if (data.regionId || agent.regionId !== zone.regionId)
+//       throw new Error(
+//         `Zone ${zone.name} is not in region ${data.regionId}, please enter correct zone.`
+//       );
+//   }
+
+//   if (data.woredaId) {
+//     const woreda = await Woreda.findByPk(data.woredaId);
+//     if (!woreda) throw new Error("Invalid Woreda");
+//     if (data.zoneId || agent.zoneId !== woreda.zoneId)
+//       throw new Error(
+//         `Woreda ${woreda.name} is not in zone ${data.zoneId}, please enter correct woreda.`
+//       );
+//   }
+
+//   // Optionally: delete old profile image if new one is provided
+//   if (data.profilePicture && agent.profilePicture) {
+//     const oldUrl = agent.profilePicture;
+//     const publicId = extractPublicIdFromUrl(oldUrl); // You must have this util function
+//     if (publicId) {
+//       try {
+//         await cloudinary.uploader.destroy(publicId);
+//       } catch (err) {
+//         console.warn("Failed to delete old image:", err.message);
+//       }
+//     }
+//   }
+
+//   return await agent.update(data);
+// };
+
 export const updateAgentDataService = async (agentId, userId, data) => {
   const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
   if (!agent) throw new Error("Agent not found");
 
-  const user = await User.findByPk(userId);
+  const user = await User.findByPk(userId, {
+    include: [
+      { model: Region, as: "Region" },
+      { model: Zone, as: "Zone" },
+      { model: Woreda, as: "Woreda" },
+    ],
+  });
   if (!user) throw new Error("User not found");
 
   if (agent.email !== user.email)
@@ -171,27 +230,69 @@ export const updateAgentDataService = async (agentId, userId, data) => {
   if (agent.agentStatus !== "pending" && agent.agentStatus !== "reviewed")
     throw new Error("Agent status is not pending or reviewed, cannot update");
 
+  // Parse regionId, zoneId, woredaId to integers if present
+  if (data.regionId) data.regionId = parseInt(data.regionId);
+  if (data.zoneId) data.zoneId = parseInt(data.zoneId);
+  if (data.woredaId) data.woredaId = parseInt(data.woredaId);
+
+  // If not provided in the request body, get them from user's assigned location
+  if (!data.regionId && user.Region) {
+    data.regionId = user.Region.id;
+  }
+
+  if (!data.zoneId && user.Zone) {
+    data.zoneId = user.Zone.id;
+  }
+
+  if (!data.woredaId && user.Woreda) {
+    data.woredaId = user.Woreda.id;
+  }
+
+  // Validate Region
   if (data.regionId) {
     const region = await Region.findByPk(data.regionId);
     if (!region) throw new Error("Invalid Region");
   }
 
+  // Validate Zone belongs to Region
   if (data.zoneId) {
     const zone = await Zone.findByPk(data.zoneId);
     if (!zone) throw new Error("Invalid Zone");
-    if (data.regionId || agent.regionId !== zone.regionId)
+    if (
+      (data.regionId && zone.regionId !== data.regionId) ||
+      (!data.regionId && zone.regionId !== agent.regionId)
+    ) {
       throw new Error(
-        `Zone ${zone.name} is not in region ${data.regionId}, please enter correct zone.`
+        `Zone ${zone.name} is not in region ${data.regionId || agent.regionId}, please enter correct zone.`
       );
+    }
   }
 
+  // Validate Woreda belongs to Zone
   if (data.woredaId) {
     const woreda = await Woreda.findByPk(data.woredaId);
     if (!woreda) throw new Error("Invalid Woreda");
-    if (data.zoneId || agent.zoneId !== woreda.zoneId)
+    if (
+      (data.zoneId && woreda.zoneId !== data.zoneId) ||
+      (!data.zoneId && woreda.zoneId !== agent.zoneId)
+    ) {
       throw new Error(
-        `Woreda ${woreda.name} is not in zone ${data.zoneId}, please enter correct woreda.`
+        `Woreda ${woreda.name} is not in zone ${data.zoneId || agent.zoneId}, please enter correct woreda.`
       );
+    }
+  }
+
+  // Delete old profile image from Cloudinary if new one is provided
+  if (data.profilePicture && agent.profilePicture) {
+    const oldUrl = agent.profilePicture;
+    const publicId = extractPublicIdFromUrl(oldUrl);
+    if (publicId) {
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.warn("Failed to delete old image:", err.message);
+      }
+    }
   }
 
   return await agent.update(data);

@@ -21,7 +21,12 @@ router.post(
   cloudinaryUpload.single("profilePicture"), 
   createAgent
 );
-
+router.put(
+  "/update/:id",
+  protect,
+  cloudinaryUpload.single("profilePicture"),
+  updateAgent
+);
 router.get(
   "/all-agents",
   protect,
@@ -29,7 +34,7 @@ router.get(
   getAllAgents
 );
 router.get("/agent/:id", protect, requireRole("admin"), getAgentById);
-router.put("/update/:id", protect, updateAgent);
+
 router.delete("/delete/:id", protect, requireRole("admin"), deleteAgent);
 router.put(
   "/update-status/:id",
