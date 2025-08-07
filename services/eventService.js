@@ -54,13 +54,34 @@ export const getAllEvents = async ({
     offset: parseInt(offset),
   });
 
+  // Dynamically add `status` to each event
+  const now = moment();
+  const twoHoursLater = moment().add(2, "hours");
+
+  const eventsWithStatus = rows.map(event => {
+    const eventMoment = moment(event.eventDate);
+    let status = "upcoming";
+
+    if (eventMoment.isBefore(now)) {
+      status = "completed";
+    } else if (eventMoment.isBetween(now, twoHoursLater, null, "[)")) {
+      status = "ongoing";
+    }
+
+    return {
+      ...event.toJSON(),
+      status,
+    };
+  });
+
   return {
     total: count,
     page: parseInt(page),
     limit: parseInt(limit),
-    Events: rows,
+    Events: eventsWithStatus,
   };
 };
+
 
 // Retrieve event by id
 export const getEventById = async (id) => {
