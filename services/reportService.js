@@ -1,6 +1,6 @@
 import db from "../models/index.js";
 import moment from "moment";
-import { Op } from "sequelize";
+import { Op, fn, col, literal } from "sequelize";
 
 const { Report, User, Region, Zone, Woreda, Role } = db;
 
@@ -130,12 +130,7 @@ export const getReportsByIdServices = async (id) => {
 };
 
 // User update their own report only in the pending status
-export const updateReportService = async (
-  reportId,
-  userId,
-  data,
-  files
-) => {
+export const updateReportService = async (reportId, userId, data, files) => {
   const report = await Report.findOne({
     where: { id: reportId, isDeleted: false },
   });
@@ -152,23 +147,22 @@ export const updateReportService = async (
 
   // Replace image if new one uploaded
   if (files?.imageUrl?.length > 0) {
-    data.imageUrl = files.imageUrl[0].path; 
+    data.imageUrl = files.imageUrl[0].path;
   }
 
   // Replace video if new one uploaded
   if (files?.videoUrl?.length > 0) {
-    data.videoUrl = files.videoUrl[0].path; 
+    data.videoUrl = files.videoUrl[0].path;
   }
 
   // Replace document if new one uploaded
   if (files?.fileUrl?.length > 0) {
-    data.fileUrl = files.fileUrl[0].path; 
+    data.fileUrl = files.fileUrl[0].path;
   }
 
   const updatedReport = await report.update(data);
   return updatedReport;
 };
-
 
 // Retrieve my reports
 export const getMyReportsService = async (
@@ -342,25 +336,26 @@ export const getAllDeletedReportsService = async (
 export const reportStatisticsService = async (user) => {
   const userRole = user?.Role?.name;
 
+  // ==== Date Ranges ====
   const todayStart = moment().startOf("day").toDate();
   const todayEnd = moment().endOf("day").toDate();
+  const monthStart = moment().startOf("month").toDate();
+  const monthEnd = moment().endOf("month").toDate();
 
-  const monthStart = moment().startOf("month");
-  const monthEnd = moment().endOf("month");
+  const weekRanges = Array.from({ length: 4 }, (_, i) => {
+    const start = moment(monthStart)
+      .add(i * 7, "days")
+      .startOf("day");
+    const end =
+      i === 3
+        ? moment(monthEnd) // last week may not be exactly 7 days
+        : moment(monthStart)
+            .add(i * 7 + 6, "days")
+            .endOf("day");
+    return { start: start.toDate(), end: end.toDate() };
+  });
 
-  const weekOneStart = moment(monthStart).toDate();
-  const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
-
-  const weekTwoStart = moment(monthStart).add(7, "days").startOf("day").toDate();
-  const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
-
-  const weekThreeStart = moment(monthStart).add(14, "days").startOf("day").toDate();
-  const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
-
-  const weekFourStart = moment(monthStart).add(21, "days").startOf("day").toDate();
-  const weekFourEnd = moment(monthEnd).toDate();
-
-  // Role mapping
+  // ==== Role mapping ====
   const reporterRoleMap = {
     admin: "regionAdmin",
     regionAdmin: "zoneAdmin",
@@ -369,27 +364,23 @@ export const reportStatisticsService = async (user) => {
   };
 
   const allowedReporterRole = reporterRoleMap[userRole];
-
-  // Get allowedReporterRoleId
   let allowedReporterRoleId = null;
+
   if (allowedReporterRole) {
-    const role = await Role.findOne({ where: { name: allowedReporterRole } });
-    if (role) allowedReporterRoleId = role.id;
+    const role = await Role.findOne({
+      where: { name: allowedReporterRole },
+      attributes: ["id"],
+    });
+    allowedReporterRoleId = role?.id || null;
   }
 
-  // === Build base query ===
-  const baseWhere = {
-    isDeleted: false,
-  };
+  // ==== Base filters ====
+  const baseWhere = { isDeleted: false };
+  if (userRole === "regionAdmin") baseWhere.regionId = user.regionId;
+  if (userRole === "zoneAdmin") baseWhere.zoneId = user.zoneId;
+  if (userRole === "woredaAdmin") baseWhere.woredaId = user.woredaId;
 
-  if (userRole === "regionAdmin") {
-    baseWhere.regionId = user.regionId;
-  } else if (userRole === "zoneAdmin") {
-    baseWhere.zoneId = user.zoneId;
-  } else if (userRole === "woredaAdmin") {
-    baseWhere.woredaId = user.woredaId;
-  }
-
+  // ==== Include for reporter role ====
   const include = allowedReporterRoleId
     ? [
         {
@@ -402,53 +393,114 @@ export const reportStatisticsService = async (user) => {
       ]
     : [];
 
-  // === Count queries ===
-  const countReports = async (extraWhere = {}) =>
-    await Report.count({
-      where: { ...baseWhere, ...extraWhere },
-      include,
-    });
-
-  const totalReports = await countReports();
-  const todayReports = await countReports({
-    createdAt: { [Op.between]: [todayStart, todayEnd] },
+  // ==== Single Aggregated Query ====
+  const results = await Report.findAll({
+    where: baseWhere,
+    include,
+    attributes: [
+      [fn("COUNT", col("Report.id")), "totalReports"],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "Report"."createdAt" BETWEEN '${todayStart.toISOString()}' AND '${todayEnd.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "todayReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "Report"."createdAt" BETWEEN '${weekRanges[0].start.toISOString()}' AND '${weekRanges[0].end.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "weekOneReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "Report"."createdAt" BETWEEN '${weekRanges[1].start.toISOString()}' AND '${weekRanges[1].end.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "weekTwoReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "Report"."createdAt" BETWEEN '${weekRanges[2].start.toISOString()}' AND '${weekRanges[2].end.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "weekThreeReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "Report"."createdAt" BETWEEN '${weekRanges[3].start.toISOString()}' AND '${weekRanges[3].end.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "weekFourReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "Report"."createdAt" BETWEEN '${monthStart.toISOString()}' AND '${monthEnd.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "thisMonthReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "Report"."status" = 'pending' THEN 1 ELSE 0 END`)
+        ),
+        "pendingReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "Report"."status" = 'open' THEN 1 ELSE 0 END`)
+        ),
+        "openReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "Report"."status" = 'in_progress' THEN 1 ELSE 0 END`
+          )
+        ),
+        "in_progress",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "Report"."status" = 'cancelled' THEN 1 ELSE 0 END`)
+        ),
+        "cancelledReports",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "Report"."status" = 'resolved' THEN 1 ELSE 0 END`)
+        ),
+        "resolvedReports",
+      ],
+    ],
+    raw: true,
   });
 
-  const weekOneReports = await countReports({
-    createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
-  });
-  const weekTwoReports = await countReports({
-    createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
-  });
-  const weekThreeReports = await countReports({
-    createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
-  });
-  const weekFourReports = await countReports({
-    createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
-  });
+  const result = results[0] || {};
 
-  const thisMonthReports = await countReports({
-    createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
-  });
+  // Convert all fields to numbers
+  const numericResult = {};
+  for (const key in result) {
+    numericResult[key] = Number(result[key]) || 0;
+  }
 
-  const pendingReports = await countReports({ status: "pending" });
-  const openReports = await countReports({ status: "open" });
-  const in_progress = await countReports({ status: "in_progress" });
-  const cancelledReports = await countReports({ status: "cancelled" });
-  const resolvedReports = await countReports({ status: "resolved" });
-
-  return {
-    totalReports,
-    todayReports,
-    weekOneReports,
-    weekTwoReports,
-    weekThreeReports,
-    weekFourReports,
-    thisMonthReports,
-    pendingReports,
-    openReports,
-    in_progress,
-    cancelledReports,
-    resolvedReports,
-  };
+  return numericResult;
 };
