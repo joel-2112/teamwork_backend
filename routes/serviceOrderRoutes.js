@@ -42,6 +42,11 @@ router.put(
 );
 router.put("/cancel-order/:id", protect, cancelOrder);
 router.get("/my-orders", protect, getMyOrders);
-router.get("/order-stat", protect, requireRole("admin"), orderStatistics);
+router.get(
+  "/order-stat",
+  protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
+  orderStatistics
+);
 
 export default router;

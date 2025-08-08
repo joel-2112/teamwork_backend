@@ -49,7 +49,7 @@ router.get(
 router.get(
   "/news-stat",
   protect,
-  requireRole("admin"),
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   newsStatisticsController
 );
 router.get("/all-news", getAllNewsController);

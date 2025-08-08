@@ -51,7 +51,7 @@ router.get(
 router.get(
   "/event-stat",
   protect,
-  requireRole("admin"),
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   eventStatisticsController
 );
 router.get("/all-event", getAllEventsController);
