@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-import { Op } from "sequelize";
+import { Op, fn, col, literal } from "sequelize";
 import {
   sendServiceOrderConfirmationEmail,
   sendOrderStatusUpdateEmail,
@@ -152,7 +152,7 @@ export const getAllOrdersService = async (
   }
 
   return {
-    totalOrder, 
+    totalOrder,
     ...statusCounts,
     page: parseInt(page),
     limit: parseInt(limit),
@@ -160,7 +160,6 @@ export const getAllOrdersService = async (
     rows,
   };
 };
-
 
 // Get order by ID
 export const getOrderByIdService = async (id) => {
@@ -363,140 +362,193 @@ export const getMyOrdersService = async (userId, page = 1, limit = 10) => {
 
 // To send the statistics of the service order of the company
 export const ordersStatisticsService = async () => {
-  const web = await Service.findOne({
-    where: { title: "Web Development" },
-  });
+  // === Find service IDs in parallel ===
+  const [web, it, custom] = await Promise.all([
+    Service.findOne({
+      where: { title: "Web Development" },
+      attributes: ["id"],
+    }),
+    Service.findOne({ where: { title: "It Consulting" }, attributes: ["id"] }),
+    Service.findOne({
+      where: { title: "Custom Software Development" },
+      attributes: ["id"],
+    }),
+  ]);
+
   if (!web) throw new Error("Web development service is not found");
-
-  const it = await Service.findOne({ where: { title: "It Consulting" } });
   if (!it) throw new Error("Service it consulting is not found.");
+  if (!custom) throw new Error("Custom software service is not found");
 
-  const custom = await Service.findOne({
-    where: { title: "Custom Software Development" },
-  });
-  if (!custom) throw new Error("custom software service is not found");
+  // === Time ranges ===
+  const todayStart = moment().startOf("day").toDate();
+  const todayEnd = moment().endOf("day").toDate();
 
-  const totalOrder = await ServiceOrder.count({ where: { isDeleted: false } });
-  const allWebOrder = await ServiceOrder.count({
-    where: { serviceId: web.id, isDeleted: false },
-  });
-  const allItOrder = await ServiceOrder.count({
-    where: { serviceId: it.id, isDeleted: false },
-  });
-  const allCustomOrder = await ServiceOrder.count({
-    where: { serviceId: custom.id, isDeleted: false },
-  });
-  const allPendingOrder = await ServiceOrder.count({
-    where: { status: "pending", isDeleted: false },
-  });
-  const allReviewedOrder = await ServiceOrder.count({
-    where: { status: "reviewed", isDeleted: false },
-  });
-  const allAcceptedOrder = await ServiceOrder.count({
-    where: { status: "accepted", isDeleted: false },
-  });
-  const allRejectedOrder = await ServiceOrder.count({
-    where: { status: "rejected", isDeleted: false },
-  });
-  const allInProgressOrder = await ServiceOrder.count({
-    where: { status: "in_progress", isDeleted: false },
-  });
-  const allCompletedOrder = await ServiceOrder.count({
-    where: { status: "completed", isDeleted: false },
-  });
-  const allCancelledOrder = await ServiceOrder.count({
-    where: { status: "cancelled", isDeleted: false },
+  const monthStart = moment().startOf("month");
+  const monthEnd = moment().endOf("month");
+
+  const weekRanges = Array.from({ length: 4 }, (_, i) => {
+    const start = moment(monthStart)
+      .add(i * 7, "days")
+      .startOf("day");
+    const end =
+      i === 3
+        ? moment(monthEnd) // last week might not be exactly 7 days
+        : moment(monthStart)
+            .add(i * 7 + 6, "days")
+            .endOf("day");
+    return { start: start.toDate(), end: end.toDate() };
   });
 
-   // === Time ranges ===
-    const todayStart = moment().startOf("day").toDate();
-    const todayEnd = moment().endOf("day").toDate();
-  
-    const monthStart = moment().startOf("month");
-    const monthEnd = moment().endOf("month");
-  
-    // Divide the current month into four weeks
-    const weekOneStart = moment(monthStart).toDate();
-    const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
-  
-    const weekTwoStart = moment(monthStart)
-      .add(7, "days")
-      .startOf("day")
-      .toDate();
-    const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
-  
-    const weekThreeStart = moment(monthStart)
-      .add(14, "days")
-      .startOf("day")
-      .toDate();
-    const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
-  
-    const weekFourStart = moment(monthStart)
-      .add(21, "days")
-      .startOf("day")
-      .toDate();
-    const weekFourEnd = moment(monthEnd).toDate();
-  
-    // === Count users ===
-    const todayOrders = await ServiceOrder.count({
-      where: {
-        createdAt: { [Op.between]: [todayStart, todayEnd] },
-      },
-    });
-  
-    const weekOneOrders = await ServiceOrder.count({
-      where: {
-        createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
-      },
-    });
-  
-    const weekTwoOrders = await ServiceOrder.count({
-      where: {
-        createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
-      },
-    });
-  
-    const weekThreeOrders = await ServiceOrder.count({
-      where: {
-        createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
-      },
-    });
-  
-    const weekFourOrders = await ServiceOrder.count({
-      where: {
-        createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
-      },
-    });
-  
-    const thisMonthOrders = await ServiceOrder.count({
-      where: {
-        createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
-      },
-    });
+  // === Single aggregated query ===
+  const [result] = await ServiceOrder.findAll({
+    attributes: [
+      [fn("COUNT", col("id")), "totalOrder"],
 
+      // Service Type counts
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "serviceId" = ${web.id} THEN 1 ELSE 0 END`)
+        ),
+        "allWebOrder",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "serviceId" = ${it.id} THEN 1 ELSE 0 END`)
+        ),
+        "allItOrder",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "serviceId" = ${custom.id} THEN 1 ELSE 0 END`)
+        ),
+        "allCustomOrder",
+      ],
+
+      // Status counts
+      [
+        fn("SUM", literal(`CASE WHEN "status" = 'pending' THEN 1 ELSE 0 END`)),
+        "allPendingOrder",
+      ],
+      [
+        fn("SUM", literal(`CASE WHEN "status" = 'reviewed' THEN 1 ELSE 0 END`)),
+        "allReviewedOrder",
+      ],
+      [
+        fn("SUM", literal(`CASE WHEN "status" = 'accepted' THEN 1 ELSE 0 END`)),
+        "allAcceptedOrder",
+      ],
+      [
+        fn("SUM", literal(`CASE WHEN "status" = 'rejected' THEN 1 ELSE 0 END`)),
+        "allRejectedOrder",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "status" = 'in_progress' THEN 1 ELSE 0 END`)
+        ),
+        "allInProgressOrder",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "status" = 'completed' THEN 1 ELSE 0 END`)
+        ),
+        "allCompletedOrder",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(`CASE WHEN "status" = 'cancelled' THEN 1 ELSE 0 END`)
+        ),
+        "allCancelledOrder",
+      ],
+
+      // Time ranges counts
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "createdAt" BETWEEN '${todayStart.toISOString()}' AND '${todayEnd.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "todayOrders",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "createdAt" BETWEEN '${weekRanges[0].start.toISOString()}' AND '${weekRanges[0].end.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "weekOneOrders",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "createdAt" BETWEEN '${weekRanges[1].start.toISOString()}' AND '${weekRanges[1].end.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "weekTwoOrders",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "createdAt" BETWEEN '${weekRanges[2].start.toISOString()}' AND '${weekRanges[2].end.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "weekThreeOrders",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "createdAt" BETWEEN '${weekRanges[3].start.toISOString()}' AND '${weekRanges[3].end.toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "weekFourOrders",
+      ],
+      [
+        fn(
+          "SUM",
+          literal(
+            `CASE WHEN "createdAt" BETWEEN '${monthStart.toDate().toISOString()}' AND '${monthEnd.toDate().toISOString()}' THEN 1 ELSE 0 END`
+          )
+        ),
+        "thisMonthOrders",
+      ],
+    ],
+    where: { isDeleted: false },
+    raw: true,
+  });
+
+  // Format the output to your desired structure
   return {
-    totalOrder,
+    totalOrder: Number(result.totalOrder),
     serviceTypes: {
-      webDevelopment: allWebOrder,
-      itConsulting: allItOrder,
-      customSoftware: allCustomOrder,
+      webDevelopment: Number(result.allWebOrder),
+      itConsulting: Number(result.allItOrder),
+      customSoftware: Number(result.allCustomOrder),
     },
     data: {
-      totalOrders: totalOrder,
-      pendingOrders: allPendingOrder,
-      reviewedOrders: allReviewedOrder,
-      acceptedOrders: allAcceptedOrder,
-      rejectedOrders: allRejectedOrder,
-      inProgressOrders: allInProgressOrder,
-      completedOrders: allCompletedOrder,
-      cancelledOrders: allCancelledOrder,
-      todayOrders,
-      weekOneOrders,
-      weekTwoOrders,
-      weekThreeOrders,
-      weekFourOrders,
-      thisMonthOrders,
+      totalOrders: Number(result.totalOrder),
+      pendingOrders: Number(result.allPendingOrder),
+      reviewedOrders: Number(result.allReviewedOrder),
+      acceptedOrders: Number(result.allAcceptedOrder),
+      rejectedOrders: Number(result.allRejectedOrder),
+      inProgressOrders: Number(result.allInProgressOrder),
+      completedOrders: Number(result.allCompletedOrder),
+      cancelledOrders: Number(result.allCancelledOrder),
+      todayOrders: Number(result.todayOrders),
+      weekOneOrders: Number(result.weekOneOrders),
+      weekTwoOrders: Number(result.weekTwoOrders),
+      weekThreeOrders: Number(result.weekThreeOrders),
+      weekFourOrders: Number(result.weekFourOrders),
+      thisMonthOrders: Number(result.thisMonthOrders),
     },
   };
 };
-
