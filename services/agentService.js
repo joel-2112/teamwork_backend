@@ -72,7 +72,7 @@ export const createAgentService = async (userId, data) => {
 
   user.profilePicture = profilePicture;
   await user.save();
-
+  
   await sendAgentRequestConfirmationEmail({
     userEmail: user.email,
     fullName: user.name,
@@ -163,6 +163,7 @@ export const getAgentByIdService = async (id) => {
 };
 
 // Update agent by ID
+
 
 export const updateAgentDataService = async (agentId, userId, data) => {
   const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
@@ -275,9 +276,6 @@ export const updateAgentStatusService = async (id, status) => {
       await user.save();
     }
   }
-
-  user.profilePicture = agent.profilePicture;
-  await user.save();
 
   // Send status email (skip cancelled)
   if (status !== "cancelled") {
