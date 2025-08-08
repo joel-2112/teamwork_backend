@@ -24,8 +24,11 @@ export const getAllEvents = async ({
   description,
   location,
   search,
+  status, 
 } = {}) => {
   const offset = (page - 1) * limit;
+
+  // Base DB filter
   const where = { isDeleted: false };
 
   if (title) where.title = title;
@@ -39,7 +42,13 @@ export const getAllEvents = async ({
     ];
   }
 
-  const { count, rows } = await Event.findAndCountAll({
+  // Count all non-deleted events for "total"
+  const total = await Event.count({
+    where: { isDeleted: false },
+  });
+
+  // Fetch WITHOUT pagination first so we can filter by computed status
+  const rows = await Event.findAll({
     where,
     include: [
       {
@@ -48,39 +57,48 @@ export const getAllEvents = async ({
         attributes: ["id", "imageUrl"],
       },
     ],
-    distinct: true,
     order: [["eventDate", "ASC"]],
-    limit: parseInt(limit),
-    offset: parseInt(offset),
   });
 
-  // Dynamically add `status` to each event
+  // Add computed status
   const now = moment();
   const twoHoursLater = moment().add(2, "hours");
 
-  const eventsWithStatus = rows.map(event => {
+  let eventsWithStatus = rows.map((event) => {
     const eventMoment = moment(event.eventDate);
-    let status = "upcoming";
+    let computedStatus = "upcoming";
 
     if (eventMoment.isBefore(now)) {
-      status = "completed";
+      computedStatus = "completed";
     } else if (eventMoment.isBetween(now, twoHoursLater, null, "[)")) {
-      status = "ongoing";
+      computedStatus = "ongoing";
     }
 
     return {
       ...event.toJSON(),
-      status,
+      status: computedStatus,
     };
   });
 
+  // Filter by computed status
+  if (status) {
+    eventsWithStatus = eventsWithStatus.filter(
+      (e) => e.status.toLowerCase() === status.toLowerCase()
+    );
+  }
+
+  // Apply pagination AFTER filtering
+  const paginatedEvents = eventsWithStatus.slice(offset, offset + parseInt(limit));
+
   return {
-    total: count,
+    total, // all non-deleted events count
+    totalFiltered: eventsWithStatus.length, 
     page: parseInt(page),
     limit: parseInt(limit),
-    Events: eventsWithStatus,
+    Events: paginatedEvents,
   };
 };
+
 
 
 // Retrieve event by id

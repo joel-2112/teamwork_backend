@@ -74,7 +74,7 @@ export const createEventController = async (req, res) => {
 // To get all event with pagination and filtering if it is necessary
 export const getAllEventsController = async (req, res) => {
   try {
-    const { page, limit, title, description, location, search } = req.query;
+    const { page, limit, title, description, location, search, status } = req.query;
 
     const events = await getAllEvents({
       page,
@@ -83,6 +83,7 @@ export const getAllEventsController = async (req, res) => {
       description,
       location,
       search,
+      status, 
     });
 
     res.status(200).json({
@@ -94,6 +95,7 @@ export const getAllEventsController = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 //  To retrieve event by id
 export const getEventByIdController = async (req, res) => {

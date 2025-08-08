@@ -56,18 +56,8 @@ export const createPartnershipService = async (userId, data) => {
     where: { phoneNumber: data.phoneNumber, isDeleted: false },
   });
   if (checkPhone) {
-    throw new Error(
-      "You have already submitted a partnership request with this phone number"
-    );
+    throw new Error("This phone number is already associated with an account");
   }
-
-  // const checkUserPhone = await User.findOne({
-  //   where: { phoneNumber: data.phoneNumber },
-  // });
-
-  // if (checkUserPhone) {
-  //   throw new Error("This phone number is already associated with an account");
-  // }
 
   const partnership = await Partnership.create({
     ...data,
@@ -75,6 +65,14 @@ export const createPartnershipService = async (userId, data) => {
     fullName: user.name,
     email: user.email,
   });
+
+  const role = await Role.findOne({ where: { name: "partner" } });
+  if (!role) throw new Error("Partner role not found");
+
+  if (partnership.roleId !== role.id) {
+    partnership.roleId = role.id;
+    await partnership.save();
+  }
 
   await sendPartnershipRequestConfirmationEmail({
     userEmail: user.email,
@@ -235,16 +233,6 @@ export const updatePartnershipStatusService = async (
   const previousStatus = partnership.status;
 
   const updatedPartnership = await partnership.update({ status });
-
-  if (status === "accepted" && previousStatus !== "accepted") {
-    const role = await Role.findOne({ where: { name: "partner" } });
-    if (!role) throw new Error("Partner role not found");
-
-    if (partner.roleId !== role.id) {
-      partner.roleId = role.id;
-      await partner.save();
-    }
-  }
 
   await sendPartnershipStatusUpdateEmail({
     userEmail: partner.email,
