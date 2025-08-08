@@ -123,6 +123,9 @@ export const getReportsByIdServices = async (id) => {
   });
   if (!report) throw new Error(" Report not found ");
 
+  report.status = "open";
+  await report.save();
+
   return report;
 };
 

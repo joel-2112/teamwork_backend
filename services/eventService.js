@@ -91,7 +91,7 @@ export const getAllEvents = async ({
   const paginatedEvents = eventsWithStatus.slice(offset, offset + parseInt(limit));
 
   return {
-    total, // all non-deleted events count
+    total, 
     totalFiltered: eventsWithStatus.length, 
     page: parseInt(page),
     limit: parseInt(limit),
