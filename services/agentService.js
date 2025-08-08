@@ -69,6 +69,10 @@ export const createAgentService = async (userId, data) => {
     userId: user.id,
     profilePicture,
   });
+
+  user.profilePicture = profilePicture;
+  await user.save();
+
   await sendAgentRequestConfirmationEmail({
     userEmail: user.email,
     fullName: user.name,
@@ -159,57 +163,6 @@ export const getAgentByIdService = async (id) => {
 };
 
 // Update agent by ID
-// export const updateAgentDataService = async (agentId, userId, data) => {
-//   const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
-//   if (!agent) throw new Error("Agent not found");
-
-//   const user = await User.findByPk(userId);
-//   if (!user) throw new Error("User not found");
-
-//   if (agent.email !== user.email)
-//     throw new Error("User email does not match agent email");
-
-//   if (agent.agentStatus !== "pending" && agent.agentStatus !== "reviewed")
-//     throw new Error("Agent status is not pending or reviewed, cannot update");
-
-//   if (data.regionId) {
-//     const region = await Region.findByPk(data.regionId);
-//     if (!region) throw new Error("Invalid Region");
-//   }
-
-//   if (data.zoneId) {
-//     const zone = await Zone.findByPk(data.zoneId);
-//     if (!zone) throw new Error("Invalid Zone");
-//     if (data.regionId || agent.regionId !== zone.regionId)
-//       throw new Error(
-//         `Zone ${zone.name} is not in region ${data.regionId}, please enter correct zone.`
-//       );
-//   }
-
-//   if (data.woredaId) {
-//     const woreda = await Woreda.findByPk(data.woredaId);
-//     if (!woreda) throw new Error("Invalid Woreda");
-//     if (data.zoneId || agent.zoneId !== woreda.zoneId)
-//       throw new Error(
-//         `Woreda ${woreda.name} is not in zone ${data.zoneId}, please enter correct woreda.`
-//       );
-//   }
-
-//   // Optionally: delete old profile image if new one is provided
-//   if (data.profilePicture && agent.profilePicture) {
-//     const oldUrl = agent.profilePicture;
-//     const publicId = extractPublicIdFromUrl(oldUrl); // You must have this util function
-//     if (publicId) {
-//       try {
-//         await cloudinary.uploader.destroy(publicId);
-//       } catch (err) {
-//         console.warn("Failed to delete old image:", err.message);
-//       }
-//     }
-//   }
-
-//   return await agent.update(data);
-// };
 
 export const updateAgentDataService = async (agentId, userId, data) => {
   const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
@@ -322,6 +275,9 @@ export const updateAgentStatusService = async (id, status) => {
       await user.save();
     }
   }
+
+  user.profilePicture = agent.profilePicture;
+  await user.save();
 
   // Send status email (skip cancelled)
   if (status !== "cancelled") {

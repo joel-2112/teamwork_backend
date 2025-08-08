@@ -34,6 +34,10 @@ export default (db, DataTypes) => {
           len: [8, 255],
         },
       },
+      profilePicture: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
       roleId: {
         type: DataTypes.INTEGER,
         allowNull: false,
