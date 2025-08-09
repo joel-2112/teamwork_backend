@@ -9,6 +9,7 @@ import {
   changePasswordService,
   forgotPasswordService,
   resetPasswordService,
+  updateProfileService
 } from "../services/userService.js";
 import { getClientUrl } from "../utils/getClientUrl.js";
 
@@ -149,5 +150,24 @@ export const userStatistics = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+export const updateProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    let updatedData = { ...req.body };
+
+
+    if (req.file && req.file.path) {
+      updatedData.profilePicture = req.file.path;
+    }
+
+    const agent = await updateProfileService(user, updatedData);
+
+    res.status(200).json(agent);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 };

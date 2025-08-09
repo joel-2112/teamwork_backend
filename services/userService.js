@@ -457,3 +457,24 @@ export const userStatisticsService = async () => {
     weekFourUsers,
   };
 };
+
+
+export const updateProfileService = async(user, data) => {
+  const userFound = await User.findByPk(user.id)
+  if(!userFound) throw new Error("User not found");
+
+    // Delete old profile image from Cloudinary if new one is provided
+  if (data.profilePicture && userFound.profilePicture) {
+    const oldUrl = agent.profilePicture;
+    const publicId = extractPublicIdFromUrl(oldUrl);
+    if (publicId) {
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.warn("Failed to delete old image:", err.message);
+      }
+    }
+  }
+
+  return await userFound.update(data);
+}
