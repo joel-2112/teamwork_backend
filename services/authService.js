@@ -57,7 +57,7 @@ export const verifyOtpService = async (email, inputOtp) => {
   if (!defaultRole) throw new Error("Default role 'user' not found.");
 
   // Create user with roleId
-  const user = await db.User.create({
+  const user = await User.create({
     name,
     email,
     password,
