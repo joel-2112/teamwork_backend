@@ -11,7 +11,7 @@ export const sendOtp = async (req, res) => {
   try {
     // Now expects name, email, password
     const { name, email, password, phoneNumber } = req.body;
-    const result = await sendOtpService({ name, email, password });
+    const result = await sendOtpService({ name, email, password, phoneNumber });
     res.status(200).json({ success: true, ...result });
   } catch (error) {
     console.error("Send OTP error:", error.message);
