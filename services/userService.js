@@ -3,7 +3,8 @@ import db from "../models/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import moment from "moment";
-import { sendPasswordResetEmail } from "../utils/sendEmail.js";
+import { sendPasswordResetOtpEmail } from "../utils/sendEmail.js";
+import redisClient from "../config/redisClient.js";
 
 const { User, Role, Partnership, Agent, Region, Zone, Woreda } = db;
 
@@ -30,7 +31,7 @@ export const getAllUsersService = async ({
   }
 
   // Base where for stats (should NOT include search or status filter)
-  const baseWhere = {}; 
+  const baseWhere = {};
 
   // Get all required roles in one query
   const roles = await Role.findAll({
@@ -44,15 +45,21 @@ export const getAllUsersService = async ({
   }
 
   // Parallelize counts (based on full DB, not filtered query)
-  const [totalUser, blockedUser, activeUser, totalAdmin, totalAgent, totalPartner] =
-    await Promise.all([
-      User.count({ where: baseWhere }),
-      User.count({ where: { ...baseWhere, status: "blocked" } }),
-      User.count({ where: { ...baseWhere, status: "active" } }),
-      User.count({ where: { ...baseWhere, roleId: roleMap.admin } }),
-      User.count({ where: { ...baseWhere, roleId: roleMap.agent } }),
-      User.count({ where: { ...baseWhere, roleId: roleMap.partner } }),
-    ]);
+  const [
+    totalUser,
+    blockedUser,
+    activeUser,
+    totalAdmin,
+    totalAgent,
+    totalPartner,
+  ] = await Promise.all([
+    User.count({ where: baseWhere }),
+    User.count({ where: { ...baseWhere, status: "blocked" } }),
+    User.count({ where: { ...baseWhere, status: "active" } }),
+    User.count({ where: { ...baseWhere, roleId: roleMap.admin } }),
+    User.count({ where: { ...baseWhere, roleId: roleMap.agent } }),
+    User.count({ where: { ...baseWhere, roleId: roleMap.partner } }),
+  ]);
 
   // Get paginated, filtered users
   const { count, rows } = await User.findAndCountAll({
@@ -128,22 +135,14 @@ export const deleteUserService = async (id) => {
 // Service to enable admin create an other admin
 export const createAdminUserService = async (data) => {
   try {
-    const requiredFields = [
-      "name",
-      "email",
-      "password",
-      "regionId",
-      "zoneId",
-      "woredaId",
-      "roleId",
-    ];
+    const requiredFields = ["name", "email", "password", "phoneNumber"];
     for (const field of requiredFields) {
       if (!data[field]) throw new Error(`Missing required field: ${field}`);
     }
     const adminRole = await Role.findByPk(data.roleId);
     if (!adminRole) throw new Error("Admin role not found");
 
-    const allowedRoles = ["regionAdmin", "zoneAdmin", "woredaAdmin"];
+    const allowedRoles = ["admin", "regionAdmin", "zoneAdmin", "woredaAdmin"];
 
     if (!allowedRoles.includes(adminRole.name)) {
       throw new Error(
@@ -173,23 +172,29 @@ export const createAdminUserService = async (data) => {
         "User has already submitted an agent request, so cannot be admin."
       );
 
-    const region = await Region.findByPk(data.regionId);
-    if (!region) throw new Error("Invalid Region");
-
-    const zone = await Zone.findByPk(data.zoneId);
-    if (!zone) throw new Error("Invalid Zone");
-    if (data.regionId != zone.regionId) {
-      throw new Error(
-        ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
-      );
+    if (data.regionId) {
+      const region = await Region.findByPk(data.regionId);
+      if (!region) throw new Error("Invalid Region");
     }
 
-    const woreda = await Woreda.findByPk(data.woredaId);
-    if (!woreda) throw new Error("Invalid Woreda");
-    if (data.zoneId != woreda.zoneId)
-      throw new Error(
-        `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
-      );
+    if (data.zoneId) {
+      const zone = await Zone.findByPk(data.zoneId);
+      if (!zone) throw new Error("Invalid Zone");
+      if (data.regionId != zone.regionId) {
+        throw new Error(
+          ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
+        );
+      }
+    }
+
+    if (data.woredaId) {
+      const woreda = await Woreda.findByPk(data.woredaId);
+      if (!woreda) throw new Error("Invalid Woreda");
+      if (data.zoneId != woreda.zoneId)
+        throw new Error(
+          `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
+        );
+    }
 
     const existingUser = await User.findOne({ where: { email: data.email } });
     if (existingUser) {
@@ -294,54 +299,76 @@ export const changePasswordService = async (user, data) => {
   };
 };
 
-// Service file
-export const forgotPasswordService = async (email, clientUrl) => {
-  const user = await User.findOne({ where: { email } });
-  if (!user) throw new Error("No account registered with this email.");
+export const updateProfileService = async (user, data) => {
+  const userFound = await User.findByPk(user.id);
+  if (!userFound) throw new Error("User not found");
 
-  const resetToken = jwt.sign(
-    { userId: user.id },
-    process.env.JWT_RESET_SECRET,
-    { expiresIn: "15m" }
-  );
+  // Delete old profile image from Cloudinary if new one is provided
+  if (data.profilePicture && userFound.profilePicture) {
+    const oldUrl = agent.profilePicture;
+    const publicId = extractPublicIdFromUrl(oldUrl);
+    if (publicId) {
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.warn("Failed to delete old image:", err.message);
+      }
+    }
+  }
 
-  // clientUrl is already passed in from controller
-  const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
-
-  await sendPasswordResetEmail({
-    userEmail: user.email,
-    fullName: user.name,
-    resetLink,
-  });
-
-  return { message: "Password reset link sent to your email." };
+  return await userFound.update(data);
 };
 
+// Step 1: Send OTP for password reset
+export const sendPasswordResetOtpService = async (email) => {
+  const user = await db.User.findOne({ where: { email } });
+  if (!user) throw new Error("User with this email does not exist");
+
+  const OTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+  await redisClient.set(`resetOtp:${email}`, OTP, "EX", 300); // 5 minutes expiry
+  await sendPasswordResetOtpEmail(OTP, email);
+
+  return { message: "OTP sent to your email for password reset" };
+};
+
+// Step 2: Verify OTP
+export const verifyPasswordResetOtpService = async (email, inputOtp) => {
+  const storedOtp = await redisClient.get(`resetOtp:${email}`);
+  if (!storedOtp) throw new Error("OTP expired or not found");
+  if (storedOtp !== inputOtp) throw new Error("Invalid OTP");
+
+  await redisClient.del(`resetOtp:${email}`);
+  await redisClient.set(`otpVerified:${email}`, "true", "EX", 600); // Allow password reset for 10 mins
+
+  return {
+    message: "OTP verified successfully. You can now reset your password.",
+  };
+};
+
+// Step 3: Reset password
 export const resetPasswordService = async (
-  token,
+  email,
   newPassword,
   confirmNewPassword
 ) => {
-  if (newPassword !== confirmNewPassword) {
-    throw new Error("Passwords do not match.");
-  }
+  const otpVerified = await redisClient.get(`otpVerified:${email}`);
+  if (!otpVerified)
+    throw new Error("OTP verification required before resetting password");
 
-  let decoded;
-  try {
-    decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
-  } catch (error) {
-    throw new Error("Invalid or expired token.");
-  }
+  if (newPassword !== confirmNewPassword)
+    throw new Error("Passwords do not match");
 
-  const user = await User.findByPk(decoded.userId);
-  if (!user) {
-    throw new Error("User not found.");
-  }
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const user = await db.User.findOne({ where: { email } });
+  if (!user) throw new Error("User not found");
 
-  user.password = newPassword;
+  user.password = hashedPassword;
   await user.save();
 
-  return { message: "Password has been reset successfully." };
+  await redisClient.del(`otpVerified:${email}`);
+
+  return { message: "Password has been reset successfully" };
 };
 
 // To send user statistics of the company
@@ -457,24 +484,3 @@ export const userStatisticsService = async () => {
     weekFourUsers,
   };
 };
-
-
-export const updateProfileService = async(user, data) => {
-  const userFound = await User.findByPk(user.id)
-  if(!userFound) throw new Error("User not found");
-
-    // Delete old profile image from Cloudinary if new one is provided
-  if (data.profilePicture && userFound.profilePicture) {
-    const oldUrl = agent.profilePicture;
-    const publicId = extractPublicIdFromUrl(oldUrl);
-    if (publicId) {
-      try {
-        await cloudinary.uploader.destroy(publicId);
-      } catch (err) {
-        console.warn("Failed to delete old image:", err.message);
-      }
-    }
-  }
-
-  return await userFound.update(data);
-}

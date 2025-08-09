@@ -114,14 +114,14 @@ export default (db, DataTypes) => {
       },
       profilePicture: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true,
       },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
           model: "users",
-          key: "id"
+          key: "id",
         },
       },
       isDeleted: {
@@ -140,7 +140,7 @@ export default (db, DataTypes) => {
       deletedAt: {
         type: DataTypes.DATE,
         allowNull: true,
-      }
+      },
     },
     {
       tableName: "agents",

@@ -8,6 +8,47 @@ export default (db, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
+      orderTitle: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+          len: [3, 100],
+        },
+      },
+      fullName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+          len: [2, 100],
+        },
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          isEmail: true,
+        },
+      },
+      phoneNumber1: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          is: /^\+?[\d\s-]{10,}$/i,
+        },
+      },
+      phoneNumber2: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          is: /^\+?[\d\s-]{10,}$/i,
+        },
+      },
+      sex: {
+        type: DataTypes.ENUM(["male", "female", "other"]),
+        allowNull: false,
+      },
       country: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -58,52 +99,11 @@ export default (db, DataTypes) => {
           notEmpty: true,
         },
       },
-      orderTitle: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-          len: [3, 100],
-        },
-      },
-      fullName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-          len: [2, 100],
-        },
-      },
-      sex: {
-        type: DataTypes.ENUM(["male", "female", "other"]),
-        allowNull: false,
-      },
       roleInSector: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
           notEmpty: true,
-        },
-      },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          isEmail: true,
-        },
-      },
-      phoneNumber1: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          is: /^\+?[\d\s-]{10,}$/i,
-        },
-      },
-      phoneNumber2: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-          is: /^\+?[\d\s-]{10,}$/i,
         },
       },
       shortDescription: {

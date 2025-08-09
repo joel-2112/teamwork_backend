@@ -34,6 +34,11 @@ export default (db, DataTypes) => {
           len: [8, 255],
         },
       },
+      phoneNumber: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
       profilePicture: {
         type: DataTypes.STRING,
         allowNull: true

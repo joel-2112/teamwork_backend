@@ -7,16 +7,23 @@ import {
   updateUserStatusService,
   userStatisticsService,
   changePasswordService,
-  forgotPasswordService,
+  sendPasswordResetOtpService,
+  verifyPasswordResetOtpService,
   resetPasswordService,
-  updateProfileService
+  updateProfileService,
 } from "../services/userService.js";
 import { getClientUrl } from "../utils/getClientUrl.js";
 
 export const getAllUsers = async (req, res) => {
   try {
     const { page, limit, status, search, roleId } = req.query;
-    const users = await getAllUsersService({ page, limit, status, search, roleId });
+    const users = await getAllUsersService({
+      page,
+      limit,
+      status,
+      search,
+      roleId,
+    });
     res.status(200).json({
       success: true,
       message: "All user successfully retrieved.",
@@ -112,32 +119,57 @@ export const changePassword = async (req, res) => {
   }
 };
 
+export const updateProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    let updatedData = { ...req.body };
+
+    if (req.file && req.file.path) {
+      updatedData.profilePicture = req.file.path;
+    }
+
+    const agent = await updateProfileService(user, updatedData);
+
+    res.status(200).json(agent);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+// Step 1: Send OTP
 export const forgotPassword = async (req, res) => {
   try {
-    const clientUrl = getClientUrl(req);
-    const result = await forgotPasswordService(req.body.email, clientUrl);
-
-    res.status(200).json({ success: true, message: result.message });
+    const { email } = req.body;
+    const result = await sendPasswordResetOtpService(email);
+    res.status(200).json({ success: true, ...result });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const resetPassword = async (req, res) => {
-  const { token } = req.query;
-  const { newPassword, confirmNewPassword } = req.body;
-
+// Step 2: Verify OTP
+export const verifyPasswordResetOtp = async (req, res) => {
   try {
-    const result = await resetPasswordService(
-      token,
-      newPassword,
-      confirmNewPassword
-    );
+    const { email, otp } = req.body;
+    const result = await verifyPasswordResetOtpService(email, otp);
+    res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// Step 3: Reset Password
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword, confirmNewPassword } = req.body;
+    const result = await resetPasswordService(email, newPassword, confirmNewPassword);
     res.status(200).json({ success: true, message: result.message });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 export const userStatistics = async (req, res) => {
   try {
@@ -150,24 +182,5 @@ export const userStatistics = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-
-export const updateProfile = async (req, res) => {
-  try {
-    const user = req.user;
-    let updatedData = { ...req.body };
-
-
-    if (req.file && req.file.path) {
-      updatedData.profilePicture = req.file.path;
-    }
-
-    const agent = await updateProfileService(user, updatedData);
-
-    res.status(200).json(agent);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
   }
 };

@@ -349,11 +349,7 @@ export const sendPartnershipStatusUpdateEmail = async ({
 };
 
 // To send password forgot link
-export const sendPasswordResetEmail = async ({
-  userEmail,
-  fullName,
-  resetLink,
-}) => {
+export const sendPasswordResetOtpEmail = async (OTP, userEmail) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -365,23 +361,24 @@ export const sendPasswordResetEmail = async ({
       },
     });
 
-
-
     const mailOptions = {
       from: `"TeamWork IT Solution" <${process.env.EMAIL_USER}>`,
       to: userEmail,
-      subject: `Password Reset Request`,
+      subject: "Password Reset Verification Code",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
-          <h2 style="color: #d93025;">Password Reset Request</h2>
-          <p>Dear <strong>${fullName}</strong>,</p>
+          <h2 style="color: #1a73e8;">Password Reset Request</h2>
+          <p>Hello,</p>
 
-          <p>We received a request to reset your password for your <strong>TeamWork IT Solution</strong> account.</p>
+          <p>We received a request to reset the password for your account. To proceed, please use the verification code below:</p>
 
-          <p>Click the link below to reset your password. This link will expire in <strong>15 minutes</strong>:</p>
-          <p><a href="${resetLink}" style="color: #1a73e8;">Reset Password</a></p>
+          <h1 style="letter-spacing: 3px; font-size: 32px; background: #f5f5f5; padding: 10px; display: inline-block; border-radius: 6px;">
+            ${OTP}
+          </h1>
 
-          <p>If you didn’t request this, you can ignore this email. Your password will remain unchanged.</p>
+          <p>This code will expire in <strong>5 minutes</strong>. Please enter it on the password reset page promptly.</p>
+
+          <p>If you did not request a password reset, you can safely ignore this email—your account will remain secure.</p>
 
           <br/>
           <p>Best regards,</p>
@@ -391,8 +388,8 @@ export const sendPasswordResetEmail = async ({
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Password reset email sent to ${userEmail}`);
+    console.log(`Password reset OTP email sent to ${userEmail}`);
   } catch (error) {
-    console.error("Error sending password reset email:", error.message);
+    console.error("Error sending password reset OTP email:", error.message);
   }
 };
