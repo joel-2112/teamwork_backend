@@ -50,7 +50,7 @@ export const verifyOtpService = async (email, inputOtp) => {
   if (!tempUserData)
     throw new Error("User data expired. Please sign up again.");
 
-  const { name, password } = JSON.parse(tempUserData);
+  const { name, password, phoneNumber } = JSON.parse(tempUserData);
 
   // Get the "user" role ID
   const defaultRole = await Role.findOne({ where: { name: "user" } });
