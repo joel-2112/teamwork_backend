@@ -359,11 +359,10 @@ export const resetPasswordService = async (
   if (newPassword !== confirmNewPassword)
     throw new Error("Passwords do not match");
 
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  const user = await db.User.findOne({ where: { email } });
+  const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
 
-  user.password = hashedPassword;
+  user.password = newPassword;
   await user.save();
 
   await redisClient.del(`otpVerified:${email}`);
