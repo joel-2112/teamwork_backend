@@ -9,10 +9,11 @@ const { User, RefreshToken, Role, Partnership, Agent, Region, Zone, Woreda } = d
 dotenv.config();
 
 // Services to send the otp via user email
-export const sendOtpService = async ({ name, email, password }) => {
+export const sendOtpService = async ({ name, email, password, phoneNumber }) => {
   if (!email) throw new Error("Email is required");
   if (!password) throw new Error("Password is required");
   if (!name) throw new Error("Name is required");
+  if (!phoneNumber) throw new Error("phone number is required")
 
   // Check if user already exists in DB
   const existingUser = await User.findOne({ where: { email } });
@@ -26,7 +27,7 @@ export const sendOtpService = async ({ name, email, password }) => {
   console.log(`Stored OTP for ${email}: ${otp}`);
 
   // Store the user data temporarily in Redis (also expire in 5 mins)
-  const tempUserData = JSON.stringify({ name, email, password });
+  const tempUserData = JSON.stringify({ name, email, password, phoneNumber });
   await redisClient.set(`pendingUser:${email}`, tempUserData, { EX: 1200 });
 
   // Send OTP email
@@ -60,6 +61,7 @@ export const verifyOtpService = async (email, inputOtp) => {
     name,
     email,
     password,
+    phoneNumber,
     roleId: defaultRole.id,
   });
 
