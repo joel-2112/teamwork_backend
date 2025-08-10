@@ -142,7 +142,7 @@ export const loginService = async ({ email, password }) => {
       email: user.email,
       role: user.Role.name, // <-- Include role name here
       profilePicture: user.profilePicture,
-      phoneNumber: phoneNumber,
+      phoneNumber: user.phoneNumber,
       status: user.status,
       region: user.Region?.name,
       zone: user.Zone?.name,
@@ -210,7 +210,7 @@ export const checkAuthService = async (email) => {
       email: user.email,
       role: user.Role.name,
       profilePicture: user.profilePicture,
-      phoneNumber: phoneNumber,
+      phoneNumber: user.phoneNumber,
       status: user.status,
       region: user.Region?.name,
       zone: user.Zone?.name,
