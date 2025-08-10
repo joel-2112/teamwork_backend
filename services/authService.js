@@ -5,15 +5,21 @@ import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpEMail } from "../utils/sendOTP.js";
 import redisClient from "../config/redisClient.js";
 import dotenv from "dotenv";
-const { User, RefreshToken, Role, Partnership, Agent, Region, Zone, Woreda } = db;
+const { User, RefreshToken, Role, Partnership, Agent, Region, Zone, Woreda } =
+  db;
 dotenv.config();
 
 // Services to send the otp via user email
-export const sendOtpService = async ({ name, email, password, phoneNumber }) => {
+export const sendOtpService = async ({
+  name,
+  email,
+  password,
+  phoneNumber,
+}) => {
   if (!email) throw new Error("Email is required");
   if (!password) throw new Error("Password is required");
   if (!name) throw new Error("Name is required");
-  if (!phoneNumber) throw new Error("phone number is required")
+  if (!phoneNumber) throw new Error("phone number is required");
 
   // Check if user already exists in DB
   const existingUser = await User.findOne({ where: { email } });
@@ -85,28 +91,31 @@ export const loginService = async ({ email, password }) => {
 
   // Fetch user and include their role
   const user = await User.findOne({
-  where: { email },
-  include: [
-    {
-      model: Role,
-      attributes: ["name"],
-    },
-    {
-      model: Region,
-      attributes: ["id", "name"],
-    },
-    {
-      model: Zone,
-      attributes: ["id", "name"],
-    },
-    {
-      model: Woreda,
-      attributes: ["id", "name"],
-    },
-  ],
-});
+    where: { email },
+    include: [
+      {
+        model: Role,
+        attributes: ["name"],
+      },
+      {
+        model: Region,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Zone,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Woreda,
+        attributes: ["id", "name"],
+      },
+    ],
+  });
 
-  if (!user) throw new Error("User not registered with this email, please register first.");
+  if (!user)
+    throw new Error(
+      "User not registered with this email, please register first."
+    );
 
   if (user.status === "blocked")
     throw new Error("You have been blocked, so you can not login.");
@@ -132,6 +141,8 @@ export const loginService = async ({ email, password }) => {
       name: user.name,
       email: user.email,
       role: user.Role.name, // <-- Include role name here
+      profilePicture: user.profilePicture,
+      phoneNumber: phoneNumber,
       status: user.status,
       region: user.Region?.name,
       zone: user.Zone?.name,
@@ -167,27 +178,26 @@ export const logoutService = async (refreshToken) => {
 // service to check the authentication of the user
 export const checkAuthService = async (email) => {
   const user = await User.findOne({
-  where: { email },
-  include: [
-    {
-      model: Role,
-      attributes: ["name"],
-    },
-    {
-      model: Region,
-      attributes: ["id", "name"],
-    },
-    {
-      model: Zone,
-      attributes: ["id", "name"],
-    },
-    {
-      model: Woreda,
-      attributes: ["id", "name"],
-    },
-  ],
-});
-
+    where: { email },
+    include: [
+      {
+        model: Role,
+        attributes: ["name"],
+      },
+      {
+        model: Region,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Zone,
+        attributes: ["id", "name"],
+      },
+      {
+        model: Woreda,
+        attributes: ["id", "name"],
+      },
+    ],
+  });
 
   if (!user) throw new Error("User not found");
 
@@ -199,6 +209,8 @@ export const checkAuthService = async (email) => {
       name: user.name,
       email: user.email,
       role: user.Role.name,
+      profilePicture: user.profilePicture,
+      phoneNumber: phoneNumber,
       status: user.status,
       region: user.Region?.name,
       zone: user.Zone?.name,
