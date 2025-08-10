@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import moment from "moment";
 import { sendPasswordResetOtpEmail } from "../utils/sendEmail.js";
 import redisClient from "../config/redisClient.js";
+import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers";
 
 const { User, Role, Partnership, Agent, Region, Zone, Woreda } = db;
 
