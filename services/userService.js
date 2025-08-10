@@ -303,20 +303,46 @@ export const updateProfileService = async (user, data) => {
   const userFound = await User.findByPk(user.id);
   if (!userFound) throw new Error("User not found");
 
-  // Delete old profile image from Cloudinary if new one is provided
-  if (data.profilePicture && userFound.profilePicture) {
-    const oldUrl = agent.profilePicture;
-    const publicId = extractPublicIdFromUrl(oldUrl);
-    if (publicId) {
-      try {
-        await cloudinary.uploader.destroy(publicId);
-      } catch (err) {
-        console.warn("Failed to delete old image:", err.message);
+  let agentFound = null;
+  if (userFound.role === "agent") {
+    agentFound = await Agent.findOne({ where: { email: userFound.email } });
+    if (!agentFound) throw new Error("Agent record not found");
+  }
+
+  // Delete old profile image if new one is provided
+  if (data.profilePicture) {
+    if (userFound.profilePicture) {
+      const publicIdUser = extractPublicIdFromUrl(userFound.profilePicture);
+      if (publicIdUser) {
+        try {
+          await cloudinary.uploader.destroy(publicIdUser);
+        } catch (err) {
+          console.warn("Failed to delete old user image:", err.message);
+        }
+      }
+    }
+
+    // Delete from Agent if applicable
+    if (agentFound && agentFound.profilePicture) {
+      const publicIdAgent = extractPublicIdFromUrl(agentFound.profilePicture);
+      if (publicIdAgent) {
+        try {
+          await cloudinary.uploader.destroy(publicIdAgent);
+        } catch (err) {
+          console.warn("Failed to delete old agent image:", err.message);
+        }
       }
     }
   }
 
-  return await userFound.update(data);
+  // Update User
+  await userFound.update(data);
+
+  if (agentFound && data.profilePicture) {
+    await agentFound.update({ profilePicture: data.profilePicture });
+  }
+
+  return userFound;
 };
 
 // Step 1: Send OTP for password reset
