@@ -58,6 +58,9 @@ export const verifyOtpService = async (email, inputOtp) => {
 
   const { name, password, phoneNumber } = JSON.parse(tempUserData);
 
+  const phoneCheck = await User.findOne({where: {phoneNumber: phoneNumber}})
+  if(phoneCheck) throw new Error("This phone number is already exist.");
+
   // Get the "user" role ID
   const defaultRole = await Role.findOne({ where: { name: "user" } });
   if (!defaultRole) throw new Error("Default role 'user' not found.");
