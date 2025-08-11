@@ -72,7 +72,7 @@ export const createAgentService = async (userId, data) => {
 
   user.profilePicture = profilePicture;
   await user.save();
-  
+
   await sendAgentRequestConfirmationEmail({
     userEmail: user.email,
     fullName: user.name,
@@ -89,6 +89,39 @@ export const createAgentService = async (userId, data) => {
 };
 
 // Retrieve all agent
+export const getAllAgents = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      agentType,
+      sex,
+      regionId,
+      zoneId,
+      woredaId,
+    } = req.query;
+    const filters = { search, agentType, sex, regionId, zoneId, woredaId };
+
+    const result = await getAllAgentsService(
+      parseInt(page),
+      parseInt(limit),
+      filters,
+      req.user // 👈 pass the logged-in user
+    );
+
+    res.status(200).json({
+      data: result.rows,
+      total: result.total, // ✅ now taken from service
+      page: parseInt(page),
+      totalPages: Math.ceil(result.count / limit),
+    });
+  } catch (error) {
+    console.error("Controller error in getAllAgents:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getAllAgentsService = async (
   page = 1,
   limit = 10,
@@ -107,16 +140,13 @@ export const getAllAgentsService = async (
     ];
   }
 
-  // Optional filters from query params
   if (regionId) where.regionId = regionId;
   if (zoneId) where.zoneId = zoneId;
   if (woredaId) where.woredaId = woredaId;
   if (agentType) where.agentType = agentType;
   if (sex) where.sex = sex;
 
-  // Role-based location + agentType filtering
   const userRole = user?.Role?.name;
-
   if (userRole === "regionAdmin") {
     where.regionId = user.regionId;
     where.agentType = "Region";
@@ -127,11 +157,25 @@ export const getAllAgentsService = async (
     where.woredaId = user.woredaId;
     where.agentType = "Woreda";
   }
-  // 'admin' can see all agent types and locations — no change needed
 
   const offset = (page - 1) * limit;
 
-  return await Agent.findAndCountAll({
+  // Get unfiltered total
+  const total = await Agent.count({
+    where: { isDeleted: false },
+  });
+  const regionAgent = await Agent.count({
+    where: { agentType: "Region", isDeleted: false },
+  });
+  const zoneAgent = await Agent.count({
+    where: { agentType: "Zone", isDeleted: false },
+  });
+  const woredaAgent = await Agent.count({
+    where: { agentType: "Woreda", isDeleted: false },
+  });
+
+  // Get filtered paginated result
+  const { count, rows } = await Agent.findAndCountAll({
     where,
     limit,
     offset,
@@ -141,6 +185,8 @@ export const getAllAgentsService = async (
       { model: Woreda, as: "Woreda", required: false },
     ],
   });
+
+  return { rows, count, total, regionAgent, zoneAgent, woredaAgent };
 };
 
 // Retrieve agent by ID
@@ -163,7 +209,6 @@ export const getAgentByIdService = async (id) => {
 };
 
 // Update agent by ID
-
 
 export const updateAgentDataService = async (agentId, userId, data) => {
   const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
@@ -400,5 +445,3 @@ export const getAllApprovedAgentsService = async ({
     page: parseInt(page),
   });
 };
-
-

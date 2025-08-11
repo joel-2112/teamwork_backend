@@ -66,12 +66,15 @@ export const getAllAgents = async (req, res) => {
       parseInt(page),
       parseInt(limit),
       filters,
-      req.user // 👈 pass the logged-in user
+      req.user 
     );
 
     res.status(200).json({
       data: result.rows,
-      total: result.count,
+      total: result.total, 
+      regionAgent: result.regionAgent,
+      zoneAgent: result.zoneAgent,
+      woredaAgent: result.woredaAgent,
       page: parseInt(page),
       totalPages: Math.ceil(result.count / limit),
     });
