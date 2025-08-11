@@ -119,11 +119,16 @@ export const getOrderById = async (req, res) => {
   }
 };
 
+
 export const updateOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
     const userId = req.user.id;
-    const order = await updateOrderService(orderId, userId, req.body);
+    const file = req.file; 
+
+    // Pass file info to service
+    const order = await updateOrderService(orderId, userId, req.body, file);
+
     res.status(200).json({
       success: true,
       message: "Order successfully updated.",
@@ -138,6 +143,7 @@ export const updateOrder = async (req, res) => {
     });
   }
 };
+
 
 export const deleteOrder = async (req, res) => {
   try {
