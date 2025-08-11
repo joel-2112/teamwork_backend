@@ -61,7 +61,7 @@ export const getAllSenders = async (req, res) => {
 // Get conversation with a specific user
 export const getConversation = async (req, res) => {
   try {
-    const otherUserId = parseInt(req.params.userId);
+    const otherUserId = parseInt(req.params.id);
     const currentUserId = req.user.id;
 
     const messages = await getConversationService(currentUserId, otherUserId);

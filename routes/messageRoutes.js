@@ -10,7 +10,7 @@ import { protect, requireRole } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.post("/send", protect, sendMessage);
-router.get("/conversation/:userId", protect, getConversation);
+router.get("/conversation/:id", protect, getConversation);
 router.post("/reply/:id", protect, requireRole("assistant"), replyMessage);
 router.get("/all-senders", protect, requireRole("assistant"), getAllSenders);
 
