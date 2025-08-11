@@ -98,7 +98,6 @@ export const getAllAgentsService = async (
   const { search, regionId, zoneId, woredaId, agentType, sex } = filters;
   const where = { isDeleted: false };
 
-  // Search filter
   if (search) {
     where[Op.or] = [
       { fullName: { [Op.like]: `%${search}%` } },
@@ -108,15 +107,16 @@ export const getAllAgentsService = async (
     ];
   }
 
-  // Query filters
+  // Optional filters from query params
   if (regionId) where.regionId = regionId;
   if (zoneId) where.zoneId = zoneId;
   if (woredaId) where.woredaId = woredaId;
   if (agentType) where.agentType = agentType;
   if (sex) where.sex = sex;
 
-  // Role-based restrictions
+  // Role-based location + agentType filtering
   const userRole = user?.Role?.name;
+
   if (userRole === "regionAdmin") {
     where.regionId = user.regionId;
     where.agentType = "Region";
@@ -127,11 +127,11 @@ export const getAllAgentsService = async (
     where.woredaId = user.woredaId;
     where.agentType = "Woreda";
   }
+  // 'admin' can see all agent types and locations — no change needed
 
   const offset = (page - 1) * limit;
 
-  // Get paginated + filtered agents
-  const { count: filteredTotal, rows } = await Agent.findAndCountAll({
+  return await Agent.findAndCountAll({
     where,
     limit,
     offset,
@@ -141,21 +141,7 @@ export const getAllAgentsService = async (
       { model: Woreda, as: "Woreda", required: false },
     ],
   });
-
-  // Get total count ignoring filters/search but keeping isDeleted=false
-  const total = await Agent.count({
-    where: { isDeleted: false },
-  });
-
-  return {
-    total,            // total agents (ignores filters/search)
-    filteredTotal,    // total after applying filters/search
-    page: parseInt(page),
-    limit: parseInt(limit),
-    agents: rows,
-  };
 };
-
 
 // Retrieve agent by ID
 export const getAgentByIdService = async (id) => {
