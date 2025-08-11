@@ -5,9 +5,6 @@ import {
   sendOrderStatusUpdateEmail,
 } from "../utils/sendEmail.js";
 import moment from "moment";
-import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
-import { v2 as cloudinary } from "cloudinary";
-
 
 const { ServiceOrder, Region, Zone, Woreda, User, Service } = db;
 
@@ -190,7 +187,7 @@ export const getOrderByIdService = async (id) => {
 };
 
 // User can update their own order with only pending or reviewed status
-export const updateOrderService = async (orderId, userId, data, file) => {
+export const updateOrderService = async (orderId, userId, data) => {
   const order = await ServiceOrder.findByPk(orderId, {
     include: [
       { model: Region, as: "Region", required: false },
@@ -211,7 +208,6 @@ export const updateOrderService = async (orderId, userId, data, file) => {
     throw new Error("Only pending or reviewed orders can be updated");
   }
 
-  // Country validation
   if (data.country === "Ethiopia") {
     if (data.regionId) {
       const region = await Region.findByPk(data.regionId);
@@ -225,6 +221,7 @@ export const updateOrderService = async (orderId, userId, data, file) => {
       const woreda = await Woreda.findByPk(data.woredaId);
       if (!woreda) throw new Error("Invalid Woreda");
     }
+
     data.manualRegion = null;
     data.manualZone = null;
     data.manualWoreda = null;
@@ -241,22 +238,8 @@ export const updateOrderService = async (orderId, userId, data, file) => {
     data.woredaId = null;
   }
 
-  // If a new file is uploaded
-  if (file) {
-    // Delete old file from Cloudinary if exists
-    if (order.requirementFile) {
-      const publicId = extractPublicIdFromUrl(order.requirementFile);
-      if (publicId) {
-        await cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
-      }
-    }
-    // Save new file URL
-    data.requirementFile = file.path;
-  }
-
   return await order.update(data);
 };
-
 
 // Delete order by ID
 export const deleteOrderService = async (orderId, userId) => {
