@@ -71,7 +71,7 @@ export const getAllAgents = async (req, res) => {
 
     res.status(200).json({
       data: result.rows,
-      total: result.total, // ✅ FIXED: use total from service
+      total: result.count,
       page: parseInt(page),
       totalPages: Math.ceil(result.count / limit),
     });
