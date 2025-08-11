@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 
 const { Message, User, Role } = db;
 
@@ -30,6 +30,7 @@ export const replyMessageService = async (senderId, receiverId, content) => {
 };
 
 export const getAllSendersService = async () => {
+  const assistant = await Role.findOne({where: {name: "assistant"}})
   const senders = await User.findAll({
     include: [
       {
@@ -41,6 +42,7 @@ export const getAllSendersService = async () => {
     attributes: ["id", "name", "profilePicture", "email"], // adjust based on your User model
     where: {
       "$sentMessages.id$": { [Op.ne]: null }, // only users with at least one sent message
+      roleId: { [Op.ne]: assistant.id }, // exclude users with role 'assistant'
     },
     group: ["User.id"], // ensure unique senders
   });
