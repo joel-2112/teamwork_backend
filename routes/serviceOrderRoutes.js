@@ -33,7 +33,12 @@ router.get(
   requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   getOrderById
 );
-router.put("/update/:id", protect, updateOrder);
+router.put(
+  "/update/:id",
+  protect,
+  cloudinaryUpload.single("requirementFile"),
+  updateOrder
+);
 router.delete("/delete/:id", protect, deleteOrder);
 router.put(
   "/update-status/:id",
