@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import db from "../models/index.js";
 import moment from "moment";
 
@@ -250,117 +250,49 @@ export const getAllClosedJobService = async ({
 
 // To send Job statistics of the company
 export const jobStatisticsService = async () => {
-  // === Time ranges ===
   const todayStart = moment().startOf("day").toDate();
   const todayEnd = moment().endOf("day").toDate();
 
-  const monthStart = moment().startOf("month");
-  const monthEnd = moment().endOf("month");
+  const monthStart = moment().startOf("month").toDate();
+  const monthEnd = moment().endOf("month").toDate();
 
-  // Divide the current month into four weeks
-  const weekOneStart = moment(monthStart).toDate();
-  const weekOneEnd = moment(monthStart).add(6, "days").endOf("day").toDate();
+  const weekRanges = [
+    [monthStart, moment(monthStart).add(6, "days").endOf("day").toDate()],
+    [moment(monthStart).add(7, "days").startOf("day").toDate(), moment(monthStart).add(13, "days").endOf("day").toDate()],
+    [moment(monthStart).add(14, "days").startOf("day").toDate(), moment(monthStart).add(20, "days").endOf("day").toDate()],
+    [moment(monthStart).add(21, "days").startOf("day").toDate(), monthEnd],
+  ];
 
-  const weekTwoStart = moment(monthStart)
-    .add(7, "days")
-    .startOf("day")
-    .toDate();
-  const weekTwoEnd = moment(monthStart).add(13, "days").endOf("day").toDate();
-
-  const weekThreeStart = moment(monthStart)
-    .add(14, "days")
-    .startOf("day")
-    .toDate();
-  const weekThreeEnd = moment(monthStart).add(20, "days").endOf("day").toDate();
-
-  const weekFourStart = moment(monthStart)
-    .add(21, "days")
-    .startOf("day")
-    .toDate();
-  const weekFourEnd = moment(monthEnd).toDate();
-
-  // === Count users ===
-  const todayJobs = await Job.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [todayStart, todayEnd] },
-    },
+  const stats = await Job.findAll({
+    attributes: [
+      [Sequelize.fn("COUNT", Sequelize.col("Job.id")), "totalJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."jobStatus" = 'open' THEN 1 ELSE 0 END`)), "openJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."jobStatus" = 'closed' THEN 1 ELSE 0 END`)), "closedJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."jobType" = 'full-time' THEN 1 ELSE 0 END`)), "fullTimeJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."jobType" = 'part-time' THEN 1 ELSE 0 END`)), "partTimeJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."jobType" = 'contract' THEN 1 ELSE 0 END`)), "contractJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."jobType" = 'remote' THEN 1 ELSE 0 END`)), "remoteJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."jobType" = 'internship' THEN 1 ELSE 0 END`)), "internshipJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."createdAt" BETWEEN '${todayStart.toISOString()}' AND '${todayEnd.toISOString()}' THEN 1 ELSE 0 END`)), "todayJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."createdAt" BETWEEN '${weekRanges[0][0].toISOString()}' AND '${weekRanges[0][1].toISOString()}' THEN 1 ELSE 0 END`)), "weekOneJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."createdAt" BETWEEN '${weekRanges[1][0].toISOString()}' AND '${weekRanges[1][1].toISOString()}' THEN 1 ELSE 0 END`)), "weekTwoJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."createdAt" BETWEEN '${weekRanges[2][0].toISOString()}' AND '${weekRanges[2][1].toISOString()}' THEN 1 ELSE 0 END`)), "weekThreeJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."createdAt" BETWEEN '${weekRanges[3][0].toISOString()}' AND '${weekRanges[3][1].toISOString()}' THEN 1 ELSE 0 END`)), "weekFourJobs"],
+      [Sequelize.fn("SUM", Sequelize.literal(`CASE WHEN "Job"."createdAt" BETWEEN '${monthStart.toISOString()}' AND '${monthEnd.toISOString()}' THEN 1 ELSE 0 END`)), "thisMonthJobs"],
+    ],
+    where: { isDeleted: false },
+    raw: true,
   });
 
-  const weekOneJobs = await Job.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [weekOneStart, weekOneEnd] },
-    },
-  });
+  const result = stats[0] || {};
 
-  const weekTwoJobs = await Job.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [weekTwoStart, weekTwoEnd] },
-    },
-  });
+  // Convert all values to integers
+  const numericResult = {};
+  for (const key in result) {
+    numericResult[key] = Number(result[key]) || 0;
+  }
 
-  const weekThreeJobs = await Job.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [weekThreeStart, weekThreeEnd] },
-    },
-  });
-
-  const weekFourJobs = await Job.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [weekFourStart, weekFourEnd] },
-    },
-  });
-
-  const thisMonthJobs = await Job.count({
-    where: {
-      isDeleted: false,
-      createdAt: { [Op.between]: [monthStart.toDate(), monthEnd.toDate()] },
-    },
-  });
-
-  const totalJobs = await Job.count({ where: { isDeleted: false } });
-
-  const openJobs = await Job.count({
-    where: { jobStatus: "open", isDeleted: false },
-  });
-
-  const closedJobs = await Job.count({
-    where: { jobStatus: "closed", isDeleted: false },
-  });
-  const fullTimeJobs = await Job.count({
-    where: { jobType: "full-time", isDeleted: false },
-  });
-  const partTimeJobs = await Job.count({
-    where: { jobType: "part-time", isDeleted: false },
-  });
-  const contractJobs = await Job.count({
-    where: { jobType: "contract", isDeleted: false },
-  });
-  const remoteJobs = await Job.count({
-    where: { jobType: "remote", isDeleted: false },
-  });
-  const internshipJobs = await Job.count({
-    where: { jobType: "internship", isDeleted: false },
-  });
-
-  return {
-    totalJobs,
-    openJobs,
-    closedJobs,
-    todayJobs,
-    weekOneJobs,
-    weekTwoJobs,
-    weekThreeJobs,
-    weekFourJobs,
-    thisMonthJobs,
-    fullTimeJobs,
-    partTimeJobs,
-    contractJobs,
-    remoteJobs,
-    internshipJobs,
-  };
+  return numericResult;
 };
+
+
