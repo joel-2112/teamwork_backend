@@ -117,7 +117,7 @@ export const updateJobService = async (id, data) => {
 export const deleteJobService = async (jobId, userId) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
-  const job = await Job.fideOne({ where: { id: jobId, isDeleted: false } });
+  const job = await Job.findOne({ where: { id: jobId, isDeleted: false } });
   if (!job) throw new Error("Job not found or already deleted.");
   const applicationCount = await JobApplication.count({
     where: { jobId: jobId },
