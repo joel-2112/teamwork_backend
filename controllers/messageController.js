@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import db from "../models/index.js";
 import {
   sendMessageService,
@@ -6,7 +6,7 @@ import {
   replyMessageService,
   getAllSendersService,
 } from "../services/messageService.js";
-const { Message, User } = db;
+const { Message, User, Role } = db;
 
 // Send message controller
 export const sendMessage = async (req, res) => {
@@ -57,19 +57,57 @@ export const getAllSenders = async (req, res) => {
   }
 };
 
-
 // Get conversation with a specific user
 export const getConversation = async (req, res) => {
   try {
-    const otherUserId = parseInt(req.params.id);
-    const currentUserId = req.user.id;
+    // Get assistant role
+    const assistantRole = await Role.findOne({ where: { name: "assistant" } });
+    if (!assistantRole) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Assistant role not found." });
+    }
 
-    const messages = await getConversationService(currentUserId, otherUserId);
+    // Get the current logged-in user's role
+    const currentUser = await User.findByPk(req.user.id);
+    if (!currentUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Logged-in user not found." });
+    }
+
+    let otherUserId;
+
+    if (currentUser.roleId === assistantRole.id) {
+      // Logged-in user is an assistant → allow fetching conversation with any userId from params
+      if (!req.params.id) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "User ID is required in params for assistant.",
+          });
+      }
+      otherUserId = parseInt(req.params.id);
+    } else {
+      // Logged-in user is a normal user → they can only converse with the assistant
+      const assistantUser = await User.findOne({
+        where: { roleId: assistantRole.id },
+      });
+      if (!assistantUser) {
+        return res
+          .status(404)
+          .json({ success: false, message: "No assistant user found." });
+      }
+      otherUserId = assistantUser.id;
+    }
+
+    const messages = await getConversationService(currentUser.id, otherUserId);
 
     res.status(200).json({
       success: true,
-      messages: "Messages retrieved successfully.",
-      messages,
+      message: "Messages retrieved successfully.",
+      data: messages,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
