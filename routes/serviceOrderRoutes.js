@@ -12,14 +12,15 @@ import {
   orderStatistics,
 } from "../controllers/serviceOrderController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import upload from "../middlewares/upload.js";
+import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
 
 router.post(
   "/create-order",
   protect,
-  upload.single("requirementFile"),
+  cloudinaryUpload.single("requirementFile"),
   createServiceOrder
 );
+
 router.get(
   "/all-orders",
   protect,

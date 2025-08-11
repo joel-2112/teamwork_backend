@@ -20,39 +20,18 @@ const { Region, Zone, Woreda } = db;
 export const createServiceOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const file = req.file;
-    let requirementFilePath = null;
+    const file = req.file; 
 
-    // Extract data without file for validation
     const data = { ...req.body };
-
-    if (file && file.fieldname === "document") {
-      // Temporarily set placeholder
+    if (file) {
       data.requirementFile = "temp-path";
     }
 
-    // Create order in DB
     const order = await createServiceOrderService(data, userId);
-
-    // Save file to disk if uploaded
-    if (file && file.fieldname === "requirementFile") {
-      const documentsDir = path.join("uploads", "documents");
-
-      if (!fs.existsSync(documentsDir)) {
-        fs.mkdirSync(documentsDir, { recursive: true });
-      }
-
-      const ext = path.extname(file.originalname);
-      const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-      requirementFilePath = path.join(documentsDir, fileName);
-
-      fs.writeFileSync(requirementFilePath, file.buffer);
-
-      const fileUrl = `${req.protocol}://${req.get("host")}/${requirementFilePath}`;
-      await order.update({ requirementFile: fileUrl });
+    if (file) {
+      await order.update({ requirementFile: file.path });
     }
 
-    // Fetch region/zone/woreda names
     const [region, zone, woreda] = await Promise.all([
       Region.findByPk(order.regionId),
       Zone.findByPk(order.zoneId),
@@ -83,6 +62,7 @@ export const createServiceOrder = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getAllOrders = async (req, res) => {
   try {
