@@ -238,6 +238,9 @@ User.belongsTo(Woreda, { foreignKey: "woredaId"})
 User.hasMany(Message, { foreignKey: "senderId", as: "sentMessages" });
 User.hasMany(Message, { foreignKey: "receiverId", as: "receivedMessages" });
 
+Message.belongsTo(User, { as: "Sender", foreignKey: "senderId" });
+Message.belongsTo(User, { as: "Receiver", foreignKey: "receiverId" });
+
 
 export default {
   sequelize: db,
