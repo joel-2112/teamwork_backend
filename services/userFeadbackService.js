@@ -55,20 +55,22 @@ export const getAllUserFeedbacksService = async ({
     offset: parseInt(offset),
   });
 
+  const total = await UserFeedback.count({ where: { isDeleted: false } });
+
   const suggestionsCount = await UserFeedback.count({
-    where: { feedbackType: "suggestion" },
+    where: { feedbackType: "suggestion", isDeleted: false },
   });
 
   const complaintsCount = await UserFeedback.count({
-    where: { feedbackType: "complaint" },
+    where: { feedbackType: "complaint", isDeleted: false },
   });
 
   const praisesCount = await UserFeedback.count({
-    where: { feedbackType: "praise" },
+    where: { feedbackType: "praise", isDeleted: false },
   });
 
   const bugReportsCount = await UserFeedback.count({
-    where: { feedbackType: "bug_report" },
+    where: { feedbackType: "bug_report", isDeleted: false },
   });
   const resolvedFeedback = await UserFeedback.count({
     where: { status: "resolved", isDeleted: false },
@@ -78,7 +80,7 @@ export const getAllUserFeedbacksService = async ({
   });
 
   return {
-    total: count,
+    total,
     suggestions: suggestionsCount,
     complaints: complaintsCount,
     praises: praisesCount,
