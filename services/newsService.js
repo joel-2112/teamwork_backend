@@ -126,7 +126,7 @@ export const getAllNews = async ({
   });
 
   return {
-    total: count,
+    total: total,
     totalNews,
     todayNews,
     weekNews,
