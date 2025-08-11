@@ -73,31 +73,33 @@ export const getAllNews = async ({
   }
 
   // Paginated data
-  const rows  = await News.findAndCountAll({
+  const { count: filteredCount, rows } = await News.findAndCountAll({
     where,
     order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
     offset: parseInt(offset),
   });
 
+  // Get total news without any filters (except isDeleted = false)
   const total = await News.count({
     where: { isDeleted: false },
   });
 
-  // Full statistics (not filtered)
+  // Full statistics (still respecting isDeleted)
   const todayStart = moment().startOf("day").toDate();
   const todayEnd = moment().endOf("day").toDate();
 
-  const weekStart = moment().startOf("week").toDate(); // Sunday
-  const weekEnd = moment().endOf("week").toDate(); // Saturday
+  const weekStart = moment().startOf("week").toDate();
+  const weekEnd = moment().endOf("week").toDate();
 
   const monthStart = moment().startOf("month").toDate();
   const monthEnd = moment().endOf("month").toDate();
 
-  const totalNews = await News.count();
+  const totalNews = await News.count({ where: { isDeleted: false } });
 
   const todayNews = await News.count({
     where: {
+      isDeleted: false,
       publishDate: {
         [Op.gte]: todayStart,
         [Op.lte]: todayEnd,
@@ -126,7 +128,8 @@ export const getAllNews = async ({
   });
 
   return {
-    total: total,
+    total, // now always counts ALL news (isDeleted = false), ignoring filters
+    filteredTotal: filteredCount, // optional: shows count after filters
     totalNews,
     todayNews,
     weekNews,
