@@ -73,11 +73,15 @@ export const getAllNews = async ({
   }
 
   // Paginated data
-  const { count, rows } = await News.findAndCountAll({
+  const rows  = await News.findAndCountAll({
     where,
     order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
     offset: parseInt(offset),
+  });
+
+  const total = await News.count({
+    where: { isDeleted: false },
   });
 
   // Full statistics (not filtered)
