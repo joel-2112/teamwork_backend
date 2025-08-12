@@ -15,7 +15,6 @@ import {
 import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
 const router = express.Router();
 
-
 router.post(
   "/create-report",
   protect,
@@ -60,7 +59,7 @@ router.delete("/delete/:id", protect, requireRole("admin"), deleteReport);
 router.get(
   "/deleted-reports",
   protect,
-  requireRole("admin"),
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin", "agent"),
   getDeletedReports
 );
 router.get(
