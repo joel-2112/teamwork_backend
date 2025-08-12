@@ -6,10 +6,15 @@ import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import http from "http";
+import { Server } from "socket.io";
 
 import db from "./models/index.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import "./utils/scheduledTask.js";
+
+// import { protect } from "./middlewares/protect.js"; // HTTP middleware
+import { socketProtect } from "./middlewares/authMiddleware.js"; // Socket middleware
 
 // Import Routes
 import authRoutes from "./routes/authRoutes.js";
@@ -28,9 +33,13 @@ import customerOrderRoutes from "./routes/customerOrderRoute.js";
 import userFeedbackRoutes from "./routes/userFeadbackRoutes.js";
 import aboutRoutes from "./routes/aboutRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
-import roleRouote from "./routes/roleRoute.js";
+import roleRoute from "./routes/roleRoute.js"; // Fixed typo
 import reportRoute from "./routes/reportRoute.js";
 import messageRoute from "./routes/messageRoutes.js";
+import {
+  replyMessageService,
+  sendMessageService,
+} from "./services/messageService.js";
 
 // Initialize Express
 const app = express();
@@ -38,11 +47,70 @@ const port = process.env.PORT || 5000;
 
 app.use("/uploads", express.static(path.resolve("uploads")));
 
+
+// Create HTTP server
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
+
+// Use the socket authentication middleware
+io.use(socketProtect);
+
+// Listen for WebSocket connections
+io.on("connection", (socket) => {
+  const userId = socket.userId; // Assume this is set when the user connects
+  socket.join(userId); // User joins their own room
+
+  // Handle socket events (e.g., receiving messages)
+  socket.on("replyMessage", async (data) => {
+    const { receiverId, content } = data;
+    console.log("reply message:", { receiverId, content });
+    const senderId = socket.userId;
+
+    const replyMessage = await replyMessageService(
+      senderId,
+      receiverId,
+      content
+    );
+
+
+
+    io.to(replyMessage.dataValues.receiverId).emit("receive_message",  replyMessage.dataValues );
+    io.to(socket.userId).emit("receive_message",  replyMessage.dataValues );
+  });
+
+  // Handle socket events (e.g., receiving messages)
+  socket.on("sendMessage", async (data) => {
+    const { content } = data;
+    const senderId = socket.userId;
+
+    const sendMessage = await sendMessageService(senderId, content);
+
+
+
+    console.log("send Message :", sendMessage);
+
+    // io.to(receiverId).emit("receive_message", { content: replyMessage });
+    io.to(socket.userId).emit("receive_message", sendMessage.dataValues);
+    io.to(sendMessage.dataValues.receiverId).emit("receive_message",  sendMessage.dataValues);
+    
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.userId);
+  });
+});
+
 // Serve static files from /uploads with CORS headers
 app.use(
   "/uploads",
   express.static(path.resolve("uploads"), {
-    setHeaders: (res, path) => {
+    setHeaders: (res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET");
       res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -50,16 +118,17 @@ app.use(
   })
 );
 
-// Middleware
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "*",
   })
 );
+
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 // Routes
 app.get("/", (req, res) => {
@@ -72,7 +141,7 @@ app.get("/", (req, res) => {
 
 // Main routes
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/roles", roleRouote);
+app.use("/api/v1/roles", roleRoute); // Fixed typo
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/job-applications", jobApplicationRoutes);
@@ -100,7 +169,7 @@ const startServer = async () => {
     await db.sequelize.authenticate();
     console.log("Database connected successfully");
 
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
 
@@ -113,3 +182,4 @@ const startServer = async () => {
 };
 
 startServer();
+

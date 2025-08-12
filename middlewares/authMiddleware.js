@@ -60,6 +60,34 @@ export const protect = async (req, res, next) => {
   }
 };
 
+
+
+
+export const socketProtect = async (socket, next) => {
+  try {
+    const token = socket.handshake.auth.token; // Extract token from the handshake
+
+    if (!token) {
+      return next(new Error("Authentication error: No token provided"));
+    }
+
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findByPk(decoded.userId); // Ensure User model is imported
+
+    if (!user) {
+      return next(new Error("Authentication error: User not found"));
+    }
+
+    socket.userId = user.id; // Attach user ID to the socket
+    socket.username = user.name; // Optionally attach username or other data
+    next();
+  } catch (error) {
+    console.error("Socket authentication error:", error.message);
+    next(new Error("Authentication error: " + error.message));
+  }
+};
+
 // Check user role to access protected route
 // export const requireRole = (roleName) => {
 //   return async (req, res, next) => {
@@ -91,4 +119,3 @@ export const requireRole = (...allowedRoles) => {
     next();
   };
 };
-
