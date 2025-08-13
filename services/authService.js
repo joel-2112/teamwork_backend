@@ -22,13 +22,8 @@ export const sendOtpService = async ({
   if (!phoneNumber) throw new Error("phone number is required");
 
   // validate email format if provided
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid email format",
-      data: null,
-    });
-  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    throw new Error("Invalid email format");
 
   // Check if user already exists in DB
   const existingUser = await User.findOne({ where: { email } });
@@ -109,7 +104,7 @@ export const verifyOtpService = async (email, inputOtp) => {
 export const loginService = async ({ email, password }) => {
   if (!email) throw new Error("Missing required field: email");
   if (!password) throw new Error("Missing required field: password");
-  
+
   // validate email format if provided
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({

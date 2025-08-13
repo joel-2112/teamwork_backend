@@ -9,7 +9,6 @@ import {
   logout,
   checkAuth,
 } from "../controllers/authController.js";
-import { validateRequest } from "../middlewares/validators/validateRequest.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
 
