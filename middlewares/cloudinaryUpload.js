@@ -5,24 +5,42 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import dotenv from "dotenv";
 dotenv.config();
 
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_KEY,
   api_secret: process.env.CLOUDINARY_SECRET,
 });
 
-// Match all media types (images, videos, files)
+// Multer storage using Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
+    let folder = "uploads";
+
+    if (file.mimetype.startsWith("image/")) {
+      folder = "Images";
+    } else if (file.mimetype.startsWith("video/")) {
+      folder = "Videos";
+    } else {
+      folder = "Documents";
+    }
+
     return {
-      folder: "uploads", // cloud folder name
-      resource_type: "auto", // handles all types: image, video, raw
+      folder,
+      resource_type: "auto", // Detects type automatically (image, video, raw)
       public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
+      type: "upload", // Ensures normal upload delivery
+      access_control: [
+        {
+          access_type: "anonymous", // Publicly accessible via CDN
+        },
+      ],
     };
   },
 });
 
+// File filter for allowed types
 const fileFilter = (req, file, cb) => {
   const allowedMimeTypes = [
     // Images
@@ -65,6 +83,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Multer middleware
 const cloudinaryUpload = multer({
   storage,
   fileFilter,

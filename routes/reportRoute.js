@@ -17,13 +17,13 @@ const router = express.Router();
 
 router.post(
   "/create-report",
-  protect,
-  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin", "agent"),
   cloudinaryUpload.fields([
     { name: "imageUrl", maxCount: 5 },
     { name: "videoUrl", maxCount: 3 },
     { name: "fileUrl", maxCount: 1 },
   ]),
+  protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin", "agent"),
   createReport
 );
 
