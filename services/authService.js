@@ -21,9 +21,25 @@ export const sendOtpService = async ({
   if (!name) throw new Error("Name is required");
   if (!phoneNumber) throw new Error("phone number is required");
 
+  // validate email format if provided
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid email format",
+      data: null,
+    });
+  }
+
   // Check if user already exists in DB
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) throw new Error("Email already exists");
+
+  // Check if phone number is exist
+  const checkPhone = await User.findOne({
+    where: { phoneNumber: phoneNumber },
+  });
+  if (checkPhone)
+    throw new Error("Already an account associated with this phone number.");
 
   // Generate OTP
   const otp = generateOtp();
@@ -58,8 +74,10 @@ export const verifyOtpService = async (email, inputOtp) => {
 
   const { name, password, phoneNumber } = JSON.parse(tempUserData);
 
-  const phoneCheck = await User.findOne({where: {phoneNumber: phoneNumber}})
-  if(phoneCheck) throw new Error("This phone number is already exist.");
+  const phoneCheck = await User.findOne({
+    where: { phoneNumber: phoneNumber },
+  });
+  if (phoneCheck) throw new Error("This phone number is already exist.");
 
   // Get the "user" role ID
   const defaultRole = await Role.findOne({ where: { name: "user" } });
@@ -91,6 +109,15 @@ export const verifyOtpService = async (email, inputOtp) => {
 export const loginService = async ({ email, password }) => {
   if (!email) throw new Error("Missing required field: email");
   if (!password) throw new Error("Missing required field: password");
+  
+  // validate email format if provided
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid email format",
+      data: null,
+    });
+  }
 
   // Fetch user and include their role
   const user = await User.findOne({

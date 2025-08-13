@@ -95,23 +95,17 @@ export default (db, DataTypes) => {
       phoneNumber1: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-          is: /^\+?[\d\s-]{10,}$/i,
-        },
       },
       phoneNumber2: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-          is: /^\+?[\d\s-]{10,}$/i,
-        },
       },
       shortDescription: {
         type: DataTypes.TEXT,
         allowNull: false,
         validate: {
           notEmpty: true,
-          len: [10, 500],
+          len: [10, 5000],
         },
       },
       requirementFile: {

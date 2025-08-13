@@ -18,9 +18,6 @@ export default (db, DataTypes) => {
       aboutImage: {
         type: DataTypes.STRING,
         allowNull: true,
-        // validate: {
-        //   isUrl: true, // Assumes image is stored as a URL
-        // },
       },
       content: {
         type: DataTypes.TEXT,

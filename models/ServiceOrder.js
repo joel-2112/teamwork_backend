@@ -34,16 +34,10 @@ export default (db, DataTypes) => {
       phoneNumber1: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-          is: /^\+?[\d\s-]{10,}$/i,
-        },
       },
       phoneNumber2: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-          is: /^\+?[\d\s-]{10,}$/i,
-        },
       },
       sex: {
         type: DataTypes.ENUM(["male", "female", "other"]),

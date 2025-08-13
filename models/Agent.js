@@ -32,7 +32,7 @@ export default (db, DataTypes) => {
         allowNull: false,
         validate: {
           notEmpty: true,
-          len: [2, 100],
+          len: [2, 1000],
         },
       },
       agentType: {
@@ -68,10 +68,6 @@ export default (db, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-        validate: {
-          notEmpty: true,
-          is: /^[0-9+\-\s]{9,15}$/,
-        },
       },
       email: {
         type: DataTypes.STRING,

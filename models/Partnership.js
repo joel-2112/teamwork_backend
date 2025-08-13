@@ -53,9 +53,6 @@ export default (db, DataTypes) => {
       phoneNumber: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-          is: /^\+?[\d\s-]{10,}$/i, // Basic phone number validation
-        },
       },
       status: {
         type: DataTypes.ENUM(["pending", "reviewed", "accepted", "rejected", "cancelled"]),

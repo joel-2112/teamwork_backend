@@ -11,6 +11,16 @@ export const createUserFeedbackService = async (data) => {
   if (data.rating && (data.rating < 1 || data.rating > 5)) {
     throw new Error("Rating must be between 1 and 5");
   }
+
+  // validate email format if provided
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid email format",
+      data: null,
+    });
+  }
+  
   const existingFeedback = await UserFeedback.findOne({
     where: {
       email: data.email,
