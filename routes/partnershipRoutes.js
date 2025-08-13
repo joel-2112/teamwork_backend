@@ -14,7 +14,6 @@ import {
 } from "../controllers/partnershipController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
-router.post("/apply-partnership", protect, createPartnership);
 router.get(
   "/all-partnerships",
   protect,
@@ -33,6 +32,7 @@ router.put(
   requireRole("admin"),
   updatePartnershipStatus
 );
+router.post("/apply-partnership", protect, createPartnership);
 router.put("/update/:id", protect, updatePartnership);
 router.delete("/delete/:id", protect, deletePartnership);
 router.put("/cancel/:id", protect, cancelMyPartnershipRequest);

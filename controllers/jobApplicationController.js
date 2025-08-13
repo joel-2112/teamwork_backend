@@ -19,30 +19,25 @@ export const createJobApplication = async (req, res) => {
     const files = req.files || {};
 
     const data = { ...req.body };
-
-    // Assign temporary values for validation (real values will be set after DB creation)
     if (files.document && files.document.length > 0) {
-      data.resume = "placeholder-resume"; // satisfies validation
+      data.resume = "placeholder-resume"; 
     }
 
     if (files.coverLetter && files.coverLetter.length > 0) {
-      data.coverLetter = "placeholder-cover-letter"; // satisfies optional or required
+      data.coverLetter = "placeholder-cover-letter"; 
     }
-
-    // Step 1: Create DB record first
     const application = await createJobApplicationService(userId, data);
 
-    // Step 2: Upload URLs from Cloudinary response
     let resumeUrl = null;
     let coverLetterUrl = null;
 
     if (files.document && files.document.length > 0) {
-      resumeUrl = files.document[0].path; // Cloudinary URL
+      resumeUrl = files.document[0].path; 
       await application.update({ resume: resumeUrl });
     }
 
     if (files.coverLetter && files.coverLetter.length > 0) {
-      coverLetterUrl = files.coverLetter[0].path; // Cloudinary URL
+      coverLetterUrl = files.coverLetter[0].path; 
       await application.update({ coverLetter: coverLetterUrl });
     }
 
@@ -60,7 +55,6 @@ export const createJobApplication = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // Retrieve job application for one job by job id
 export const getApplicationsByJobId = async (req, res) => {

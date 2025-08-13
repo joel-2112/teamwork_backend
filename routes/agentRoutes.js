@@ -33,9 +33,6 @@ router.get(
   requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   getAllAgents
 );
-router.get("/agent/:id", protect, requireRole("admin"), getAgentById);
-
-router.delete("/delete/:id", protect, requireRole("admin"), deleteAgent);
 router.put(
   "/update-status/:id",
   protect,
@@ -48,6 +45,8 @@ router.get(
   requireRole("admin"),
   getAllDeletedAgent
 );
+router.get("/agent/:id", protect, requireRole("admin"), getAgentById);
+router.delete("/delete/:id", protect, requireRole("admin"), deleteAgent);
 router.get("/my-request", protect, getMyAgentRequest);
 router.get("/approved-agents", getAllApprovedAgents);
 router.put("/cancel:id", protect, cancelAgent);

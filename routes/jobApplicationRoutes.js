@@ -46,7 +46,6 @@ router.delete(
   requireRole("admin"),
   deleteJobApplication
 );
-router.get("/my-applications", protect, getAllMyJobApplication);
 router.get(
   "/application-stat",
   protect,
@@ -59,5 +58,7 @@ router.get(
   requireRole("admin"),
   countApplicationsPerJob
 );
+router.get("/my-applications", protect, getAllMyJobApplication);
+
 
 export default router;

@@ -23,7 +23,6 @@ import { validateRequest } from "../middlewares/validators/validateRequest.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
 
-// router.post('/register', register);
 router.post(
   "/create-admin",
   protect,
@@ -32,26 +31,27 @@ router.post(
   validateRequest,
   createAdminUser
 );
-router.get("/all-users", protect, requireRole("admin"), getAllUsers);
-router.get("/user/:id", protect, requireRole("admin"), getUserById);
-router.put("/update/:id", protect, requireRole("admin"), updateUser);
 router.put(
   "/update-status/:id",
   protect,
   requireRole("admin"),
   updateUserStatus
 );
-router.delete("/delete/:id", protect, requireRole("admin"), deleteUser);
-router.get("/user-stat", protect, requireRole("admin"), userStatistics);
-router.put("/change-password", protect, changePassword);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
-router.post("/verify-reset-otp", verifyPasswordResetOtp)
 router.put(
   "/update-profile",
   protect,
   cloudinaryUpload.single("profilePicture"),
   updateProfile
 );
+router.get("/all-users", protect, requireRole("admin"), getAllUsers);
+router.get("/user/:id", protect, requireRole("admin"), getUserById);
+router.put("/update/:id", protect, requireRole("admin"), updateUser);
+router.delete("/delete/:id", protect, requireRole("admin"), deleteUser);
+router.get("/user-stat", protect, requireRole("admin"), userStatistics);
+router.put("/change-password", protect, changePassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+router.post("/verify-reset-otp", verifyPasswordResetOtp)
+
 
 export default router;

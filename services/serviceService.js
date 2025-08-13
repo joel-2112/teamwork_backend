@@ -67,11 +67,10 @@ export const deleteServiceService = async (id) => {
   const service = await Service.findByPk(id);
   if (!service) throw new Error("Service not found");
 
-  // Check if this service is used in any service orders
   const existingOrder = await ServiceOrder.findOne({
     where: {
       serviceId: id,
-      isDeleted: false, // optional: exclude soft-deleted orders
+      isDeleted: false, 
     },
   });
 
@@ -81,6 +80,5 @@ export const deleteServiceService = async (id) => {
     );
   }
 
-  // Safe to delete
   return await service.destroy();
 };

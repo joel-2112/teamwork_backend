@@ -39,6 +39,7 @@ export const createJobApplicationService = async (userId, data) => {
   });
 };
 
+
 // Retrieve all applications for one job by jobId and change the status of application into reviewed
 export const getApplicationsByJobIdService = async (
   jobId,

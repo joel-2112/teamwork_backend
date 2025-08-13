@@ -12,12 +12,12 @@ import {
   orderStatistics,
 } from "../controllers/serviceOrderController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import upload from "../middlewares/upload.js";
+import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
 
 router.post(
   "/create-order",
   protect,
-  upload.single("requirementFile"),
+  cloudinaryUpload.single("requirementFile"),
   createServiceOrder
 );
 router.get(
@@ -32,21 +32,29 @@ router.get(
   requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   getOrderById
 );
-router.put("/update/:id", protect, updateOrder);
-router.delete("/delete/:id", protect, deleteOrder);
+router.put(
+  "/update/:id",
+  protect,
+  cloudinaryUpload.single("requirementFile"),
+  updateOrder
+);
 router.put(
   "/update-status/:id",
   protect,
   requireRole("admin"),
   updateServiceOrderStatus
 );
-router.put("/cancel-order/:id", protect, cancelOrder);
-router.get("/my-orders", protect, getMyOrders);
 router.get(
   "/order-stat",
   protect,
   requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   orderStatistics
 );
+router.put("/cancel-order/:id", protect, cancelOrder);
+router.get("/my-orders", protect, getMyOrders);
+router.delete("/delete/:id", protect, deleteOrder);
+
+
+
 
 export default router;

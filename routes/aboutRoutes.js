@@ -18,8 +18,6 @@ router.post(
   cloudinaryUpload.single("aboutImage"),
   createAbout
 );
-router.get("/all-abouts", getAllAbout);
-router.get("/about/:id", getAboutById);
 router.put(
   "/update/:id",
   protect,
@@ -28,5 +26,7 @@ router.put(
   updateAbout
 );
 router.delete("/delete/:id", protect, requireRole("admin"), deleteAbout);
+router.get("/all-abouts", getAllAbout);
+router.get("/about/:id", getAboutById);
 
 export default router;

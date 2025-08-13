@@ -26,7 +26,6 @@ router.post(
   requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin", "agent"),
   createReport
 );
-
 router.put(
   "/update/:id",
   protect,

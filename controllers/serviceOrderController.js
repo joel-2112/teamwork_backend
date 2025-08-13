@@ -16,47 +16,28 @@ import { Sequelize } from "sequelize";
 
 const { Region, Zone, Woreda } = db;
 
-// Create service order with requirement file
+
+// Make sure Cloudinary is already configured in cloudinaryUpload.js
 export const createServiceOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const file = req.file;
-    let requirementFilePath = null;
+    const file = req.file; 
 
-    // Extract data without file for validation
+    
     const data = { ...req.body };
 
-    if (file && file.fieldname === "document") {
-      // Temporarily set placeholder
-      data.requirementFile = "temp-path";
+    if (file) {
+      data.requirementFile = file.path; 
     }
 
     // Create order in DB
     const order = await createServiceOrderService(data, userId);
 
-    // Save file to disk if uploaded
-    if (file && file.fieldname === "requirementFile") {
-      const documentsDir = path.join("uploads", "documents");
-
-      if (!fs.existsSync(documentsDir)) {
-        fs.mkdirSync(documentsDir, { recursive: true });
-      }
-
-      const ext = path.extname(file.originalname);
-      const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-      requirementFilePath = path.join(documentsDir, fileName);
-
-      fs.writeFileSync(requirementFilePath, file.buffer);
-
-      const fileUrl = `${req.protocol}://${req.get("host")}/${requirementFilePath}`;
-      await order.update({ requirementFile: fileUrl });
-    }
-
-    // Fetch region/zone/woreda names
+    // Fetch region/zone/woreda names if applicable
     const [region, zone, woreda] = await Promise.all([
-      Region.findByPk(order.regionId),
-      Zone.findByPk(order.zoneId),
-      Woreda.findByPk(order.woredaId),
+      order.regionId ? Region.findByPk(order.regionId) : null,
+      order.zoneId ? Zone.findByPk(order.zoneId) : null,
+      order.woredaId ? Woreda.findByPk(order.woredaId) : null,
     ]);
 
     res.status(201).json({
@@ -83,6 +64,7 @@ export const createServiceOrder = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -143,11 +125,16 @@ export const updateOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
     const userId = req.user.id;
-    const order = await updateOrderService(orderId, userId, req.body);
+    const file = req.file; 
+
+    const data = { ...req.body };
+
+    const order = await updateOrderService(orderId, userId, data, file);
+
     res.status(200).json({
       success: true,
       message: "Order successfully updated.",
-      order: order,
+      order,
     });
   } catch (error) {
     console.error("Sequelize Error:", error.errors || error);
@@ -158,6 +145,8 @@ export const updateOrder = async (req, res) => {
     });
   }
 };
+
+
 
 export const deleteOrder = async (req, res) => {
   try {

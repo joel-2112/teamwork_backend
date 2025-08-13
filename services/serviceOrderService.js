@@ -5,6 +5,8 @@ import {
   sendOrderStatusUpdateEmail,
 } from "../utils/sendEmail.js";
 import moment from "moment";
+import { v2 as cloudinary } from "cloudinary";
+import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
 
 const { ServiceOrder, Region, Zone, Woreda, User, Service } = db;
 
@@ -13,11 +15,11 @@ export const createServiceOrderService = async (orderData, userId) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
 
-  // Create the service order
-  if (!orderData.serviceId) {
+  // Validate serviceId
+  if (!orderData.serviceId)
     throw new Error("Service ID is required to create a service order");
-  }
 
+  // Validate location data
   if (orderData.country === "Ethiopia") {
     const region = await Region.findByPk(orderData.regionId);
     if (!region) throw new Error("Invalid Region");
@@ -25,39 +27,33 @@ export const createServiceOrderService = async (orderData, userId) => {
     const zone = await Zone.findByPk(orderData.zoneId);
     if (!zone) throw new Error("Invalid Zone");
     if (orderData.regionId != zone.regionId) {
-      throw new Error(
-        ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
-      );
+      throw new Error(`Zone ${zone.name} is not in region ${region.name}`);
     }
 
     const woreda = await Woreda.findByPk(orderData.woredaId);
     if (!woreda) throw new Error("Invalid Woreda");
     if (orderData.zoneId != woreda.zoneId)
-      throw new Error(
-        `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
-      );
+      throw new Error(`Woreda ${woreda.name} is not in zone ${zone.name}`);
 
     orderData.manualRegion = null;
     orderData.manualZone = null;
     orderData.manualWoreda = null;
   } else {
-    if (!orderData.manualRegion) {
+    if (!orderData.manualRegion)
       throw new Error("Manual region is required for non-Ethiopian customers");
-    }
-    if (!orderData.manualZone) {
+    if (!orderData.manualZone)
       throw new Error("Manual zone is required for non-Ethiopian customers");
-    }
-    if (!orderData.manualWoreda) {
+    if (!orderData.manualWoreda)
       throw new Error(
         "Manual woreda/city is required for non-Ethiopian customers"
       );
-    }
+
     orderData.regionId = null;
     orderData.zoneId = null;
     orderData.woredaId = null;
   }
 
-  // Create the service order
+  // Create the service order in DB
   const newOrder = await ServiceOrder.create({
     ...orderData,
     userId: user.id,
@@ -187,7 +183,7 @@ export const getOrderByIdService = async (id) => {
 };
 
 // User can update their own order with only pending or reviewed status
-export const updateOrderService = async (orderId, userId, data) => {
+export const updateOrderService = async (orderId, userId, data, file) => {
   const order = await ServiceOrder.findByPk(orderId, {
     include: [
       { model: Region, as: "Region", required: false },
@@ -208,7 +204,8 @@ export const updateOrderService = async (orderId, userId, data) => {
     throw new Error("Only pending or reviewed orders can be updated");
   }
 
-  if (data.country === "Ethiopia") {
+  // Location validation
+  if (data.country && data.country === "Ethiopia") {
     if (data.regionId) {
       const region = await Region.findByPk(data.regionId);
       if (!region) throw new Error("Invalid Region");
@@ -225,7 +222,8 @@ export const updateOrderService = async (orderId, userId, data) => {
     data.manualRegion = null;
     data.manualZone = null;
     data.manualWoreda = null;
-  } else {
+  } 
+  if(data.country && data.country !== "Ethiopia") {
     if (!data.manualRegion)
       throw new Error("Manual region is required for non-Ethiopian customers");
     if (!data.manualZone)
@@ -236,6 +234,21 @@ export const updateOrderService = async (orderId, userId, data) => {
     data.regionId = null;
     data.zoneId = null;
     data.woredaId = null;
+  }
+
+  if (file) {
+    // Delete old file if it exists
+    if (order.requirementFile) {
+      const publicId = extractPublicIdFromUrl(order.requirementFile);
+      if (publicId) {
+        try {
+          await cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
+        } catch (err) {
+          console.error("Error deleting old Cloudinary file:", err.message);
+        }
+      }
+    }
+    data.requirementFile = file.requirementFile;
   }
 
   return await order.update(data);
