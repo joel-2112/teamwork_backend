@@ -2,7 +2,7 @@ import db from "../models/index.js";
 import moment from "moment";
 import { Op, fn, col, literal } from "sequelize";
 
-const { Report, User, Region, Zone, Woreda, Role } = db;
+const { Report, User, Region, Zone, Woreda, Role, Agent } = db;
 
 export const createReportService = async (data) => {
   const report = await Report.create(data);
@@ -10,6 +10,100 @@ export const createReportService = async (data) => {
 };
 
 // Retrieve all reports with pagination and filtration
+// export const getAllReportsService = async (
+//   user,
+//   page = 1,
+//   limit = 10,
+//   category,
+//   status,
+//   search,
+//   regionId,
+//   zoneId,
+//   woredaId
+// ) => {
+//   const offset = (page - 1) * limit;
+//   const where = { isDeleted: false };
+//   const userRole = user?.Role?.name;
+
+//   if (category) where.category = category;
+//   if (status) where.status = status;
+
+//   // Search filters
+//   if (search) {
+//     where[Op.or] = [
+//       { title: { [Op.iLike]: `%${search}%` } },
+//       { description: { [Op.iLike]: `%${search}%` } },
+//     ];
+//   }
+
+//   // Role-based access control
+//   let allowedReporterRoleName = null;
+
+//   if (userRole === "woredaAdmin") {
+//     where.woredaId = user.woredaId;
+//     allowedReporterRoleName = "agent";
+//   } else if (userRole === "zoneAdmin") {
+//     where.zoneId = user.zoneId;
+//     allowedReporterRoleName = "woredaAdmin";
+//   } else if (userRole === "regionAdmin") {
+//     where.regionId = user.regionId;
+//     allowedReporterRoleName = "zoneAdmin";
+//   } else if (userRole === "admin") {
+//     allowedReporterRoleName = "regionAdmin";
+//   }
+
+//   // Override geography filtering if explicitly provided
+//   if (regionId) where.regionId = regionId;
+//   if (zoneId) where.zoneId = zoneId;
+//   if (woredaId) where.woredaId = woredaId;
+
+//   // Get allowed roleId for creator filter
+//   let allowedReporterRoleId = null;
+//   if (allowedReporterRoleName) {
+//     const role = await Role.findOne({
+//       where: { name: allowedReporterRoleName },
+//     });
+//     if (role) {
+//       allowedReporterRoleId = role.id;
+//     }
+//   }
+
+//   // Query reports with filtering on the creator's role
+//   const { count, rows } = await Report.findAndCountAll({
+//     where,
+//     include: [
+//       { model: Region, as: "Region", required: false },
+//       { model: Zone, as: "Zone", required: false },
+//       { model: Woreda, as: "Woreda", required: false },
+//       {
+//         model: User,
+//         as: "reportedBy",
+//         attributes: [
+//           "id",
+//           "name",
+//           "email",
+//           "roleId",
+//           "regionId",
+//           "zoneId",
+//           "woredaId",
+//         ],
+//         where: allowedReporterRoleId ? { roleId: allowedReporterRoleId } : {},
+//         required: true,
+//       },
+//     ],
+//     limit: parseInt(limit),
+//     offset,
+//     distinct: true,
+//   });
+
+//   return {
+//     total: count,
+//     page: parseInt(page),
+//     limit: parseInt(limit),
+//     reports: rows,
+//   };
+// };
+
 export const getAllReportsService = async (
   user,
   page = 1,
@@ -36,20 +130,26 @@ export const getAllReportsService = async (
     ];
   }
 
-  // Role-based access control
-  let allowedReporterRoleName = null;
+  // role-based scope
+  let roleFilter = [];
+  let agentTypeFilter = null;
 
   if (userRole === "woredaAdmin") {
     where.woredaId = user.woredaId;
-    allowedReporterRoleName = "agent";
+    roleFilter = []; // only agent
+    agentTypeFilter = "Woreda";
   } else if (userRole === "zoneAdmin") {
     where.zoneId = user.zoneId;
-    allowedReporterRoleName = "woredaAdmin";
+    roleFilter = ["woredaAdmin"];
+    agentTypeFilter = "Zone";
   } else if (userRole === "regionAdmin") {
     where.regionId = user.regionId;
-    allowedReporterRoleName = "zoneAdmin";
+    roleFilter = ["zoneAdmin"];
+    agentTypeFilter = "Region";
   } else if (userRole === "admin") {
-    allowedReporterRoleName = "regionAdmin";
+    // admin sees across all regions
+    roleFilter = ["regionAdmin"];
+    agentTypeFilter = "Region";
   }
 
   // Override geography filtering if explicitly provided
@@ -57,20 +157,26 @@ export const getAllReportsService = async (
   if (zoneId) where.zoneId = zoneId;
   if (woredaId) where.woredaId = woredaId;
 
-  // Get allowed roleId for creator filter
-  let allowedReporterRoleId = null;
-  if (allowedReporterRoleName) {
-    const role = await Role.findOne({
-      where: { name: allowedReporterRoleName },
-    });
-    if (role) {
-      allowedReporterRoleId = role.id;
-    }
+  // Build OR filter for reporter
+  let reporterCondition = {};
+  if (roleFilter.length || agentTypeFilter) {
+    reporterCondition = {
+      [Op.or]: [
+        roleFilter.length
+          ? { "$reportedBy.Role.name$": { [Op.in]: roleFilter } }
+          : null,
+        agentTypeFilter
+          ? { "$reportedBy.Agent.agentType$": agentTypeFilter }
+          : null,
+      ].filter(Boolean),
+    };
   }
 
-  // Query reports with filtering on the creator's role
   const { count, rows } = await Report.findAndCountAll({
-    where,
+    where: {
+      ...where,
+      ...reporterCondition, // apply role/agentType filter properly
+    },
     include: [
       { model: Region, as: "Region", required: false },
       { model: Zone, as: "Zone", required: false },
@@ -87,7 +193,10 @@ export const getAllReportsService = async (
           "zoneId",
           "woredaId",
         ],
-        where: allowedReporterRoleId ? { roleId: allowedReporterRoleId } : {},
+        include: [
+          { model: Role, as: "Role", attributes: ["id", "name"] },
+          { model: Agent, as: "Agent", attributes: ["id", "agentType"] },
+        ],
         required: true,
       },
     ],
@@ -103,6 +212,7 @@ export const getAllReportsService = async (
     reports: rows,
   };
 };
+
 
 // Retrieve Reports by id
 export const getReportsByIdServices = async (id) => {
