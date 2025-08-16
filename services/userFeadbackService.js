@@ -13,7 +13,7 @@ export const createUserFeedbackService = async (data) => {
   }
 
   // validate email format if provided
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
     throw new Error("Invalid email format");
 
   const existingFeedback = await UserFeedback.findOne({

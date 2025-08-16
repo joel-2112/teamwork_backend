@@ -51,7 +51,6 @@ router.get("/user-stat", protect, requireRole("admin"), userStatistics);
 router.put("/change-password", protect, changePassword);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
-router.post("/verify-reset-otp", verifyPasswordResetOtp)
-
+router.post("/verify-reset-otp", verifyPasswordResetOtp);
 
 export default router;
