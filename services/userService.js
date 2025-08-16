@@ -140,14 +140,21 @@ export const createAdminUserService = async (data) => {
     for (const field of requiredFields) {
       if (!data[field]) throw new Error(`Missing required field: ${field}`);
     }
+
     const adminRole = await Role.findByPk(data.roleId);
     if (!adminRole) throw new Error("Admin role not found");
 
-    const allowedRoles = ["admin", "assistant", "regionAdmin", "zoneAdmin", "woredaAdmin"];
+    const allowedRoles = [
+      "admin",
+      "assistant",
+      "regionAdmin",
+      "zoneAdmin",
+      "woredaAdmin",
+    ];
 
     if (!allowedRoles.includes(adminRole.name)) {
       throw new Error(
-        "Please enter a valid role: admin, assistant, regionadmin, zoneAdmin, or woredaAdmin"
+        "Please enter a valid role: admin, assistant, regionAdmin, zoneAdmin, or woredaAdmin"
       );
     }
 
@@ -174,22 +181,22 @@ export const createAdminUserService = async (data) => {
       );
 
     if (data.regionId) {
-      const region = await Region.findByPk(data.regionId);
+      var region = await Region.findByPk(data.regionId);
       if (!region) throw new Error("Invalid Region");
     }
 
     if (data.zoneId) {
-      const zone = await Zone.findByPk(data.zoneId);
+      var zone = await Zone.findByPk(data.zoneId);
       if (!zone) throw new Error("Invalid Zone");
       if (data.regionId != zone.regionId) {
         throw new Error(
-          ` Zone ${zone.name} is not in region ${region.name} please enter correct zone.`
+          `Zone ${zone.name} is not in region ${region.name}, please enter correct zone.`
         );
       }
     }
 
     if (data.woredaId) {
-      const woreda = await Woreda.findByPk(data.woredaId);
+      var woreda = await Woreda.findByPk(data.woredaId);
       if (!woreda) throw new Error("Invalid Woreda");
       if (data.zoneId != woreda.zoneId)
         throw new Error(
@@ -198,7 +205,16 @@ export const createAdminUserService = async (data) => {
     }
 
     const existingUser = await User.findOne({ where: { email: data.email } });
+
     if (existingUser) {
+      const currentRole = await Role.findByPk(existingUser.roleId);
+
+      // 🚨 Prevent updating if user is already one of the allowed admin roles
+      if (currentRole && allowedRoles.includes(currentRole.name)) {
+        throw new Error(`User is already an ${currentRole.name}`);
+      }
+
+      // Otherwise, update role to new admin role
       existingUser.roleId = adminRole.id;
       existingUser.regionId = data.regionId;
       existingUser.zoneId = data.zoneId;
@@ -215,6 +231,7 @@ export const createAdminUserService = async (data) => {
     throw new Error(err.message || "Failed to create or update admin.");
   }
 };
+
 
 // Block user
 export const updateUserStatusService = async (id, status) => {
