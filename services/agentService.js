@@ -129,7 +129,7 @@ export const getAllAgentsService = async (
   user
 ) => {
   const { search, regionId, zoneId, woredaId, agentType, sex } = filters;
-  const where = { isDeleted: false, status: { [Op.ne]: "cancelled" } };
+  const where = { isDeleted: false, };
 
   if (search) {
     where[Op.or] = [
