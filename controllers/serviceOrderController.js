@@ -8,6 +8,7 @@ import {
   cancelOrderService,
   getMyOrdersService,
   ordersStatisticsService,
+  deleteMyOrderService
 } from "../services/serviceOrderService.js";
 import db from "../models/index.js";
 import path from "path";
@@ -154,6 +155,20 @@ export const deleteOrder = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user.id;
     await deleteOrderService(orderId, userId);
+    res
+      .status(200)
+      .json({ success: true, message: "Order deleted successfully." });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+
+export const deleteMyOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const userId = req.user.id;
+    await deleteMyOrderService(orderId, userId);
     res
       .status(200)
       .json({ success: true, message: "Order deleted successfully." });

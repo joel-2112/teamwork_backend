@@ -10,6 +10,7 @@ import {
   cancelOrder,
   getMyOrders,
   orderStatistics,
+  deleteMyOrder,
 } from "../controllers/serviceOrderController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
@@ -53,6 +54,7 @@ router.get(
 router.put("/cancel-order/:id", protect, cancelOrder);
 router.get("/my-orders", protect, getMyOrders);
 router.delete("/delete/:id", protect, deleteOrder);
+router.delete("/delete-order/:id", protect, deleteMyOrder)
 
 
 

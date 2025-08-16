@@ -279,6 +279,28 @@ export const deleteOrderService = async (orderId, userId) => {
   return order;
 };
 
+export const deleteMyOrderService = async (orderId, userId) => {
+  const order = await ServiceOrder.findByPk(orderId, {
+    where: { isDeleted: false, status: "cancelled" },
+  });
+  if (!order) throw new Error("Order not found");
+
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+
+  if (user.email !== order.email) {
+    throw new Error("You are not authorized to delete this order");
+  }
+
+  // Soft delete the order
+  order.isDeleted = true;
+  order.deletedBy = userId;
+  order.deleteAt = new Date();
+  await order.save();
+
+  return order;
+};
+
 // Update order status by ID
 export const updateOrderStatusService = async (id, status) => {
   const validStatuses = [
