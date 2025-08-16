@@ -80,7 +80,7 @@ export const getAllOrdersService = async (
   user
 ) => {
   const { search, status, regionId, zoneId, woredaId } = filters;
-  const baseWhere = { isDeleted: false };
+  const baseWhere = { isDeleted: false, status: { [Op.ne]: "cancelled" } };
 
   // Role-based filtering (affects both count and data)
   const userRole = user?.Role?.name;

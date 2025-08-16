@@ -232,7 +232,6 @@ export const createAdminUserService = async (data) => {
   }
 };
 
-
 // Block user
 export const updateUserStatusService = async (id, status) => {
   const user = await User.findByPk(id);

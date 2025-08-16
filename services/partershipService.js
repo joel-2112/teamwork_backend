@@ -91,7 +91,7 @@ export const getAllPartnershipsService = async ({
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = { isDeleted: false };
+  const where = { isDeleted: false, status: { [Op.ne]: "cancelled" } };
   if (status) where.status = status;
   if (abilityForPartnership)
     where.abilityForPartnership = abilityForPartnership;

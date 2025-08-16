@@ -112,7 +112,7 @@ export const getAllAgents = async (req, res) => {
 
     res.status(200).json({
       data: result.rows,
-      total: result.total, // ✅ now taken from service
+      total: result.total, 
       page: parseInt(page),
       totalPages: Math.ceil(result.count / limit),
     });
@@ -129,7 +129,7 @@ export const getAllAgentsService = async (
   user
 ) => {
   const { search, regionId, zoneId, woredaId, agentType, sex } = filters;
-  const where = { isDeleted: false };
+  const where = { isDeleted: false, status: { [Op.ne]: "cancelled" } };
 
   if (search) {
     where[Op.or] = [
