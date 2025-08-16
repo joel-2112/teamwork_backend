@@ -222,8 +222,8 @@ export const updateOrderService = async (orderId, userId, data, file) => {
     data.manualRegion = null;
     data.manualZone = null;
     data.manualWoreda = null;
-  } 
-  if(data.country && data.country !== "Ethiopia") {
+  }
+  if (data.country && data.country !== "Ethiopia") {
     if (!data.manualRegion)
       throw new Error("Manual region is required for non-Ethiopian customers");
     if (!data.manualZone)
@@ -242,13 +242,15 @@ export const updateOrderService = async (orderId, userId, data, file) => {
       const publicId = extractPublicIdFromUrl(order.requirementFile);
       if (publicId) {
         try {
-          await cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
+          await cloudinary.uploader.destroy(publicId, { resource_type: "raw" });
         } catch (err) {
           console.error("Error deleting old Cloudinary file:", err.message);
         }
       }
     }
-    data.requirementFile = file.requirementFile;
+
+    // Save new Cloudinary file URL
+    data.requirementFile = file.path;
   }
 
   return await order.update(data);
