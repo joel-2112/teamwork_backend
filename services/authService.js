@@ -5,6 +5,7 @@ import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpEMail } from "../utils/sendOTP.js";
 import redisClient from "../config/redisClient.js";
 import dotenv from "dotenv";
+import { where } from "sequelize";
 const { User, RefreshToken, Role, Partnership, Agent, Region, Zone, Woreda } =
   db;
 dotenv.config();
@@ -148,6 +149,15 @@ export const loginService = async ({ email, password }) => {
   const isValid = await user.validatePassword(password);
   if (!isValid) throw new Error("Invalid email or password");
 
+  let agentType = null;
+  if (user.Role.name === "agent") {
+    const agent = await Agent.findOne({
+      where: { userId: user.id, isDeleted: false },
+    });
+    if (!agent) throw new Error("Agent not found or deleted");
+    agentType = agent.agentType;
+  }
+
   // Generate tokens
   const accessToken = generateToken({ userId: user.id });
   const refreshToken = jwt.sign(
@@ -165,13 +175,14 @@ export const loginService = async ({ email, password }) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.Role.name, // <-- Include role name here
+      role: user.Role.name,
       profilePicture: user.profilePicture,
       phoneNumber: user.phoneNumber,
       status: user.status,
       region: user.Region?.name,
       zone: user.Zone?.name,
       woreda: user.Woreda?.name,
+      agentType: agentType,
     },
     accessToken,
     refreshToken,
@@ -226,6 +237,15 @@ export const checkAuthService = async (email) => {
 
   if (!user) throw new Error("User not found");
 
+  let agentType = null;
+  if (user.Role.name === "agent") {
+    const agent = await Agent.findOne({
+      where: { userId: user.id, isDeleted: false },
+    });
+    if (!agent) throw new Error("Agent not found or deleted");
+    agentType = agent.agentType;
+  }
+
   const accessToken = generateToken({ userId: user.id });
 
   return {
@@ -240,6 +260,7 @@ export const checkAuthService = async (email) => {
       region: user.Region?.name,
       zone: user.Zone?.name,
       Woreda: user.Woreda?.name,
+      agentType: agentType,
     },
     accessToken,
   };
