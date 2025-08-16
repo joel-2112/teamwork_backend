@@ -45,17 +45,21 @@ export default (db, DataTypes) => {
       email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
-        validate: {
-          isEmail: true,
-        },
+        unique: false, 
       },
+
       phoneNumber: {
         type: DataTypes.STRING,
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM(["pending", "reviewed", "accepted", "rejected", "cancelled"]),
+        type: DataTypes.ENUM([
+          "pending",
+          "reviewed",
+          "accepted",
+          "rejected",
+          "cancelled",
+        ]),
         allowNull: false,
         defaultValue: "pending",
       },

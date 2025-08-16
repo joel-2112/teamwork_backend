@@ -202,6 +202,28 @@ export const deletePartnershipService = async (partnershipId, userId) => {
   return partnership;
 };
 
+export const deleteMyPartnershipService = async (partnershipId, userId) => {
+  const partnership = await Partnership.findByPk(partnershipId, {
+    where: { isDeleted: false, status: "cancelled" },
+  });
+  if (!partnership) throw new Error("Partnership not found");
+
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+
+  if (user.email !== partnership.email) {
+    throw new Error("You are not authorized to delete this order");
+  }
+
+  // Soft delete the partnership
+  partnership.isDeleted = true;
+  partnership.deletedBy = userId;
+  partnership.deletedAt = new Date();
+  await partnership.save();
+
+  return partnership;
+};
+
 // update partnership status
 export const updatePartnershipStatusService = async (
   partnershipId,

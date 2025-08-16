@@ -8,6 +8,7 @@ import {
   getMyPartnershipsService,
   cancelMyPartnershipRequestService,
   allPartnershipService,
+  deleteMyPartnershipService
 } from "../services/partershipService.js";
 
 export const createPartnership = async (req, res) => {
@@ -107,6 +108,20 @@ export const deletePartnership = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+export const deleteMyPartnership = async (req, res) => {
+  try {
+    const partnershipId = req.params.id;
+    const userId = req.user.id;
+    await deleteMyPartnershipService(partnershipId, userId);
+    res
+      .status(200)
+      .json({ success: true, message: "Partnership deleted successfully." });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
 
 export const updatePartnershipStatus = async (req, res) => {
   try {

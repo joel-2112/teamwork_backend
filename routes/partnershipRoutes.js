@@ -11,6 +11,7 @@ import {
   getMyPartnerships,
   cancelMyPartnershipRequest,
   allPartnership,
+  deleteMyPartnership
 } from "../controllers/partnershipController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
@@ -35,6 +36,7 @@ router.put(
 router.post("/apply-partnership", protect, createPartnership);
 router.put("/update/:id", protect, updatePartnership);
 router.delete("/delete/:id", protect, deletePartnership);
+router.delete("/delete-partnership/:id", protect, deleteMyPartnership);
 router.put("/cancel/:id", protect, cancelMyPartnershipRequest);
 router.get("/my-partnerships", protect, getMyPartnerships);
 router.get("/all-partner", allPartnership);
