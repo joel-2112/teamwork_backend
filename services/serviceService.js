@@ -23,7 +23,7 @@ export const getAllServicesService = async ({
   search,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = { isDeleted: false };
+  const where = {};
   if (title) where.title = { [Op.iLike]: `%${title}%` };
   if (description) where.description = { [Op.iLike]: `%${description}%` };
   if (search) {
@@ -50,27 +50,27 @@ export const getAllServicesService = async ({
 
 // Retrieve a service by ID
 export const getServiceByIdService = async (id) => {
-  const service = await Service.findOne({ where: { id, isDeleted: false } });
+  const service = await Service.findByPk(id);
   if (!service) throw new Error("Service not found");
   return service;
 };
 
 // Update a service by ID
 export const updateServiceService = async (id, data) => {
-  const service = await Service.findOne({ where: { id, isDeleted: false } });
+  const service = await Service.findByPk(id);
   if (!service) throw new Error("Service not found");
   return await service.update(data);
 };
 
 // Delete service by ID with its associated images
 export const deleteServiceService = async (id) => {
-  const service = await Service.findOne({ where: { id, isDeleted: false } });
+  const service = await Service.findByPk(id);
   if (!service) throw new Error("Service not found");
 
   const existingOrder = await ServiceOrder.findOne({
     where: {
       serviceId: id,
-      isDeleted: false,
+      isDeleted: false, 
     },
   });
 
