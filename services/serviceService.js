@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import db from "../models/index.js";
-const { Service, Image } = db;
+const { Service, Image, ServiceOrder } = db;
 import fs from "fs";
 import path from "path";
 
