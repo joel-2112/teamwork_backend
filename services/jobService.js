@@ -34,6 +34,8 @@ export const getAllJobsService = async ({
   jobType,
   jobStatus,
   search,
+  sortBy = "createdAt", // default sorting field
+  sortOrder = "DESC",   // ASC or DESC
 } = {}) => {
   const offset = (page - 1) * limit;
   const where = { isDeleted: false };
@@ -50,27 +52,43 @@ export const getAllJobsService = async ({
     ];
   }
 
-  const { count, rows } = await Job.findAndCountAll({
-    where,
+  // Build order array dynamically
+  let order = [["createdAt", "DESC"]]; // default
+  if (sortBy === "applicationsCount") {
+    order = [[Sequelize.literal('"applicationsCount"'), sortOrder]];
+  } else {
+    order = [[sortBy, sortOrder]];
+  }
+
+const { count, rows } = await Job.findAndCountAll({
+  where,
+  include: [
+    {
+      model: JobApplication,
+      as: "applications",
+      required: false,
+      attributes: [
+        "id",
+        "applicantFullName",
+        "applicantEmail",
+        "status",
+        "createdAt",
+      ],
+    },
+  ],
+  attributes: {
     include: [
-      {
-        model: JobApplication,
-        as: "applications",
-        required: false,
-        attributes: [
-          "id",
-          "applicantFullName",
-          "applicantEmail",
-          "status",
-          "createdAt",
-        ],
-      },
+      [Sequelize.fn("COUNT", Sequelize.col("applications.id")), "applicationsCount"],
     ],
-    distinct: true,
-    order: [["createdAt", "DESC"]],
-    limit: parseInt(limit),
-    offset: parseInt(offset),
-  });
+  },
+  group: ["Job.id", "applications.id"], 
+  distinct: true,
+  order,
+  limit: parseInt(limit),
+  offset: parseInt(offset),
+  subQuery: false,
+});
+
 
   const totalJobs = await Job.count({ where: { isDeleted: false } });
 
@@ -81,6 +99,7 @@ export const getAllJobsService = async ({
     jobs: rows,
   };
 };
+
 
 // Service to retrieve job by id
 export const getJobByIdService = async (id) => {
