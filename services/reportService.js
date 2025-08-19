@@ -444,9 +444,7 @@ export const getAllDeletedReportsService = async (
 };
 
 // To send Report status in the overall company
-export const reportStatisticsService = async (user) => {
-  const userRole = user?.Role?.name;
-
+export const reportStatisticsService = async () => {
   // ==== Date Ranges ====
   const todayStart = moment().startOf("day").toDate();
   const todayEnd = moment().endOf("day").toDate();
@@ -454,60 +452,17 @@ export const reportStatisticsService = async (user) => {
   const monthEnd = moment().endOf("month").toDate();
 
   const weekRanges = Array.from({ length: 4 }, (_, i) => {
-    const start = moment(monthStart)
-      .add(i * 7, "days")
-      .startOf("day");
+    const start = moment(monthStart).add(i * 7, "days").startOf("day");
     const end =
       i === 3
         ? moment(monthEnd) // last week may not be exactly 7 days
-        : moment(monthStart)
-            .add(i * 7 + 6, "days")
-            .endOf("day");
+        : moment(monthStart).add(i * 7 + 6, "days").endOf("day");
     return { start: start.toDate(), end: end.toDate() };
   });
 
-  // ==== Role mapping ====
-  const reporterRoleMap = {
-    admin: "regionAdmin",
-    regionAdmin: "zoneAdmin",
-    zoneAdmin: "woredaAdmin",
-    woredaAdmin: "agent",
-  };
-
-  const allowedReporterRole = reporterRoleMap[userRole];
-  let allowedReporterRoleId = null;
-
-  if (allowedReporterRole) {
-    const role = await Role.findOne({
-      where: { name: allowedReporterRole },
-      attributes: ["id"],
-    });
-    allowedReporterRoleId = role?.id || null;
-  }
-
-  // ==== Base filters ====
-  const baseWhere = { isDeleted: false };
-  if (userRole === "regionAdmin") baseWhere.regionId = user.regionId;
-  if (userRole === "zoneAdmin") baseWhere.zoneId = user.zoneId;
-  if (userRole === "woredaAdmin") baseWhere.woredaId = user.woredaId;
-
-  // ==== Include for reporter role ====
-  const include = allowedReporterRoleId
-    ? [
-        {
-          model: User,
-          as: "reportedBy",
-          attributes: [],
-          where: { roleId: allowedReporterRoleId },
-          required: true,
-        },
-      ]
-    : [];
-
-  // ==== Single Aggregated Query ====
+  // ==== Aggregated Query (No role filters, no baseWhere) ====
   const results = await Report.findAll({
-    where: baseWhere,
-    include,
+    where: { isDeleted: false },
     attributes: [
       [fn("COUNT", col("Report.id")), "totalReports"],
       [
