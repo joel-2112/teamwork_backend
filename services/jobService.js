@@ -60,35 +60,28 @@ export const getAllJobsService = async ({
     order = [[sortBy, sortOrder]];
   }
 
-const { count, rows } = await Job.findAndCountAll({
-  where,
-  include: [
-    {
-      model: JobApplication,
-      as: "applications",
-      required: false,
-      attributes: [
-        "id",
-        "applicantFullName",
-        "applicantEmail",
-        "status",
-        "createdAt",
+  const { count, rows } = await Job.findAndCountAll({
+    where,
+    include: [
+      {
+        model: JobApplication,
+        as: "applications",
+        required: false,
+        attributes: [],
+      },
+    ],
+    attributes: {
+      include: [
+        [Sequelize.fn("COUNT", Sequelize.col("applications.id")), "applicationsCount"],
       ],
     },
-  ],
-  attributes: {
-    include: [
-      [Sequelize.fn("COUNT", Sequelize.col("applications.id")), "applicationsCount"],
-    ],
-  },
-  group: ["Job.id", "applications.id"], 
-  distinct: true,
-  order,
-  limit: parseInt(limit),
-  offset: parseInt(offset),
-  subQuery: false,
-});
-
+    group: ["Job.id"],
+    distinct: true,
+    order,
+    limit: parseInt(limit),
+    offset: parseInt(offset),
+    subQuery: false,
+  });
 
   const totalJobs = await Job.count({ where: { isDeleted: false } });
 
