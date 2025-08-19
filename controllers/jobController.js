@@ -31,8 +31,17 @@ export const createJob = async (req, res) => {
 // Retrieve all job
 export const getAllJobs = async (req, res) => {
   try {
-    const { page, limit, category, location, jobType, jobStatus, search } =
-      req.query;
+    const {
+      page,
+      limit,
+      category,
+      location,
+      jobType,
+      jobStatus,
+      search,
+      sortBy,
+      sortOrder,
+    } = req.query;
     const jobs = await getAllJobsService({
       page,
       limit,
@@ -41,6 +50,8 @@ export const getAllJobs = async (req, res) => {
       jobType,
       jobStatus,
       search,
+      sortBy,
+      sortOrder,
     });
 
     res.status(200).json({
@@ -178,13 +189,11 @@ export const getAllClosedJob = async (req, res) => {
 export const jobStatistics = async (req, res) => {
   try {
     const stats = await jobStatisticsService();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Job statistics sent successfully",
-        data: stats,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Job statistics sent successfully",
+      data: stats,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

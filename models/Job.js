@@ -29,7 +29,7 @@ export default (db, DataTypes) => {
       },
       salary: {
         type: DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       requirements: {
         type: DataTypes.TEXT,
