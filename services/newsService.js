@@ -3,7 +3,6 @@ import { Op } from "sequelize";
 import moment from "moment";
 import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
 import { v2 as cloudinary } from "cloudinary";
-
 const { News, User } = db;
 
 // service to create news
@@ -23,6 +22,10 @@ export const createNews = async (userId, data, checkOnly = false) => {
   }
 
   if (checkOnly) return null;
+
+  if(data.author === "other"){
+    if(!data.companyName) throw new Error("Company name is required for other authors");
+  }
 
   return await News.create({
     ...data,

@@ -14,7 +14,6 @@ import {
   getAllDeletedReportsService,
   reportStatisticsService
 } from "../services/reportService.js";
-
 const { Report, User } = db;
 
 export const createReport = async (req, res) => {

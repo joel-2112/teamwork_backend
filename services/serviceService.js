@@ -56,9 +56,23 @@ export const getServiceByIdService = async (id) => {
 };
 
 // Update a service by ID
-export const updateServiceService = async (id, data) => {
+export const updateServiceService = async (id, data, files) => {
   const service = await Service.findByPk(id);
   if (!service) throw new Error("Service not found");
+  // Replace image if new one uploaded
+  if (files?.imageUrl?.length > 0) {
+    data.imageUrl = files.imageUrl[0].path;
+  }
+
+  // Replace video if new one uploaded
+  if (files?.videoUrl?.length > 0) {
+    data.videoUrl = files.videoUrl[0].path;
+  }
+
+  // Replace document if new one uploaded
+  if (files?.fileUrl?.length > 0) {
+    data.fileUrl = files.fileUrl[0].path;
+  }
   return await service.update(data);
 };
 
@@ -70,7 +84,7 @@ export const deleteServiceService = async (id) => {
   const existingOrder = await ServiceOrder.findOne({
     where: {
       serviceId: id,
-      isDeleted: false, 
+      isDeleted: false,
     },
   });
 

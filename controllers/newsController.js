@@ -11,11 +11,18 @@ import {
 export const createNewsController = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { title, content, publishDate, category, author, deadline } =
-      req.body;
+    const {
+      title,
+      content,
+      publishDate,
+      category,
+      author,
+      deadline,
+      companyName,
+    } = req.body;
 
     // Check for duplicate news
-    await createNews(userId, { title, content }, true);
+    await createNews(userId, { title, content, author, companyName }, true);
 
     let imageUrl = null;
     if (req.file && req.file.path) {
@@ -30,6 +37,7 @@ export const createNewsController = async (req, res) => {
       category,
       author,
       deadline,
+      companyName,
     });
 
     res.status(201).json({

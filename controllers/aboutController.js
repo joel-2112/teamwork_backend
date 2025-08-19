@@ -51,7 +51,7 @@ export const createAbout = async (req, res) => {
     // Use Cloudinary-uploaded image
     let aboutImage = null;
     if (req.file && req.file.path) {
-      aboutImage = req.file.path; // Cloudinary URL
+      aboutImage = req.file.path; 
     }
 
     // Create the about entry

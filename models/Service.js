@@ -24,6 +24,18 @@ export default (db, DataTypes) => {
           len: [10, 5000],
         },
       },
+      imageUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      videoUrl: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      fileUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      }
     },
     {
       tableName: "services",

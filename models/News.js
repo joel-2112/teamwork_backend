@@ -43,6 +43,10 @@ export default (db, DataTypes) => {
         type: DataTypes.ENUM(["teamwork", "others"]),
         allowNull: false,
       },
+      companyName: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       deadline: {
         type: DataTypes.DATE,
         allowNull: false,

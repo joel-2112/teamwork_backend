@@ -39,7 +39,6 @@ export const createJobApplicationService = async (userId, data) => {
   });
 };
 
-
 // Retrieve all applications for one job by jobId and change the status of application into reviewed
 export const getApplicationsByJobIdService = async (
   jobId,
@@ -106,7 +105,7 @@ export const getApplicationByIdService = async (id) => {
 // Update only applied application status
 export const updateApplicationStatusService = async (id, status) => {
   const application = await JobApplication.findByPk(id, {
-    include: [{ model: Job, attributes: ["title"] }],
+    include: [{ model: Job, as: "Job", attributes: ["title"] }],
   });
 
   if (!application) throw new Error("Job application not found");
@@ -234,18 +233,21 @@ export const countApplicationsPerJobService = async () => {
       "title",
       "companyName",
       "jobStatus",
-      [Sequelize.fn("COUNT", Sequelize.col("applications.id")), "totalApplications"]
+      [
+        Sequelize.fn("COUNT", Sequelize.col("applications.id")),
+        "totalApplications",
+      ],
     ],
     include: [
       {
         model: JobApplication,
         as: "applications",
         attributes: [],
-        where: { isDeleted: false }, 
-        required: false, 
+        where: { isDeleted: false },
+        required: false,
       },
     ],
-    where: { isDeleted: false }, 
+    where: { isDeleted: false },
     group: ["Job.id"],
     raw: true,
   });

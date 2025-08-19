@@ -12,10 +12,31 @@ const { Image, Service } = db;
 export const createService = async (req, res) => {
   try {
     const { title, description } = req.body;
+    const files = req.files;
+
+    // Extract secure URLs from files uploaded to Cloudinary
+    let imageUrl = null;
+    let videoUrl = null;
+    let fileUrl = null;
+
+    if (files?.imageUrl?.length) {
+      imageUrl = files.imageUrl[0].path;
+    }
+
+    if (files?.videoUrl?.length) {
+      videoUrl = files.videoUrl[0].path;
+    }
+
+    if (files?.fileUrl?.length) {
+      fileUrl = files.fileUrl[0].path;
+    }
 
     const service = await createServiceService({
       title,
       description,
+      imageUrl,
+      videoUrl,
+      fileUrl,
     });
     res.status(201).json({
       success: true,
@@ -25,6 +46,9 @@ export const createService = async (req, res) => {
           id: service.id,
           title: service.title,
           description: service.description,
+          imageUrl: service.imageUrl,
+          videoUrl: service.videoUrl,
+          fileUrl: service.fileUrl,
           createdAt: service.createdAt,
           updatedAt: service.updatedAt,
         },
@@ -80,13 +104,13 @@ export const getServiceById = async (req, res) => {
 
 export const updateService = async (req, res) => {
   try {
-    const { title, description } = req.body;
     const serviceId = req.params.id;
 
-    const updatedService = await updateServiceService(serviceId, {
-      title,
-      description,
-    });
+    const updatedService = await updateServiceService(
+      serviceId,
+      req.body,
+      req.files
+    );
     return res.status(200).json({
       success: true,
       message: "Service updated successfully.",
@@ -101,12 +125,10 @@ export const updateService = async (req, res) => {
 export const deleteService = async (req, res) => {
   try {
     await deleteServiceService(req.params.id);
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: `Service with id ${req.params.id} is successfully deleted.`,
-      });
+    res.status(200).json({
+      success: true,
+      message: `Service with id ${req.params.id} is successfully deleted.`,
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }

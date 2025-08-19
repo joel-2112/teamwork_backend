@@ -28,12 +28,12 @@ const storage = new CloudinaryStorage({
 
     return {
       folder,
-      resource_type: "auto", // Detects type automatically (image, video, raw)
+      resource_type: "auto", 
       public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
-      type: "upload", // Ensures normal upload delivery
+      type: "upload", 
       access_control: [
         {
-          access_type: "anonymous", // Publicly accessible via CDN
+          access_type: "anonymous", 
         },
       ],
     };
