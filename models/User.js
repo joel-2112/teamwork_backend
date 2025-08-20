@@ -70,6 +70,23 @@ export default (db, DataTypes) => {
         references: { model: "woredas", key: "id" },
         allowNull: true,
       },
+      isDeleted: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      deletedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: "users",
+          key: "id",
+        },
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      }
     },
     {
       tableName: "users",

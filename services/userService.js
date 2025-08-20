@@ -7,7 +7,17 @@ import { sendPasswordResetOtpEmail } from "../utils/sendEmail.js";
 import redisClient from "../config/redisClient.js";
 import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
 
-const { User, Role, Partnership, Agent, Region, Zone, Woreda } = db;
+const {
+  User,
+  Role,
+  Partnership,
+  Agent,
+  Region,
+  Zone,
+  Woreda,
+  JobApplication,
+  ServiceOrder,
+} = db;
 
 export const getAllUsersService = async ({
   page = 1,
@@ -127,10 +137,25 @@ export const updateUserService = async (id, data) => {
   return await user.update(data);
 };
 
-export const deleteUserService = async (id) => {
-  const user = await User.findByPk(id);
-  if (!user) throw new Error("User not found");
-  return await user.destroy();
+export const deleteUserService = async (userId, user) => {
+  const userFound = await User.findByPk(userId);
+  if (!userFound) throw new Error("User not found");
+
+  const deletionData = {
+    isDeleted: true,
+    deletedBy: user.id, 
+    deletedAt: new Date(),
+  };
+
+  await JobApplication.update(deletionData, { where: { userId } });
+  await Partnership.update(deletionData, { where: { userId } });
+  await Agent.update(deletionData, { where: { userId } });
+  await ServiceOrder.update(deletionData, { where: { userId } });
+
+  // Finally soft delete the user itself
+  await User.update(deletionData, { where: { id: userId } });
+
+  return userFound;
 };
 
 // Service to enable admin create an other admin
