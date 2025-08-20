@@ -161,10 +161,14 @@ export const deleteUserService = async (userId, user) => {
 // Service to enable admin create an other admin
 export const createAdminUserService = async (data) => {
   try {
-    const requiredFields = ["name", "email", "password", "phoneNumber"];
+    const requiredFields = ["name", "email", "phoneNumber"];
     for (const field of requiredFields) {
       if (!data[field]) throw new Error(`Missing required field: ${field}`);
     }
+
+    // Take only the first word from the name
+    const firstName = data.name.split(" ")[0];
+    const defaultPassword = `${firstName}#1234`;
 
     const adminRole = await Role.findByPk(data.roleId);
     if (!adminRole) throw new Error("Admin role not found");
@@ -234,7 +238,7 @@ export const createAdminUserService = async (data) => {
     if (existingUser) {
       const currentRole = await Role.findByPk(existingUser.roleId);
 
-      // 🚨 Prevent updating if user is already one of the allowed admin roles
+      // Prevent updating if user is already one of the allowed admin roles
       if (currentRole && allowedRoles.includes(currentRole.name)) {
         throw new Error(`User is already an ${currentRole.name}`);
       }
@@ -249,13 +253,17 @@ export const createAdminUserService = async (data) => {
     }
 
     // Create a new admin user
-    const newUser = await User.create(data);
+    const newUser = await User.create({
+      ...data,
+      password: defaultPassword,
+    });
 
     return newUser;
   } catch (err) {
     throw new Error(err.message || "Failed to create or update admin.");
   }
 };
+
 
 // Block user
 export const updateUserStatusService = async (id, status) => {
