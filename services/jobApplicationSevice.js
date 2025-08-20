@@ -48,7 +48,7 @@ export const getApplicationsByJobIdService = async (
   if (!job) throw new Error("Job not found");
 
   const offset = (page - 1) * limit;
-  const where = { jobId };
+  const where = { jobId, isDeleted: false };
   if (status) where.status = status;
 
   // Fetch paginated applications
@@ -71,6 +71,7 @@ export const getApplicationsByJobIdService = async (
       {
         where: {
           id: appliedIds,
+          isDeleted: false,
         },
       }
     );
@@ -95,6 +96,7 @@ export const getApplicationsByJobIdService = async (
 // Retrieve application by id
 export const getApplicationByIdService = async (id) => {
   const application = await JobApplication.findByPk(id, {
+    where: { isDeleted: false },
     include: [{ model: Job, as: "Job" }],
   });
 
@@ -105,6 +107,7 @@ export const getApplicationByIdService = async (id) => {
 // Update only applied application status
 export const updateApplicationStatusService = async (id, status) => {
   const application = await JobApplication.findByPk(id, {
+    where: { isDeleted: false },
     include: [{ model: Job, as: "Job", attributes: ["title"] }],
   });
 
@@ -172,7 +175,7 @@ export const getAllMyJobApplicationService = async (userId) => {
 
   const userEmail = user.email;
   const applications = await JobApplication.findAll({
-    where: { applicantEmail: userEmail },
+    where: { applicantEmail: userEmail, isDeleted: false },
     include: [{ model: Job, as: "Job" }],
     order: [["createdAt", "DESC"]],
   });
@@ -195,7 +198,9 @@ export const getAllMyJobApplicationService = async (userId) => {
 
 // To send job application statistics
 export const applicationStatisticsService = async () => {
-  const totalApplication = await JobApplication.count();
+  const totalApplication = await JobApplication.count({
+    where: { isDeleted: false },
+  });
   const appliedApplication = await JobApplication.count({
     where: { status: "applied", isDeleted: false },
   });
@@ -224,6 +229,7 @@ export const applicationStatisticsService = async () => {
 
 export const countApplicationsPerJobService = async () => {
   const jobsWithCounts = await Job.findAll({
+    where: { isDeleted: false },
     attributes: [
       "id",
       "title",
