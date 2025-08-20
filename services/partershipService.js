@@ -21,14 +21,12 @@ export const createPartnershipService = async (userId, data) => {
   const checkAgentRequest = await Agent.findOne({
     where: {
       email: user.email,
-      agentStatus: {
-        [Op.ne]: "cancelled",
-      },
+      agentStatus: { [Op.ne]: "cancelled" },
     },
   });
   if (checkAgentRequest)
     throw new Error(
-      "User has already sent Agent request, can not send agent and partnership request at the same time"
+      "User has already sent Agent request, cannot send agent and partnership request at the same time"
     );
 
   if (data.abilityForPartnership === "other" && !data.abilityDescription) {
@@ -40,24 +38,16 @@ export const createPartnershipService = async (userId, data) => {
   const isExist = await Partnership.findOne({
     where: { userId: user.id, isDeleted: false },
   });
-  if (isExist) {
+  if (isExist)
     throw new Error(
       "You have already submitted a partnership request, Please wait for review."
     );
-  }
-
-  if (data.abilityForPartnership === "other" && !data.abilityDescription) {
-    throw new Error(
-      'Description is required when ability for Partnership is "other"'
-    );
-  }
 
   const checkPhone = await Partnership.findOne({
     where: { phoneNumber: data.phoneNumber, isDeleted: false },
   });
-  if (checkPhone) {
+  if (checkPhone)
     throw new Error("This phone number is already associated with an account");
-  }
 
   const partnership = await Partnership.create({
     ...data,
@@ -66,13 +56,15 @@ export const createPartnershipService = async (userId, data) => {
     email: user.email,
   });
 
+  // Update user role
   const role = await Role.findOne({ where: { name: "partner" } });
   if (!role) throw new Error("Partner role not found");
 
-  if (partnership.roleId !== role.id) {
-    partnership.roleId = role.id;
-    await partnership.save();
-  }
+  const userToUpdate = await User.findByPk(partnership.userId);
+  if (!userToUpdate) throw new Error("User not found after partnership creation");
+
+  userToUpdate.roleId = role.id;
+  await userToUpdate.save();
 
   await sendPartnershipRequestConfirmationEmail({
     userEmail: user.email,
@@ -81,6 +73,7 @@ export const createPartnershipService = async (userId, data) => {
 
   return partnership;
 };
+
 
 // get all partnerships with pagination, filtering, and searching
 export const getAllPartnershipsService = async ({
