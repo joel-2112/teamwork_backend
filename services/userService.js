@@ -31,7 +31,7 @@ export const getAllUsersService = async ({
   const offset = (parsedPage - 1) * parsedLimit;
 
   // Build filtered query for paginated results
-  const filteredWhere = {};
+  const filteredWhere = {isDeleted: false,};
   if (status) filteredWhere.status = status;
   if (roleId) filteredWhere.roleId = roleId;
   if (search) {
@@ -167,8 +167,7 @@ export const createAdminUserService = async (data) => {
     }
 
     // Take only the first word from the name
-    const firstName = data.name.split(" ")[0];
-    const defaultPassword = `${firstName}#1234`;
+    const defaultPassword = "Abcd#1234";
 
     const adminRole = await Role.findByPk(data.roleId);
     if (!adminRole) throw new Error("Admin role not found");

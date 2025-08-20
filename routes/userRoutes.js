@@ -27,8 +27,6 @@ router.post(
   "/create-admin",
   protect,
   requireRole("admin"),
-  createUserValidator,
-  validateRequest,
   createAdminUser
 );
 router.put(

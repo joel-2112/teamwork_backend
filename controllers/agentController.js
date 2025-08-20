@@ -18,7 +18,7 @@ export const createAgent = async (req, res) => {
 
     let profilePicture = null;
     if (req.file) {
-      profilePicture = req.file.path; // Cloudinary URL
+      profilePicture = req.file.path; 
     } else {
       return res.status(400).json({
         success: false,

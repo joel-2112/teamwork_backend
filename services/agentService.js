@@ -5,7 +5,6 @@ import {
   sendAgentStatusUpdateEmail,
 } from "../utils/sendEmail.js";
 import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
-
 const { Agent, Partnership, Woreda, Zone, Region, User, Role } = db;
 
 export const createAgentService = async (userId, data) => {
@@ -67,7 +66,6 @@ export const createAgentService = async (userId, data) => {
     fullName: user.name,
     phoneNumber,
     userId: user.id,
-    profilePicture,
   });
 
   user.profilePicture = profilePicture;
@@ -107,7 +105,7 @@ export const getAllAgents = async (req, res) => {
       parseInt(page),
       parseInt(limit),
       filters,
-      req.user // 👈 pass the logged-in user
+      req.user 
     );
 
     res.status(200).json({
