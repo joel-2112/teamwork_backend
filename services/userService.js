@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import db from "../models/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -42,7 +42,7 @@ export const getAllUsersService = async ({
   }
 
   // Base where for stats (should NOT include search or status filter)
-  const baseWhere = {};
+  const baseWhere = {isDeleted: false};
 
   // Get all required roles in one query
   const roles = await Role.findAll({
@@ -103,6 +103,7 @@ export const getAllUsersService = async ({
 
 export const getUserByIdService = async (id) => {
   const user = await User.findByPk(id, {
+    where: { isDeleted: false },
     include: [
       {
         model: Role,
@@ -128,22 +129,21 @@ export const getUserByIdService = async (id) => {
 };
 
 export const updateUserService = async (id, data) => {
-  const user = await User.findByPk(id);
+  const user = await User.findOne({where: {id, isDeleted: false}});
   if (!user) throw new Error("User not found");
-  if (data.email && data.email !== user.email) {
-    const existingUser = await User.findOne({ where: { email: data.email } });
-    if (existingUser) throw new Error("Email already exists");
-  }
+
   return await user.update(data);
 };
 
 export const deleteUserService = async (userId, user) => {
-  const userFound = await User.findByPk(userId);
+  const userFound = await User.findOne({
+    where: { id: userId, isDeleted: false },
+  });
   if (!userFound) throw new Error("User not found");
 
   const deletionData = {
     isDeleted: true,
-    deletedBy: user.id, 
+    deletedBy: user.id,
     deletedAt: new Date(),
   };
 
