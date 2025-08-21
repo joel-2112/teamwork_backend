@@ -8,21 +8,36 @@ import {
   getMyPartnershipsService,
   cancelMyPartnershipRequestService,
   allPartnershipService,
-  deleteMyPartnershipService
+  deleteMyPartnershipService,
 } from "../services/partershipService.js";
+import db from "../models/index.js";
+const { User } = db;
 
 export const createPartnership = async (req, res) => {
   try {
     const userId = req.user.id;
-        let profilePicture = null;
-    if (req.file) {
-      profilePicture = req.file.path; 
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    let profilePicture = null;
+
+    if (user.profilePicture) {
+      profilePicture = user.profilePicture;
+    } else if (req.file) {
+      profilePicture = req.file.path;
     } else {
       return res.status(400).json({
         success: false,
         message: "Profile picture is required.",
       });
     }
+
     const partnership = await createPartnershipService(userId, {
       ...req.body,
       profilePicture,
@@ -133,7 +148,6 @@ export const deleteMyPartnership = async (req, res) => {
     res.status(400).json({ success: false, error: error.message });
   }
 };
-
 
 export const updatePartnershipStatus = async (req, res) => {
   try {
