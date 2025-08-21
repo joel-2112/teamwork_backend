@@ -1,7 +1,8 @@
 import {
   createContactUsService,
   getContactUsByIdService,
-  getAllContactUsService
+  getAllContactUsService,
+  deleteContactUsService,
 } from "../services/contactUsService.js";
 
 export const createContactUs = async (req, res) => {
