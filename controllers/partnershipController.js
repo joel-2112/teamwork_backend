@@ -14,7 +14,19 @@ import {
 export const createPartnership = async (req, res) => {
   try {
     const userId = req.user.id;
-    const partnership = await createPartnershipService(userId, req.body);
+        let profilePicture = null;
+    if (req.file) {
+      profilePicture = req.file.path; 
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Profile picture is required.",
+      });
+    }
+    const partnership = await createPartnershipService(userId, {
+      ...req.body,
+      profilePicture,
+    });
     res.status(201).json({
       success: true,
       message: "Partnership request sent successfully",

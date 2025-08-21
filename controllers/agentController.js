@@ -12,6 +12,7 @@ import {
   cancelAgentService,
 } from "../services/agentService.js";
 
+
 export const createAgent = async (req, res) => {
   try {
     const userId = req.user.id;

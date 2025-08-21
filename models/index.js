@@ -22,6 +22,7 @@ import RoleModel from "./role.js";
 import ImageModel from "./images.js";
 import ReportModel from "./Report.js";
 import MessageModel from "./Message.js"
+import ContactUsModel from "./ContactUs.js";
 
 // Initialize models by passing db and DataTypes
 const Job = JobModel(db, DataTypes);
@@ -43,12 +44,14 @@ const Service = ServiceModel(db, DataTypes);
 const Role = RoleModel(db, DataTypes);
 const Image = ImageModel(db, DataTypes);
 const Report = ReportModel(db, DataTypes);
-const Message = MessageModel(db, DataTypes)
+const Message = MessageModel(db, DataTypes);
+const ContactUs = ContactUsModel(db, DataTypes);
 
 const models = {
   Event,
   Image,
   News,
+  ContactUs,
   Agent,
   Woreda,
   Region,

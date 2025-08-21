@@ -11,6 +11,7 @@ export const createAgentService = async (userId, data) => {
   const { regionId, zoneId, woredaId, phoneNumber, profilePicture, ...rest } =
     data;
 
+    
   const parsedRegionId = Number(regionId);
   const parsedZoneId = Number(zoneId);
   const parsedWoredaId = Number(woredaId);

@@ -4,7 +4,6 @@ import {
   sendPartnershipRequestConfirmationEmail,
   sendPartnershipStatusUpdateEmail,
 } from "../utils/sendEmail.js";
-
 const { Partnership, User, Role, Agent } = db;
 
 // send partnership request
@@ -56,12 +55,16 @@ export const createPartnershipService = async (userId, data) => {
     email: user.email,
   });
 
+  user.profilePicture = data.profilePicture;
+  await user.save();
+
   // Update user role
   const role = await Role.findOne({ where: { name: "partner" } });
   if (!role) throw new Error("Partner role not found");
 
   const userToUpdate = await User.findByPk(partnership.userId);
-  if (!userToUpdate) throw new Error("User not found after partnership creation");
+  if (!userToUpdate)
+    throw new Error("User not found after partnership creation");
 
   userToUpdate.roleId = role.id;
   await userToUpdate.save();
@@ -73,7 +76,6 @@ export const createPartnershipService = async (userId, data) => {
 
   return partnership;
 };
-
 
 // get all partnerships with pagination, filtering, and searching
 export const getAllPartnershipsService = async ({

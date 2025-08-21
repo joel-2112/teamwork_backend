@@ -11,9 +11,11 @@ import {
   getMyPartnerships,
   cancelMyPartnershipRequest,
   allPartnership,
-  deleteMyPartnership
+  deleteMyPartnership,
 } from "../controllers/partnershipController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
+import cloudinaryUpload from "../middlewares/cloudinaryUpload.js"; 
+
 
 router.get(
   "/all-partnerships",
@@ -33,7 +35,12 @@ router.put(
   requireRole("admin"),
   updatePartnershipStatus
 );
-router.post("/apply-partnership", protect, createPartnership);
+router.post(
+  "/apply-partnership",
+  protect,
+  cloudinaryUpload.single("profilePicture"),
+  createPartnership
+);
 router.put("/update/:id", protect, updatePartnership);
 router.delete("/delete/:id", protect, deletePartnership);
 router.delete("/delete-partnership/:id", protect, deleteMyPartnership);
