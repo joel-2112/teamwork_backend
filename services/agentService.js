@@ -438,6 +438,7 @@ export const getAllApprovedAgentsService = async ({
       { model: Region, as: "Region", required: false },
       { model: Zone, as: "Zone", required: false },
       { model: Woreda, as: "Woreda", required: false },
+      { model: User, attributes: ["profilePicture"], required: false },
     ],
     order: [["createdAt", "ASC"]],
     limit: parseInt(limit),

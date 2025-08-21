@@ -244,6 +244,9 @@ User.hasMany(Message, { foreignKey: "receiverId", as: "receivedMessages" });
 Message.belongsTo(User, { as: "Sender", foreignKey: "senderId" });
 Message.belongsTo(User, { as: "Receiver", foreignKey: "receiverId" });
 
+User.hasMany(ContactUs, { foreignKey: "deletedBy", as: "deletedContacts" });
+ContactUs.belongsTo(User, { foreignKey: "deletedBy", as: "deletedByUser" });
+
 
 export default {
   sequelize: db,
