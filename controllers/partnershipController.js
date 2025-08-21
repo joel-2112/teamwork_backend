@@ -42,7 +42,7 @@ export const createPartnership = async (req, res) => {
       ...req.body,
       profilePicture,
     });
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Partnership request sent successfully",
       partnership: partnership,
