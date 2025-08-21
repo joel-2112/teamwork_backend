@@ -5,12 +5,13 @@ import {
   getContactUsById,
   deleteContactUs,
 } from "../controllers/contactUsController.js";
+import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.post("/", createContactUs);
-router.get("/", getAllContactUs);
-router.get("/:id", getContactUsById);
-router.delete("/:id", deleteContactUs);
+router.get("/", protect, requireRole("admin"), getAllContactUs);
+router.get("/:id", protect, requireRole("admin"), getContactUsById);
+router.delete("/:id", protect, requireRole("admin"), deleteContactUs);
 
 export default router;
