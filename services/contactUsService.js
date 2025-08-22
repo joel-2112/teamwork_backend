@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
+import moment from "moment";
 
 const { ContactUs, User } = db;
 
@@ -12,6 +13,7 @@ export const getContactUsByIdService = async (id) => {
   const contactUs = await ContactUs.findByPk(id, {where: {isDeleted: false}});
   return contactUs;
 };
+
 
 export const getAllContactUsService = async (
   page = 1,
@@ -39,8 +41,55 @@ export const getAllContactUsService = async (
       offset: parseInt(offset),
     });
 
+
+    
+      // Full statistics (still respecting isDeleted)
+      const todayStart = moment().startOf("day").toDate();
+      const todayEnd = moment().endOf("day").toDate();
+    
+      const weekStart = moment().startOf("week").toDate();
+      const weekEnd = moment().endOf("week").toDate();
+    
+      const monthStart = moment().startOf("month").toDate();
+      const monthEnd = moment().endOf("month").toDate();
+
+      const totalContactUs = await ContactUs.count({ where: { isDeleted: false } });
+
+      const todayContactUs = await ContactUs.count({
+        where: {
+          isDeleted: false,
+          createdAt: {
+            [Op.gte]: todayStart,
+            [Op.lte]: todayEnd,
+          },
+        },
+      });
+
+      const weekContactUs = await ContactUs.count({
+        where: {
+          isDeleted: false,
+          createdAt: {
+            [Op.gte]: weekStart,
+            [Op.lte]: weekEnd,
+          },
+        },
+      });
+
+      const monthContactUs = await ContactUs.count({
+        where: {
+          isDeleted: false,
+          createdAt: {
+            [Op.gte]: monthStart,
+            [Op.lte]: monthEnd,
+          },
+        },
+      });
+
     return {
-      total: count,
+      totalMessages: totalContactUs,
+      todayMessages: todayContactUs,
+      thisWeekMessages: weekContactUs,
+      thisMonthMessages: monthContactUs,
       page: parseInt(page),
       limit: parseInt(limit),
       services: rows,

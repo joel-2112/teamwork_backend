@@ -18,6 +18,7 @@ export const createContactUs = async (req, res) => {
   }
 };
 
+
 export const getContactUsById = async (req, res) => {
   try {
     const contactUs = await getContactUsByIdService(req.params.id);
