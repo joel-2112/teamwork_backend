@@ -183,8 +183,13 @@ CustomerOrder.belongsTo(User, { foreignKey: "userId" });
 
 User.hasOne(Partnership, {
   foreignKey: "userId",
+  as: "partnership",
 });
-Partnership.belongsTo(User, { foreignKey: "userId" });
+
+Partnership.belongsTo(User, {
+  foreignKey: "userId",
+  as: "user",
+});
 
 User.hasMany(Partnership, {
   foreignKey: "deletedBy",

@@ -99,9 +99,14 @@ export const getAllPartnershipsService = async ({
 
   const { count, rows } = await Partnership.findAndCountAll({
     where,
-    include: [                                                                                                                                                                  
-      { model: User, attributes: ["profilePicture"], required: false },
-    ],
+    include: [
+    {
+      model: User,
+      as: "user", 
+      attributes: ["profilePicture"],
+      required: false,
+    },
+  ],
     order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
     offset: parseInt(offset),
@@ -130,6 +135,7 @@ export const getAllPartnershipsService = async ({
     partnerships: rows,
   };
 };
+
 
 // send all partnership for the public api
 export const allPartnershipService = async () => {
