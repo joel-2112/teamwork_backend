@@ -146,6 +146,7 @@ export const getPartnershipByIdService = async (id) => {
   return partnership;
 };
 
+
 // update partnership details
 export const updatePartnershipService = async (partnershipId, userId, data) => {
   const partnership = await Partnership.findByPk(partnershipId, {

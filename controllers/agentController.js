@@ -11,15 +11,27 @@ import {
   getAllApprovedAgentsService,
   cancelAgentService,
 } from "../services/agentService.js";
-
+import db from "../models/index.js";
+const { User } = db;
 
 export const createAgent = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
     let profilePicture = null;
-    if (req.file) {
-      profilePicture = req.file.path; 
+
+    if (user.profilePicture) {
+      profilePicture = user.profilePicture;
+    } else if (req.file) {
+      profilePicture = req.file.path;
     } else {
       return res.status(400).json({
         success: false,
@@ -67,12 +79,12 @@ export const getAllAgents = async (req, res) => {
       parseInt(page),
       parseInt(limit),
       filters,
-      req.user 
+      req.user
     );
 
     res.status(200).json({
       data: result.rows,
-      total: result.total, 
+      total: result.total,
       regionAgent: result.regionAgent,
       zoneAgent: result.zoneAgent,
       woredaAgent: result.woredaAgent,
