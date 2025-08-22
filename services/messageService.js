@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-import { Op, where } from "sequelize";
+import { Op, fn, col } from "sequelize";
 
 const { Message, User, Role } = db;
 
@@ -30,40 +30,55 @@ export const replyMessageService = async (senderId, receiverId, content) => {
 };
 
 export const getAllSendersService = async () => {
-  const assistant = await Role.findOne({where: {name: "assistant"}})
+  const assistant = await Role.findOne({ where: { name: "assistant" } });
+  if (!assistant) throw new Error("Assistant role not found");
+
+  // First, get all users who have sent messages to assistants
   const senders = await User.findAll({
     include: [
       {
         model: Message,
         as: "sentMessages",
-        attributes: [], // don't need message details
+        attributes: [],
+        required: true,
+        where: {
+          receiverId: { [Op.ne]: null },
+        },
       },
     ],
-    attributes: ["id", "name", "profilePicture", "email"], // adjust based on your User model
+    attributes: ["id", "name", "profilePicture", "email"],
     where: {
-      "$sentMessages.id$": { [Op.ne]: null }, // only users with at least one sent message
-      roleId: { [Op.ne]: assistant.id }, // exclude users with role 'assistant'
+      roleId: { [Op.ne]: assistant.id }, // exclude assistants
     },
-    group: ["User.id"], // ensure unique senders
+    group: ["User.id"],
   });
 
-  return senders;
+  // Then, for each sender, get their unread message count
+  const sendersWithUnreadCounts = await Promise.all(
+    senders.map(async (sender) => {
+      const unreadCount = await Message.count({
+        where: {
+          senderId: sender.id,
+          receiverId: { [Op.ne]: null },
+          isRead: false,
+        },
+      });
+
+      return {
+        ...sender.toJSON(),
+        unreadMessages: unreadCount,
+      };
+    })
+  );
+
+  // Sort by unread message count (descending)
+  return sendersWithUnreadCounts.sort(
+    (a, b) => b.unreadMessages - a.unreadMessages
+  );
 };
 
 export const getConversationService = async (currentUserId, otherUserId) => {
-  // First, mark all messages sent by the other user to the current user as read
-  await Message.update(
-    { isRead: true },
-    {
-      where: {
-        senderId: otherUserId,
-        receiverId: currentUserId,
-        isRead: false, // only update unread messages
-      },
-    }
-  );
-
-  // Then fetch the conversation
+  // Only fetch the conversation; do not auto-mark as read here
   const messages = await Message.findAll({
     where: {
       [Op.or]: [
@@ -75,4 +90,64 @@ export const getConversationService = async (currentUserId, otherUserId) => {
   });
 
   return messages;
+};
+
+// New service to mark messages as read for a specific user (for assistants)
+export const markMessagesAsReadService = async (assistantId, senderId) => {
+  const result = await Message.update(
+    { isRead: true },
+    {
+      where: {
+        senderId: senderId,
+        receiverId: assistantId,
+        isRead: false,
+      },
+    }
+  );
+
+  return result[0]; // Return number of updated rows
+};
+
+// New service to get unread message count for a specific user
+export const getUnreadMessageCountService = async (assistantId, senderId) => {
+  const count = await Message.count({
+    where: {
+      senderId: senderId,
+      receiverId: assistantId,
+      isRead: false,
+    },
+  });
+
+  return count;
+};
+
+// New service to get unread message count for regular users from assistants
+export const getUserUnreadMessageCountService = async (userId) => {
+  const assistant = await Role.findOne({ where: { name: "assistant" } });
+  if (!assistant) throw new Error("Assistant role not found");
+
+  const count = await Message.count({
+    where: {
+      senderId: { [Op.ne]: userId }, // messages not sent by the user
+      receiverId: userId,
+      isRead: false,
+    },
+  });
+
+  return count;
+};
+
+// New service to mark messages as read for regular users
+export const markUserMessagesAsReadService = async (userId) => {
+  const result = await Message.update(
+    { isRead: true },
+    {
+      where: {
+        receiverId: userId,
+        isRead: false,
+      },
+    }
+  );
+
+  return result[0]; // Return number of updated rows
 };

@@ -5,6 +5,10 @@ import {
   getConversationService,
   replyMessageService,
   getAllSendersService,
+  markMessagesAsReadService,
+  getUnreadMessageCountService,
+  getUserUnreadMessageCountService,
+  markUserMessagesAsReadService,
 } from "../services/messageService.js";
 const { Message, User, Role } = db;
 
@@ -50,6 +54,105 @@ export const getAllSenders = async (req, res) => {
       data: senders,
     });
   } catch (error) {
+    console.error("Error in getAllSenders:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// New controller to mark messages as read for a specific user (for assistants)
+export const markMessagesAsRead = async (req, res) => {
+  try {
+    const assistantId = req.user.id;
+    const senderId = parseInt(req.params.id);
+
+    if (!senderId) {
+      return res.status(400).json({
+        success: false,
+        message: "Sender ID is required",
+      });
+    }
+
+    const updatedCount = await markMessagesAsReadService(assistantId, senderId);
+
+    res.status(200).json({
+      success: true,
+      message: `Marked ${updatedCount} messages as read`,
+      updatedCount,
+    });
+  } catch (error) {
+    console.error("Error in markMessagesAsRead:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// New controller to get unread message count for a specific user (for assistants)
+export const getUnreadMessageCount = async (req, res) => {
+  try {
+    const assistantId = req.user.id;
+    const senderId = parseInt(req.params.id);
+
+    if (!senderId) {
+      return res.status(400).json({
+        success: false,
+        message: "Sender ID is required",
+      });
+    }
+
+    const count = await getUnreadMessageCountService(assistantId, senderId);
+
+    res.status(200).json({
+      success: true,
+      message: "Unread message count retrieved successfully",
+      count,
+    });
+  } catch (error) {
+    console.error("Error in getUnreadMessageCount:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// New controller to get unread message count for regular users
+export const getUserUnreadMessageCount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const count = await getUserUnreadMessageCountService(userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Unread message count retrieved successfully",
+      count,
+    });
+  } catch (error) {
+    console.error("Error in getUserUnreadMessageCount:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// New controller to mark messages as read for regular users
+export const markUserMessagesAsRead = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const updatedCount = await markUserMessagesAsReadService(userId);
+
+    res.status(200).json({
+      success: true,
+      message: `Marked ${updatedCount} messages as read`,
+      updatedCount,
+    });
+  } catch (error) {
+    console.error("Error in markUserMessagesAsRead:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -81,12 +184,10 @@ export const getConversation = async (req, res) => {
     if (currentUser.roleId === assistantRole.id) {
       // Logged-in user is an assistant → allow fetching conversation with any userId from params
       if (!req.params.id) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "User ID is required in params for assistant.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required in params for assistant.",
+        });
       }
       otherUserId = parseInt(req.params.id);
     } else {
