@@ -37,6 +37,7 @@ import roleRoute from "./routes/roleRoute.js"; // Fixed typo
 import reportRoute from "./routes/reportRoute.js";
 import messageRoute from "./routes/messageRoutes.js";
 import contactUsRoute from "./routes/countactUsRoute.js";
+import teamRoute from "./routes/teamRoute.js"
 import {
   replyMessageService,
   sendMessageService,
@@ -161,6 +162,7 @@ app.use("/api/v1/services", serviceRoutes);
 app.use("/api/v1/reports", reportRoute);
 app.use("/api/v1/messages", messageRoute);
 app.use("/api/v1/contact-us", contactUsRoute);
+app.use("/api/v1/teams", teamRoute);
 
 // Error handling middleware
 app.use(errorHandler);

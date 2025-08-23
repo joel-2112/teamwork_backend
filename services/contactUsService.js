@@ -22,7 +22,6 @@ export const getAllContactUsService = async (
   email,
   search
 ) => {
-  try {
     const offset = (page - 1) * limit;
     const where = { isDeleted: false };
     if (fullName) where.fullName = { [Op.iLike]: `%${fullName}%` };
@@ -94,9 +93,6 @@ export const getAllContactUsService = async (
       limit: parseInt(limit),
       services: rows,
     };
-  } catch (error) {
-    throw new Error(error);
-  }
 };
 
 

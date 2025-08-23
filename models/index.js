@@ -23,6 +23,7 @@ import ImageModel from "./images.js";
 import ReportModel from "./Report.js";
 import MessageModel from "./Message.js"
 import ContactUsModel from "./ContactUs.js";
+import TeamModel from "./Team.js"
 
 // Initialize models by passing db and DataTypes
 const Job = JobModel(db, DataTypes);
@@ -46,6 +47,7 @@ const Image = ImageModel(db, DataTypes);
 const Report = ReportModel(db, DataTypes);
 const Message = MessageModel(db, DataTypes);
 const ContactUs = ContactUsModel(db, DataTypes);
+const Team = TeamModel(db,DataTypes)
 
 const models = {
   Event,
@@ -68,7 +70,8 @@ const models = {
   Service,
   Role,
   Report,
-  Message
+  Message,
+  Team
 };
 
 // user and role relation

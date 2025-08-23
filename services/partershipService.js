@@ -100,13 +100,13 @@ export const getAllPartnershipsService = async ({
   const { count, rows } = await Partnership.findAndCountAll({
     where,
     include: [
-    {
-      model: User,
-      as: "user", 
-      attributes: ["profilePicture"],
-      required: false,
-    },
-  ],
+      {
+        model: User,
+        as: "user",
+        attributes: ["profilePicture"],
+        required: false,
+      },
+    ],
     order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
     offset: parseInt(offset),
@@ -136,10 +136,21 @@ export const getAllPartnershipsService = async ({
   };
 };
 
-
 // send all partnership for the public api
 export const allPartnershipService = async () => {
-  const partners = await Partnership.findAll({ where: { isDeleted: false } });
+  const where = {isDeleted: false}
+  const partners = await Partnership.findAndCountAll({
+    where,
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["profilePicture"],
+        required: false,
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+  });
 
   if (!partners || partners.length === 0) {
     throw new Error("No partners found.");
