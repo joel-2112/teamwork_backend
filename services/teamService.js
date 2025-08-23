@@ -56,7 +56,7 @@ export const updateTeamService = async (id, data) => {
 };
 
 export const deleteTeamService = async (userId, id) => {
-  const team = await Team.findByPk({ where: { id, isDeleted: false } });
+  const team = await Team.findOne({ where: { id, isDeleted: false } });
   if (!team) throw new Error("Team not found");
   const user = await User.findOne({ where: { id: userId, isDeleted: false } });
   if (!user) throw new Error("User not found");
