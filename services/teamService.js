@@ -27,7 +27,7 @@ export const getAllTeamService = async (
 
   const { count, rows } = await Team.findAndCountAll({
     where,
-    order: [["createdAt", "DESC"]],
+    order: [["createdAt", "ASC"]],
     limit: parseInt(limit),
     offset: parseInt(offset),
   });

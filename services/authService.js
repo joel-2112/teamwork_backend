@@ -27,14 +27,21 @@ export const sendOtpService = async ({
     throw new Error("Invalid email format");
 
   // Check if user already exists in DB
-  const existingUser = await User.findOne({ where: { email } });
-  if (existingUser) throw new Error("Email already exists");
+  const existingUser = await User.findOne({
+    where: { email },
+  });
+  if (existingUser && existingUser.isDeleted === false)
+    throw new Error("Email already exists");
+  if (existingUser && existingUser.isDeleted === true)
+    throw new Error(
+      "User with this email is banned, please report or register by other email"
+    );
 
   // Check if phone number is exist
   const checkPhone = await User.findOne({
     where: { phoneNumber: phoneNumber },
   });
-  if (checkPhone)
+  if (checkPhone && checkPhone.isDeleted === false)
     throw new Error("Already an account associated with this phone number.");
 
   // Generate OTP
@@ -71,7 +78,7 @@ export const verifyOtpService = async (email, inputOtp) => {
   const { name, password, phoneNumber } = JSON.parse(tempUserData);
 
   const phoneCheck = await User.findOne({
-    where: { phoneNumber: phoneNumber },
+    where: { phoneNumber: phoneNumber, isDeleted: false },
   });
   if (phoneCheck) throw new Error("This phone number is already exist.");
 
@@ -107,13 +114,8 @@ export const loginService = async ({ email, password }) => {
   if (!password) throw new Error("Missing required field: password");
 
   // validate email format if provided
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid email format",
-      data: null,
-    });
-  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    throw new Error("Invalid email format");
 
   // Fetch user and include their role
   const user = await User.findOne({
@@ -145,6 +147,9 @@ export const loginService = async ({ email, password }) => {
 
   if (user.status === "blocked")
     throw new Error("You have been blocked, so you can not login.");
+
+  if (user && user.isDeleted === true)
+    throw new Error("User with this email is banned, please report or register by other email");
 
   const isValid = await user.validatePassword(password);
   if (!isValid) throw new Error("Invalid email or password");
@@ -214,7 +219,7 @@ export const logoutService = async (refreshToken) => {
 // service to check the authentication of the user
 export const checkAuthService = async (email) => {
   const user = await User.findOne({
-    where: { email },
+    where: { email, isDeleted: false },
     include: [
       {
         model: Role,

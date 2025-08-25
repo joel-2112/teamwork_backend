@@ -83,17 +83,11 @@ export const updateTeam = async (req, res) => {
         .json({ success: false, message: "Team not found." });
     }
 
-    let imageUrl = null;
+    let imageUrl = team.imageUrl; 
 
-    if (team.imageUrl) {
-      imageUrl = team.imageUrl; 
-    } else if (req.file) {
+    // If a new file is uploaded, replace the old one
+    if (req.file) {
       imageUrl = req.file.path;
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: "Team member image is required.",
-      });
     }
 
     const updatedTeam = await updateTeamService(teamId, {
