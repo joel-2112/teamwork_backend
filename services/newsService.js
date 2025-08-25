@@ -23,8 +23,9 @@ export const createNews = async (userId, data, checkOnly = false) => {
 
   if (checkOnly) return null;
 
-  if(data.author === "other"){
-    if(!data.companyName) throw new Error("Company name is required for other authors");
+  if (data.author === "other") {
+    if (!data.companyName)
+      throw new Error("Company name is required for other authors");
   }
 
   return await News.create({
@@ -44,7 +45,12 @@ export const getAllNews = async ({
   byCompany,
 } = {}) => {
   const offset = (page - 1) * limit;
-  const where = { isDeleted: false };
+  const where = {
+    isDeleted: false,
+    publishDate: {
+      [Op.lte]: new Date(),
+    },
+  };
 
   // Filters
   if (title) where.title = title;
@@ -170,7 +176,6 @@ export const updateNews = async (id, data, file, req) => {
 
   return await news.update(data);
 };
-
 
 // Service to delete news by id
 // export const deleteNews = async (id) => {
