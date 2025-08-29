@@ -30,7 +30,7 @@ export const createPartnership = async (req, res) => {
     if (user.profilePicture) {
       profilePicture = user.profilePicture;
     } else if (req.file) {
-      profilePicture = req.file.path;
+      profilePicture = `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`;
     } else {
       return res.status(400).json({
         success: false,
@@ -42,10 +42,11 @@ export const createPartnership = async (req, res) => {
       ...req.body,
       profilePicture,
     });
+
     res.status(200).json({
       success: true,
       message: "Partnership request sent successfully",
-      partnership: partnership,
+      partnership,
     });
   } catch (error) {
     console.error("Sequelize Error:", error.errors || error);
@@ -139,8 +140,7 @@ export const deletePartnership = async (req, res) => {
 export const deleteMyPartnership = async (req, res) => {
   try {
     const partnershipId = req.params.id;
-    const userId = req.user.id;
-    await deleteMyPartnershipService(partnershipId, userId);
+    await deleteMyPartnershipService(partnershipId);
     res
       .status(200)
       .json({ success: true, message: "Partnership deleted successfully." });

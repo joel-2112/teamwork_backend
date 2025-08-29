@@ -1,7 +1,7 @@
 import db from "../models/index.js";
 import { Op, fn, col } from "sequelize";
 
-const { Message, User, Role } = db;
+const { Message, User, Role, Agent } = db;
 
 export const sendMessageService = async (senderId, content) => {
   const assistant = await Role.findOne({ where: { name: "assistant" } });
@@ -33,7 +33,6 @@ export const getAllSendersService = async () => {
   const assistant = await Role.findOne({ where: { name: "assistant" } });
   if (!assistant) throw new Error("Assistant role not found");
 
-  // First, get all users who have sent messages to assistants
   const senders = await User.findAll({
     include: [
       {
@@ -41,19 +40,31 @@ export const getAllSendersService = async () => {
         as: "sentMessages",
         attributes: [],
         required: true,
-        where: {
-          receiverId: { [Op.ne]: null },
-        },
+        where: { receiverId: { [Op.ne]: null } },
+      },
+      {
+        model: Role,
+        attributes: ["name"],
+      },
+      {
+        model: Agent,
+        as: "agents",
+        attributes: ["agentType"],
       },
     ],
-    attributes: ["id", "name", "profilePicture", "email"],
-    where: {
-      roleId: { [Op.ne]: assistant.id }, // exclude assistants
-    },
-    group: ["User.id"],
+    attributes: [
+      "id",
+      "name",
+      "profilePicture",
+      "email",
+      "regionId",
+      "zoneId",
+      "woredaId",
+    ],
+    where: { roleId: { [Op.ne]: assistant.id } },
+    group: ["User.id", "Role.id", "agents.id"],
   });
 
-  // Then, for each sender, get their unread message count
   const sendersWithUnreadCounts = await Promise.all(
     senders.map(async (sender) => {
       const unreadCount = await Message.count({
@@ -64,18 +75,28 @@ export const getAllSendersService = async () => {
         },
       });
 
+      const senderJson = sender.toJSON();
+
+      // If the sender's role is agent, keep their agents array; else, set to []
+      const agents =
+        senderJson.Role.name === "agent"
+          ? senderJson.Agents // keep whatever agentType(s) they have
+          : [];
+
       return {
-        ...sender.toJSON(),
+        ...senderJson,
+        Agents: agents,
         unreadMessages: unreadCount,
       };
     })
   );
 
-  // Sort by unread message count (descending)
   return sendersWithUnreadCounts.sort(
     (a, b) => b.unreadMessages - a.unreadMessages
   );
 };
+
+
 
 export const getConversationService = async (currentUserId, otherUserId) => {
   // Only fetch the conversation; do not auto-mark as read here

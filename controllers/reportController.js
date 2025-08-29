@@ -12,7 +12,7 @@ import {
   updateReportStatusService,
   deleteReportService,
   getAllDeletedReportsService,
-  reportStatisticsService
+  reportStatisticsService,
 } from "../services/reportService.js";
 const { Report, User } = db;
 
@@ -55,21 +55,21 @@ export const createReport = async (req, res) => {
       });
     }
 
-    // Extract secure URLs from files uploaded to Cloudinary
+    // Extract file URLs from multer local storage
     let imageUrl = null;
     let videoUrl = null;
     let fileUrl = null;
 
     if (files?.imageUrl?.length) {
-      imageUrl = files.imageUrl[0].path; // Cloudinary secure URL
+      imageUrl = `${req.protocol}://${req.get("host")}/${files.imageUrl[0].path.replace(/\\/g, "/")}`;
     }
 
     if (files?.videoUrl?.length) {
-      videoUrl = files.videoUrl[0].path; // Cloudinary secure URL
+      videoUrl = `${req.protocol}://${req.get("host")}/${files.videoUrl[0].path.replace(/\\/g, "/")}`;
     }
 
     if (files?.fileUrl?.length) {
-      fileUrl = files.fileUrl[0].path; // Cloudinary secure URL
+      fileUrl = `${req.protocol}://${req.get("host")}/${files.fileUrl[0].path.replace(/\\/g, "/")}`;
     }
 
     // Create report
@@ -96,7 +96,6 @@ export const createReport = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export const getAllReports = async (req, res) => {
   try {
@@ -157,7 +156,8 @@ export const updateReport = async (req, res) => {
       reportId,
       userId,
       req.body,
-      req.files
+      req.files,
+      req
     );
 
     res.status(200).json({
@@ -273,7 +273,6 @@ export const getDeletedReports = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export const reportStatistics = async (req, res) => {
   try {

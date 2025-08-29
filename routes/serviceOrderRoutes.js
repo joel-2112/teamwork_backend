@@ -13,12 +13,12 @@ import {
   deleteMyOrder,
 } from "../controllers/serviceOrderController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
+import upload from "../middlewares/upload.js"
 
 router.post(
   "/create-order",
   protect,
-  cloudinaryUpload.single("requirementFile"),
+  upload.single("requirementFile"), 
   createServiceOrder
 );
 router.get(
@@ -36,7 +36,7 @@ router.get(
 router.put(
   "/update/:id",
   protect,
-  cloudinaryUpload.single("requirementFile"),
+  upload.single("requirementFile"), 
   updateOrder
 );
 router.put(

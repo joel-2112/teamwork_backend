@@ -7,21 +7,21 @@ import {
   updateTeam,
 } from "../controllers/teamController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
+import upload from "../middlewares/upload.js";
 
 const router = express.Router();
 
 router.post(
   "/",
   protect,
-  cloudinaryUpload.single("imageUrl"),
+  upload.single("imageUrl"),
   requireRole("admin"),
   createTeam
 );
 router.put(
   "/:id",
   protect,
-  cloudinaryUpload.single("imageUrl"),
+  upload.single("imageUrl"),
   requireRole("admin"),
   updateTeam
 );

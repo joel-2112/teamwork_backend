@@ -12,12 +12,12 @@ import {
   getDeletedReports,
   reportStatistics,
 } from "../controllers/reportController.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
+import upload from "../middlewares/upload.js";
 const router = express.Router();
 
 router.post(
   "/create-report",
-  cloudinaryUpload.fields([
+  upload.fields([
     { name: "imageUrl", maxCount: 5 },
     { name: "videoUrl", maxCount: 3 },
     { name: "fileUrl", maxCount: 1 },
@@ -29,7 +29,7 @@ router.post(
 router.put(
   "/update/:id",
   protect,
-  cloudinaryUpload.fields([
+  upload.fields([
     { name: "imageUrl", maxCount: 5 },
     { name: "videoUrl", maxCount: 3 },
     { name: "fileUrl", maxCount: 1 },
@@ -54,7 +54,12 @@ router.put(
   requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
   updateReportStatus
 );
-router.delete("/delete/:id", protect, requireRole("admin"), deleteReport);
+router.delete(
+  "/delete/:id",
+  protect,
+  requireRole("admin", "regionAdmin", "zoneAdmin", "woredaAdmin"),
+  deleteReport
+);
 router.get(
   "/deleted-reports",
   protect,

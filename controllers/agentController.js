@@ -31,7 +31,7 @@ export const createAgent = async (req, res) => {
     if (user.profilePicture) {
       profilePicture = user.profilePicture;
     } else if (req.file) {
-      profilePicture = req.file.path;
+      profilePicture = `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`;
     } else {
       return res.status(400).json({
         success: false,

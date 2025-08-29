@@ -1,6 +1,8 @@
 import { Op } from "sequelize";
 import db from "../models/index.js";
 const { Team, User } = db;
+import fs from "fs";
+import path from "path";
 
 export const createTeamService = async (data) => {
   const team = await Team.create(data);
@@ -50,6 +52,23 @@ export const getTeamByIdService = async (id) => {
 export const updateTeamService = async (id, data) => {
   const team = await Team.findOne({ where: { id, isDeleted: false } });
   if (!team) throw new Error("Team not found.");
+
+  // Delete old image if a new one is provided
+  if (data.imageUrl && team.imageUrl) {
+    try {
+      const urlPath = new URL(team.imageUrl).pathname; 
+      const localPath = path.join(process.cwd(), urlPath.replace(/^\/+/, ""));
+
+      if (fs.existsSync(localPath)) {
+        fs.unlinkSync(localPath);
+        console.log("Deleted old team image:", localPath);
+      } else {
+        console.warn("Old team image not found:", localPath);
+      }
+    } catch (err) {
+      console.warn("Failed to delete old team image:", err.message);
+    }
+  }
 
   await team.update(data);
   return team;

@@ -21,9 +21,9 @@ import ServiceModel from "./Service.js";
 import RoleModel from "./role.js";
 import ImageModel from "./images.js";
 import ReportModel from "./Report.js";
-import MessageModel from "./Message.js"
+import MessageModel from "./Message.js";
 import ContactUsModel from "./ContactUs.js";
-import TeamModel from "./Team.js"
+import TeamModel from "./Team.js";
 
 // Initialize models by passing db and DataTypes
 const Job = JobModel(db, DataTypes);
@@ -47,7 +47,7 @@ const Image = ImageModel(db, DataTypes);
 const Report = ReportModel(db, DataTypes);
 const Message = MessageModel(db, DataTypes);
 const ContactUs = ContactUsModel(db, DataTypes);
-const Team = TeamModel(db,DataTypes)
+const Team = TeamModel(db, DataTypes);
 
 const models = {
   Event,
@@ -71,7 +71,7 @@ const models = {
   Role,
   Report,
   Message,
-  Team
+  Team,
 };
 
 // user and role relation
@@ -161,12 +161,6 @@ Event.hasMany(Image, {
   onDelete: "CASCADE",
 });
 Image.belongsTo(Event, { foreignKey: "eventId" });
-// Service.hasMany(Image, {
-//   foreignKey: "serviceId",
-//   as: "images",
-//   onDelete: "CASCADE",
-// });
-// Image.belongsTo(Service, { foreignKey: "serviceId" });
 User.hasMany(Agent, {
   foreignKey: "deletedBy",
 });
@@ -234,17 +228,17 @@ News.belongsTo(User, { foreignKey: "postedBy" });
 User.hasMany(News, { foreignKey: "deletedBy" });
 News.belongsTo(User, { foreignKey: "deletedBy" });
 
-User.hasOne(Agent, { foreignKey: "userId" });
+User.hasOne(Agent, { foreignKey: "userId", as: "agents" });
 Agent.belongsTo(User, { foreignKey: "userId" });
 
 User.hasMany(JobApplication, { foreignKey: "userId" });
 JobApplication.belongsTo(User, { foreignKey: "userId" });
 
-User.belongsTo(Region, { foreignKey: "regionId",})
+User.belongsTo(Region, { foreignKey: "regionId" });
 
-User.belongsTo(Zone, { foreignKey: "zoneId"})
+User.belongsTo(Zone, { foreignKey: "zoneId" });
 
-User.belongsTo(Woreda, { foreignKey: "woredaId"})
+User.belongsTo(Woreda, { foreignKey: "woredaId" });
 
 User.hasMany(Message, { foreignKey: "senderId", as: "sentMessages" });
 User.hasMany(Message, { foreignKey: "receiverId", as: "receivedMessages" });
@@ -254,7 +248,6 @@ Message.belongsTo(User, { as: "Receiver", foreignKey: "receiverId" });
 
 User.hasMany(ContactUs, { foreignKey: "deletedBy", as: "deletedContacts" });
 ContactUs.belongsTo(User, { foreignKey: "deletedBy", as: "deletedByUser" });
-
 
 export default {
   sequelize: db,

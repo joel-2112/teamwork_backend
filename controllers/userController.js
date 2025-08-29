@@ -12,7 +12,7 @@ import {
   resetPasswordService,
   updateProfileService,
 } from "../services/userService.js";
-import { getClientUrl } from "../utils/getClientUrl.js";
+
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -126,7 +126,7 @@ export const updateProfile = async (req, res) => {
     let updatedData = { ...req.body };
 
     if (req.file && req.file.path) {
-      updatedData.profilePicture = req.file.path;
+      updatedData.profilePicture = `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`;
     }
 
     const agent = await updateProfileService(user, updatedData);
@@ -136,6 +136,7 @@ export const updateProfile = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 
 // Step 1: Send OTP

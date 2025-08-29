@@ -14,8 +14,7 @@ import {
   deleteMyPartnership,
 } from "../controllers/partnershipController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js"; 
-
+import upload from "../middlewares/upload.js";
 
 router.get(
   "/all-partnerships",
@@ -38,7 +37,7 @@ router.put(
 router.post(
   "/apply-partnership",
   protect,
-  cloudinaryUpload.single("profilePicture"),
+  upload.single("profilePicture"),
   createPartnership
 );
 router.put("/update/:id", protect, updatePartnership);

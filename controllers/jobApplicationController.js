@@ -9,8 +9,7 @@ import {
   countApplicationsPerJobService,
 } from "../services/jobApplicationSevice.js";
 import { Sequelize } from "sequelize";
-import fs, { stat } from "fs";
-import path from "path";
+
 
 // Create ( apply for the job ) if the user with the same email and job is not applied
 export const createJobApplication = async (req, res) => {
@@ -19,42 +18,40 @@ export const createJobApplication = async (req, res) => {
     const files = req.files || {};
 
     const data = { ...req.body };
+
     if (files.document && files.document.length > 0) {
-      data.resume = "placeholder-resume"; 
+      // Use local file path as placeholder
+      data.resume = "placeholder-resume";
     }
 
     if (files.coverLetter && files.coverLetter.length > 0) {
-      data.coverLetter = "placeholder-cover-letter"; 
+      data.coverLetter = "placeholder-cover-letter";
     }
+
     const application = await createJobApplicationService(userId, data);
 
     let resumeUrl = null;
     let coverLetterUrl = null;
 
+    // Update resume URL from multer storage
     if (files.document && files.document.length > 0) {
-      resumeUrl = files.document[0].path; 
+      resumeUrl = `${req.protocol}://${req.get("host")}/${files.document[0].path.replace(/\\/g, "/")}`;
       await application.update({ resume: resumeUrl });
     }
 
+    // Update cover letter URL from multer storage
     if (files.coverLetter && files.coverLetter.length > 0) {
-      coverLetterUrl = files.coverLetter[0].path; 
+      coverLetterUrl = `${req.protocol}://${req.get("host")}/${files.coverLetter[0].path.replace(/\\/g, "/")}`;
       await application.update({ coverLetter: coverLetterUrl });
     }
 
     res.status(201).json({ success: true, data: application });
   } catch (error) {
-    if (
-      error instanceof Sequelize.UniqueConstraintError ||
-      error.name === "SequelizeUniqueConstraintError"
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already applied for this job.",
-      });
-    }
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ success: false, error: error.message });
   }
 };
+
+
 
 // Retrieve job application for one job by job id
 export const getApplicationsByJobId = async (req, res) => {

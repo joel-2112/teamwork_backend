@@ -138,7 +138,7 @@ export const getAllPartnershipsService = async ({
 
 // send all partnership for the public api
 export const allPartnershipService = async () => {
-  const where = {isDeleted: false}
+  const where = { isDeleted: false };
   const partners = await Partnership.findAndCountAll({
     where,
     include: [
@@ -197,22 +197,27 @@ export const updatePartnershipService = async (partnershipId, userId, data) => {
 };
 
 // delete partnership
-export const deletePartnershipService = async (partnershipId, userId) => {
+export const deletePartnershipService = async (partnershipId) => {
   const partnership = await Partnership.findOne({
     where: { id: partnershipId, isDeleted: false },
   });
   if (!partnership) throw new Error("Partnership not found");
 
-  const user = await User.findByPk(userId);
+  const user = await User.findOne({
+    where: { id: partnership.userId, isDeleted: false },
+  });
   if (!user) throw new Error("User not found");
 
-  if (partnership.email === user.email)
-    throw new Error("You can not delete your own partnership request");
+  const role = await Role.findOne({ where: { name: "user" } });
+  if (!role) throw new Error("User role not found");
 
   partnership.isDeleted = true;
   partnership.deletedAt = new Date();
   partnership.deletedBy = user.id;
   await partnership.save();
+
+  user.roleId = role.id;
+  await user.save();
 
   return partnership;
 };

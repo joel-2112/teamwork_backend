@@ -14,12 +14,15 @@ export const createTeam = async (req, res) => {
     if (!fullName || !title || !quote) {
       return res
         .status(400)
-        .json({ message: "Full name, image URL, and quote are required." });
+        .json({ message: "Full name, title, and quote are required." });
     }
 
     let imageUrl = null;
     const file = req.file;
-    imageUrl = file.path;
+
+    if (file) {
+      imageUrl = `${req.protocol}://${req.get("host")}/${file.path.replace(/\\/g, "/")}`;
+    }
 
     const newTeam = await createTeamService({
       fullName,
@@ -27,6 +30,7 @@ export const createTeam = async (req, res) => {
       imageUrl,
       quote,
     });
+
     return res.status(201).json({
       success: true,
       message: "Team created successfully.",
@@ -83,11 +87,10 @@ export const updateTeam = async (req, res) => {
         .json({ success: false, message: "Team not found." });
     }
 
-    let imageUrl = team.imageUrl; 
+    let imageUrl = team.imageUrl;
 
-    // If a new file is uploaded, replace the old one
     if (req.file) {
-      imageUrl = req.file.path;
+      imageUrl = `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`;
     }
 
     const updatedTeam = await updateTeamService(teamId, {
@@ -101,6 +104,7 @@ export const updateTeam = async (req, res) => {
       data: updatedTeam,
     });
   } catch (error) {
+    console.error("Update team error:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };

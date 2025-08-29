@@ -11,7 +11,6 @@ export const createAgentService = async (userId, data) => {
   const { regionId, zoneId, woredaId, phoneNumber, profilePicture, ...rest } =
     data;
 
-    
   const parsedRegionId = Number(regionId);
   const parsedZoneId = Number(zoneId);
   const parsedWoredaId = Number(woredaId);
@@ -106,12 +105,12 @@ export const getAllAgents = async (req, res) => {
       parseInt(page),
       parseInt(limit),
       filters,
-      req.user 
+      req.user
     );
 
     res.status(200).json({
       data: result.rows,
-      total: result.total, 
+      total: result.total,
       page: parseInt(page),
       totalPages: Math.ceil(result.count / limit),
     });
@@ -128,7 +127,7 @@ export const getAllAgentsService = async (
   user
 ) => {
   const { search, regionId, zoneId, woredaId, agentType, sex } = filters;
-  const where = { isDeleted: false, };
+  const where = { isDeleted: false };
 
   if (search) {
     where[Op.or] = [
@@ -183,6 +182,7 @@ export const getAllAgentsService = async (
       { model: Zone, as: "Zone", required: false },
       { model: Woreda, as: "Woreda", required: false },
     ],
+    order: [["createdAt", "ASC"]],
   });
 
   return { rows, count, total, regionAgent, zoneAgent, woredaAgent };
@@ -355,11 +355,20 @@ export const cancelAgentService = async (agentId, userId) => {
 export const deleteAgentService = async (userId, agentId) => {
   const agent = await Agent.findByPk(agentId, { where: { isDeleted: false } });
   if (!agent) throw new Error("Agent not found");
+  const user = await User.findOne({
+    where: { id: agent.userId, isDeleted: false },
+  });
+  if (!user) throw new Error("User not found");
+  const role = await Role.findOne({ where: { name: "user" } });
+  if (!role) throw new Error("Role not found");
 
   agent.isDeleted = true;
   agent.deletedBy = userId;
   agent.deletedAt = new Date();
   await agent.save();
+
+  user.roleId = role.id;
+  await user.save();
 
   return agent;
 };

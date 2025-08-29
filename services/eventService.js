@@ -24,7 +24,7 @@ export const getAllEvents = async ({
   description,
   location,
   search,
-  status, 
+  status,
 } = {}) => {
   const offset = (page - 1) * limit;
 
@@ -88,18 +88,19 @@ export const getAllEvents = async ({
   }
 
   // Apply pagination AFTER filtering
-  const paginatedEvents = eventsWithStatus.slice(offset, offset + parseInt(limit));
+  const paginatedEvents = eventsWithStatus.slice(
+    offset,
+    offset + parseInt(limit)
+  );
 
   return {
-    total, 
-    totalFiltered: eventsWithStatus.length, 
+    total,
+    totalFiltered: eventsWithStatus.length,
     page: parseInt(page),
     limit: parseInt(limit),
     Events: paginatedEvents,
   };
 };
-
-
 
 // Retrieve event by id
 export const getEventById = async (id) => {
@@ -137,38 +138,6 @@ export const updateEvent = async (
     eventDate,
   });
 };
-
-// Delete event by id with its image from uploads/assets directory
-// export const deleteEvent = async (id) => {
-//   const event = await Event.findByPk(id, {
-//     include: [{ model: Image, as: "images" }],
-//   });
-
-//   if (!event) throw new Error("Event not found");
-
-//   // Delete all associated images
-//   await Promise.all(
-//     event.images.map(async (img) => {
-//       const imagePath = path.join(
-//         process.cwd(),
-//         "uploads/assets",
-//         path.basename(img.imageUrl)
-//       );
-//       try {
-//         await fs.promises.unlink(imagePath);
-//         console.log(`Deleted image file: ${imagePath}`);
-//       } catch (err) {
-//         console.error(`Error deleting image file: ${err.message}`);
-//       }
-
-//       // Remove image record from DB
-//       await img.destroy();
-//     })
-//   );
-
-//   // Finally delete the event itself
-//   return await event.destroy();
-// };
 
 export const deleteEvent = async (eventId, userId) => {
   const user = await User.findByPk(userId);

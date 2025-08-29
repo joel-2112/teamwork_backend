@@ -1,12 +1,39 @@
-// upload.js
+// middlewares/upload.js
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const memoryStorage = multer.memoryStorage();
+// Ensure directories exist
+const ensureDir = (dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+};
 
-const fileFilter = (req, file, cb) => {
-const imageTypes = [
+// Configure storage with dynamic destination
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    let folder = "uploads/documents"; // Default
+
+    if (file.mimetype.startsWith("image/")) {
+      folder = "uploads/images";
+    } else if (file.mimetype.startsWith("video/")) {
+      folder = "uploads/videos";
+    }
+
+    ensureDir(folder);
+    cb(null, folder);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    cb(null, `${Date.now()}-${baseName}${ext}`);
+  },
+});
+
+// Allowed file types
+const allowedMimeTypes = [
+  // Images
   "image/jpeg",
   "image/jpg",
   "image/png",
@@ -16,9 +43,7 @@ const imageTypes = [
   "image/bmp",
   "image/tiff",
   "image/x-icon",
-];
-
-const videoTypes = [
+  // Videos
   "video/mp4",
   "video/mpeg",
   "video/ogg",
@@ -27,10 +52,8 @@ const videoTypes = [
   "video/x-msvideo",
   "video/x-ms-wmv",
   "video/3gpp",
-  "application/octet-stream",  // Add this line
-];
-
-const docTypes = [
+  "application/octet-stream",
+  // Documents
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -43,29 +66,23 @@ const docTypes = [
   "application/vnd.oasis.opendocument.text",
 ];
 
-
-  if (
-    (["picture", "pictures", "aboutImage", "profilePicture", "imageUrl"].includes(file.fieldname) &&
-      imageTypes.includes(file.mimetype)) ||
-    (["videoUrl", "videos"].includes(file.fieldname) && videoTypes.includes(file.mimetype)) ||
-    (["document", "coverLetter", "requirementFile", "fileUrl"].includes(file.fieldname) && docTypes.includes(file.mimetype))
-
-  ) {
+// File filter
+const fileFilter = (req, file, cb) => {
+  if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file type for " + file.fieldname), false);
+    cb(new Error("Unsupported file type: " + file.mimetype), false);
   }
 };
 
+// Multer middleware
 const upload = multer({
-  storage: memoryStorage,
+  storage,
   fileFilter,
   limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB
 });
 
 export default upload;
-
-
 
 // // upload.js
 // import multer from "multer";

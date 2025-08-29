@@ -1,6 +1,7 @@
 import db from "../models/index.js";
 import moment from "moment";
 import { Op, fn, col, literal } from "sequelize";
+import fs from "fs";
 
 const { Report, User, Region, Zone, Woreda, Role, Agent } = db;
 
@@ -8,101 +9,6 @@ export const createReportService = async (data) => {
   const report = await Report.create(data);
   return report;
 };
-
-// Retrieve all reports with pagination and filtration
-// export const getAllReportsService = async (
-//   user,
-//   page = 1,
-//   limit = 10,
-//   category,
-//   status,
-//   search,
-//   regionId,
-//   zoneId,
-//   woredaId
-// ) => {
-//   const offset = (page - 1) * limit;
-//   const where = { isDeleted: false };
-//   const userRole = user?.Role?.name;
-
-//   if (category) where.category = category;
-//   if (status) where.status = status;
-
-//   // Search filters
-//   if (search) {
-//     where[Op.or] = [
-//       { title: { [Op.iLike]: `%${search}%` } },
-//       { description: { [Op.iLike]: `%${search}%` } },
-//     ];
-//   }
-
-//   // Role-based access control
-//   let allowedReporterRoleName = null;
-
-//   if (userRole === "woredaAdmin") {
-//     where.woredaId = user.woredaId;
-//     allowedReporterRoleName = "agent";
-//   } else if (userRole === "zoneAdmin") {
-//     where.zoneId = user.zoneId;
-//     allowedReporterRoleName = "woredaAdmin";
-//   } else if (userRole === "regionAdmin") {
-//     where.regionId = user.regionId;
-//     allowedReporterRoleName = "zoneAdmin";
-//   } else if (userRole === "admin") {
-//     allowedReporterRoleName = "regionAdmin";
-//   }
-
-//   // Override geography filtering if explicitly provided
-//   if (regionId) where.regionId = regionId;
-//   if (zoneId) where.zoneId = zoneId;
-//   if (woredaId) where.woredaId = woredaId;
-
-//   // Get allowed roleId for creator filter
-//   let allowedReporterRoleId = null;
-//   if (allowedReporterRoleName) {
-//     const role = await Role.findOne({
-//       where: { name: allowedReporterRoleName },
-//     });
-//     if (role) {
-//       allowedReporterRoleId = role.id;
-//     }
-//   }
-
-//   // Query reports with filtering on the creator's role
-//   const { count, rows } = await Report.findAndCountAll({
-//     where,
-//     include: [
-//       { model: Region, as: "Region", required: false },
-//       { model: Zone, as: "Zone", required: false },
-//       { model: Woreda, as: "Woreda", required: false },
-//       {
-//         model: User,
-//         as: "reportedBy",
-//         attributes: [
-//           "id",
-//           "name",
-//           "email",
-//           "roleId",
-//           "regionId",
-//           "zoneId",
-//           "woredaId",
-//         ],
-//         where: allowedReporterRoleId ? { roleId: allowedReporterRoleId } : {},
-//         required: true,
-//       },
-//     ],
-//     limit: parseInt(limit),
-//     offset,
-//     distinct: true,
-//   });
-
-//   return {
-//     total: count,
-//     page: parseInt(page),
-//     limit: parseInt(limit),
-//     reports: rows,
-//   };
-// };
 
 export const getAllReportsService = async (
   user,
@@ -213,7 +119,6 @@ export const getAllReportsService = async (
   };
 };
 
-
 // Retrieve Reports by id
 export const getReportsByIdServices = async (id) => {
   const where = { id: id, isDeleted: false };
@@ -239,9 +144,14 @@ export const getReportsByIdServices = async (id) => {
   return report;
 };
 
-
 // User update their own report only in the pending status
-export const updateReportService = async (reportId, userId, data, files) => {
+export const updateReportService = async (
+  reportId,
+  userId,
+  data,
+  files,
+  req
+) => {
   const report = await Report.findOne({
     where: { id: reportId, isDeleted: false },
   });
@@ -258,17 +168,39 @@ export const updateReportService = async (reportId, userId, data, files) => {
 
   // Replace image if new one uploaded
   if (files?.imageUrl?.length > 0) {
-    data.imageUrl = files.imageUrl[0].path;
+    // Delete old local file if exists
+    if (report.imageUrl) {
+      const oldPath = report.imageUrl.replace(
+        `${req.protocol}://${req.get("host")}/`,
+        ""
+      );
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+    data.imageUrl = `${req.protocol}://${req.get("host")}/${files.imageUrl[0].path.replace(/\\/g, "/")}`;
   }
 
   // Replace video if new one uploaded
   if (files?.videoUrl?.length > 0) {
-    data.videoUrl = files.videoUrl[0].path;
+    if (report.videoUrl) {
+      const oldPath = report.videoUrl.replace(
+        `${req.protocol}://${req.get("host")}/`,
+        ""
+      );
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+    data.videoUrl = `${req.protocol}://${req.get("host")}/${files.videoUrl[0].path.replace(/\\/g, "/")}`;
   }
 
   // Replace document if new one uploaded
   if (files?.fileUrl?.length > 0) {
-    data.fileUrl = files.fileUrl[0].path;
+    if (report.fileUrl) {
+      const oldPath = report.fileUrl.replace(
+        `${req.protocol}://${req.get("host")}/`,
+        ""
+      );
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+    data.fileUrl = `${req.protocol}://${req.get("host")}/${files.fileUrl[0].path.replace(/\\/g, "/")}`;
   }
 
   const updatedReport = await report.update(data);
@@ -391,9 +323,6 @@ export const deleteReportService = async (reportId, userId) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
 
-  if (user.id === report.createdBy)
-    throw new Error("You not authorized to delete your own reports");
-
   report.isDeleted = true;
   report.deletedBy = user.id;
   report.deletedAt = new Date();
@@ -452,11 +381,15 @@ export const reportStatisticsService = async () => {
   const monthEnd = moment().endOf("month").toDate();
 
   const weekRanges = Array.from({ length: 4 }, (_, i) => {
-    const start = moment(monthStart).add(i * 7, "days").startOf("day");
+    const start = moment(monthStart)
+      .add(i * 7, "days")
+      .startOf("day");
     const end =
       i === 3
         ? moment(monthEnd) // last week may not be exactly 7 days
-        : moment(monthStart).add(i * 7 + 6, "days").endOf("day");
+        : moment(monthStart)
+            .add(i * 7 + 6, "days")
+            .endOf("day");
     return { start: start.toDate(), end: end.toDate() };
   });
 

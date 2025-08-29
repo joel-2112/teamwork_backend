@@ -1,13 +1,13 @@
 import { Op } from "sequelize";
 import db from "../models/index.js";
-import { v2 as cloudinary } from "cloudinary";
-import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
+import fs from "fs";
 const { About, User } = db;
 
 // Create about with image
 export const createAboutService = async (userId, data, checkOnly = false) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
+
   const existingAbout = await About.findOne({
     where: {
       title: data.title,
@@ -73,18 +73,21 @@ export const updateAboutService = async (id, data, file, req) => {
   const about = await About.findOne({ where: { id, isDeleted: false } });
   if (!about) throw new Error("About not found");
 
-  // Handle Cloudinary image update
+  // Handle multer local storage image update
   if (file && file.path) {
-    // Delete old image from Cloudinary
+    // Delete old local image
     if (about.aboutImage) {
-      const publicId = extractPublicIdFromUrl(about.aboutImage);
-      if (publicId) {
-        await cloudinary.uploader.destroy(publicId);
+      const oldPath = about.aboutImage.replace(
+        `${req.protocol}://${req.get("host")}/`,
+        ""
+      );
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
       }
     }
 
-    // Assign new image URL from Cloudinary
-    data.aboutImage = file.path;
+    // Assign new image URL from multer
+    data.aboutImage = `${req.protocol}://${req.get("host")}/${file.path.replace(/\\/g, "/")}`;
   }
 
   // Handle values update
@@ -118,104 +121,13 @@ export const updateAboutService = async (id, data, file, req) => {
   return await about.update(data);
 };
 
-// Update about section by id
-// export const updateAboutService = async (id, data, file, req) => {
-//   const about = await About.findByPk(id);
-//   if (!about) throw new Error("About not found");
-
-//   // Handle image replacement if a new image is uploaded
-//   if (file) {
-//     // Delete old image if it exists
-//     if (about.aboutImage) {
-//       const oldImagePath = path.join(
-//         "uploads/assets",
-//         path.basename(about.aboutImage)
-//       );
-//       if (fs.existsSync(oldImagePath)) {
-//         fs.unlinkSync(oldImagePath);
-//       }
-//     }
-
-//     // Save new image
-//     const uniqueName = `picture-${Date.now()}${path.extname(file.originalname)}`;
-//     const savedPath = saveImageToDisk(file.buffer, uniqueName);
-
-//     // Set new image URL
-//     data.aboutImage = `${req.protocol}://${req.get("host")}/uploads/assets/${uniqueName}`;
-//   }
-
-//   // Handle values merging
-//   let currentValues = Array.isArray(about.values) ? about.values : [];
-
-//   if (data.values && typeof data.values === "string") {
-//     try {
-//       data.values = JSON.parse(data.values);
-//     } catch (err) {
-//       throw new Error("Invalid JSON format for values");
-//     }
-//   }
-
-//   if (Array.isArray(data.values)) {
-//     const updates = data.values;
-
-//     // Merge values
-//     const mergedValues = currentValues.map((existingVal) => {
-//       const update = updates.find((val) => val.title === existingVal.title);
-//       if (update) {
-//         return {
-//           title: update.title || existingVal.title,
-//           description: update.description || existingVal.description,
-//         };
-//       }
-//       return existingVal;
-//     });
-
-//     // Add new entries that don't exist yet
-//     updates.forEach((val) => {
-//       const exists = mergedValues.some((v) => v.title === val.title);
-//       if (!exists && val.title && val.description) {
-//         mergedValues.push({
-//           title: val.title,
-//           description: val.description,
-//         });
-//       }
-//     });
-
-//     data.values = mergedValues;
-//   }
-
-//   return await about.update(data);
-// };
-
-// Delete about section by id
-// export const deleteAboutService = async (id) => {
-//   const about = await About.findByPk(id);
-//   if (!about) throw new Error("About not found");
-
-//   // Delete associated image if it exists
-//   if (about.aboutImage) {
-//     const imagePath = path.join(
-//       process.cwd(),
-//       "uploads/assets",
-//       path.basename(about.aboutImage)
-//     );
-//     try {
-//       await fs.promises.unlink(imagePath);
-//       console.log(`Deleted image file: ${imagePath}`);
-//     } catch (err) {
-//       console.error(`Error deleting image file: ${err.message}`);
-//     }
-//   }
-
-//   // Delete the about record from DB
-//   return await about.destroy();
-// };
-
 export const deleteAboutService = async (aboutId, userId) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found.");
 
-  const about = await About.findOne({ where: { id: aboutId, isDeleted: false } });
+  const about = await About.findOne({
+    where: { id: aboutId, isDeleted: false },
+  });
   if (!about) throw new Error("About not found or already deleted.");
 
   about.isDeleted = true;

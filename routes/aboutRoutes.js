@@ -8,21 +8,21 @@ import {
   updateAbout,
   deleteAbout,
 } from "../controllers/aboutController.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
+import upload from "../middlewares/upload.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 
 router.post(
   "/create-about",
   protect,
   requireRole("admin"),
-  cloudinaryUpload.single("aboutImage"),
+  upload.single("aboutImage"),
   createAbout
 );
 router.put(
   "/update/:id",
   protect,
   requireRole("admin"),
-  cloudinaryUpload.single("aboutImage"),
+  upload.single("aboutImage"),
   updateAbout
 );
 router.delete("/delete/:id", protect, requireRole("admin"), deleteAbout);

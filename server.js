@@ -37,7 +37,7 @@ import roleRoute from "./routes/roleRoute.js"; // Fixed typo
 import reportRoute from "./routes/reportRoute.js";
 import messageRoute from "./routes/messageRoutes.js";
 import contactUsRoute from "./routes/countactUsRoute.js";
-import teamRoute from "./routes/teamRoute.js"
+import teamRoute from "./routes/teamRoute.js";
 import {
   replyMessageService,
   sendMessageService,
@@ -49,13 +49,12 @@ const port = process.env.PORT || 5000;
 
 app.use("/uploads", express.static(path.resolve("uploads")));
 
-
 // Create HTTP server
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*",   
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -80,10 +79,11 @@ io.on("connection", (socket) => {
       content
     );
 
-
-
-    io.to(replyMessage.dataValues.receiverId).emit("receive_message",  replyMessage.dataValues );
-    io.to(socket.userId).emit("receive_message",  replyMessage.dataValues );
+    io.to(replyMessage.dataValues.receiverId).emit(
+      "receive_message",
+      replyMessage.dataValues
+    );
+    io.to(socket.userId).emit("receive_message", replyMessage.dataValues);
   });
 
   // Handle socket events (e.g., receiving messages)
@@ -93,14 +93,14 @@ io.on("connection", (socket) => {
 
     const sendMessage = await sendMessageService(senderId, content);
 
-
-
     console.log("send Message :", sendMessage);
 
     // io.to(receiverId).emit("receive_message", { content: replyMessage });
     io.to(socket.userId).emit("receive_message", sendMessage.dataValues);
-    io.to(sendMessage.dataValues.receiverId).emit("receive_message",  sendMessage.dataValues);
-    
+    io.to(sendMessage.dataValues.receiverId).emit(
+      "receive_message",
+      sendMessage.dataValues
+    );
   });
 
   socket.on("disconnect", () => {
@@ -130,7 +130,6 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 // Routes
 app.get("/", (req, res) => {
@@ -186,4 +185,3 @@ const startServer = async () => {
 };
 
 startServer();
-

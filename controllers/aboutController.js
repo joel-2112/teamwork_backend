@@ -48,10 +48,10 @@ export const createAbout = async (req, res) => {
     // Check for existing about section
     await createAboutService(userId, { title, content }, true);
 
-    // Use Cloudinary-uploaded image
+    // Use multer local storage for image
     let aboutImage = null;
     if (req.file && req.file.path) {
-      aboutImage = req.file.path; 
+      aboutImage = `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`;
     }
 
     // Create the about entry
@@ -119,6 +119,7 @@ export const updateAbout = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 
 // export const updateAbout = async (req, res) => {

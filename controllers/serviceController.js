@@ -14,21 +14,21 @@ export const createService = async (req, res) => {
     const { title, description } = req.body;
     const files = req.files;
 
-    // Extract secure URLs from files uploaded to Cloudinary
     let imageUrl = null;
     let videoUrl = null;
     let fileUrl = null;
 
+    // Build full URLs for uploaded files
     if (files?.imageUrl?.length) {
-      imageUrl = files.imageUrl[0].path;
+      imageUrl = `${req.protocol}://${req.get("host")}/${files.imageUrl[0].path.replace(/\\/g, "/")}`;
     }
 
     if (files?.videoUrl?.length) {
-      videoUrl = files.videoUrl[0].path;
+      videoUrl = `${req.protocol}://${req.get("host")}/${files.videoUrl[0].path.replace(/\\/g, "/")}`;
     }
 
     if (files?.fileUrl?.length) {
-      fileUrl = files.fileUrl[0].path;
+      fileUrl = `${req.protocol}://${req.get("host")}/${files.fileUrl[0].path.replace(/\\/g, "/")}`;
     }
 
     const service = await createServiceService({
@@ -38,6 +38,7 @@ export const createService = async (req, res) => {
       videoUrl,
       fileUrl,
     });
+
     res.status(201).json({
       success: true,
       message: "Service created successfully.",
@@ -68,6 +69,7 @@ export const createService = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getAllServices = async (req, res) => {
   try {
@@ -109,8 +111,10 @@ export const updateService = async (req, res) => {
     const updatedService = await updateServiceService(
       serviceId,
       req.body,
-      req.files
+      req.files,
+      req 
     );
+
     return res.status(200).json({
       success: true,
       message: "Service updated successfully.",
@@ -121,6 +125,7 @@ export const updateService = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 export const deleteService = async (req, res) => {
   try {

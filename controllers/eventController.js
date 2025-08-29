@@ -8,6 +8,8 @@ import {
 } from "../services/eventService.js";
 import db from "../models/index.js";
 import { Sequelize } from "sequelize";
+import fs from "fs";
+import path from "path";
 import { v2 as cloudinary } from "cloudinary";
 import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
 
@@ -35,10 +37,13 @@ export const createEventController = async (req, res) => {
       eventDate,
     });
 
-    // Save images linked to event, using Cloudinary URLs from multer
+    // Save images linked to event, using multer local storage URLs
     const imageRecords = await Promise.all(
       files.map((file) =>
-        Image.create({ eventId: event.id, imageUrl: file.path })
+        Image.create({
+          eventId: event.id,
+          imageUrl: `${req.protocol}://${req.get("host")}/${file.path.replace(/\\/g, "/")}`,
+        })
       )
     );
 
@@ -70,6 +75,8 @@ export const createEventController = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
 
 // To get all event with pagination and filtering if it is necessary
 export const getAllEventsController = async (req, res) => {
@@ -117,7 +124,7 @@ export const updateEventController = async (req, res) => {
     const { title, description, eventDate, location } = req.body;
     const eventId = req.params.id;
 
-    // Get existing Cloudinary image URLs from the form (those to retain)
+    // Existing image URLs to retain
     let incomingImages = req.body.images || [];
     if (typeof incomingImages === "string") {
       incomingImages = [incomingImages];
@@ -148,14 +155,12 @@ export const updateEventController = async (req, res) => {
       (img) => !keepImageUrls.includes(img.imageUrl)
     );
 
-    // Delete from Cloudinary and DB
+    // Delete from local storage and DB
     await Promise.all(
       deleteImages.map(async (img) => {
-        const publicId = extractPublicIdFromUrl(img.imageUrl);
-        if (publicId && img.imageUrl.startsWith("http")) {
-          await cloudinary.uploader.destroy(publicId, {
-            resource_type: "image",
-          });
+        const filePath = img.imageUrl.replace(`${req.protocol}://${req.get("host")}/`, "");
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath); // remove local file
         }
         await img.destroy(); // DB delete
       })
@@ -169,12 +174,12 @@ export const updateEventController = async (req, res) => {
       });
     }
 
-    // Upload new image files to Cloudinary
+    // Save new uploaded images with full URL
     await Promise.all(
       newImageFiles.map(async (file) => {
         const imageRecord = await Image.create({
           eventId: event.id,
-          imageUrl: file.path, // already uploaded by multer & Cloudinary
+          imageUrl: `${req.protocol}://${req.get("host")}/${file.path.replace(/\\/g, "/")}`,
         });
         return imageRecord;
       })
@@ -197,6 +202,7 @@ export const updateEventController = async (req, res) => {
       .json({ success: false, message: error.message || "Server error" });
   }
 };
+
 
 
 // Delete event by id

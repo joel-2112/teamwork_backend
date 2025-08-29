@@ -26,6 +26,20 @@ export const createJobApplicationService = async (userId, data) => {
     if (!data[field]) throw new Error(`Missing required field: ${field}`);
   }
 
+  const check = await JobApplication.findOne({
+    where: {
+      jobId: data.jobId,
+      applicantEmail: data.applicantEmail,
+      isDeleted: false,
+    },
+  });
+  if (check) throw new Error("You have already applied for this job.");
+
+  const jobApplication = await JobApplication.create({
+    ...data,
+    userId: user.id,
+  });
+
   // Send confirmation email
   await sendJobApplicationConfirmationEmail({
     userEmail: data.applicantEmail,
@@ -33,10 +47,7 @@ export const createJobApplicationService = async (userId, data) => {
     jobTitle: job.jobTitle || "the position",
   });
 
-  return await JobApplication.create({
-    ...data,
-    userId: user.id,
-  });
+  return jobApplication;
 };
 
 // Retrieve all applications for one job by jobId and change the status of application into reviewed
@@ -44,7 +55,7 @@ export const getApplicationsByJobIdService = async (
   jobId,
   { page = 1, limit = 10, status } = {}
 ) => {
-  const job = await Job.findByPk(jobId);
+  const job = await Job.findOne({ where: { id: jobId, isDeleted: false } });
   if (!job) throw new Error("Job not found");
 
   const offset = (page - 1) * limit;
@@ -127,32 +138,8 @@ export const updateApplicationStatusService = async (id, status) => {
   return updatedApplication;
 };
 
-// Delete application by id with  its resume
-// export const deleteApplicationService = async (id) => {
-//   const application = await JobApplication.findByPk(id);
-//   if (!application) throw new Error("Job application not found");
-
-//   // Delete the resume file if it exists
-//   if (application.resume) {
-//     const resumePath = path.join(
-//       process.cwd(),
-//       "uploads/documents",
-//       path.basename(application.resume)
-//     );
-//     try {
-//       await fs.promises.unlink(resumePath);
-//       console.log(`Deleted image file: ${resumePath}`);
-//     } catch (err) {
-//       console.error(`Error deleting image file: ${err.message}`);
-//     }
-//   }
-
-//   // Delete the application from the DB
-//   return await application.destroy();
-// };
-
 export const deleteApplicationService = async (applicationId, userId) => {
-  const user = await User.findByPk(userId);
+  const user = await User.findOne({ where: { id: userId, isDeleted: false } });
   if (!user) throw new Error("User not found");
 
   const application = await JobApplication.findOne({
@@ -183,15 +170,6 @@ export const getAllMyJobApplicationService = async (userId) => {
   if (!applications || applications.length === 0) {
     throw new Error("No job applications found for this user");
   }
-
-  // Return the applications
-  applications.forEach((app) => {
-    app.resume = path.join(
-      process.cwd(),
-      "uploads/documents",
-      path.basename(app.resume)
-    );
-  });
 
   return applications;
 };

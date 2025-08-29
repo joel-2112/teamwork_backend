@@ -9,11 +9,11 @@ import {
   deleteService,
 } from "../controllers/serviceController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
+import upload from "../middlewares/upload.js";
 
 router.post(
   "/create-service",
-  cloudinaryUpload.fields([
+  upload.fields([
     { name: "imageUrl", maxCount: 5 },
     { name: "videoUrl", maxCount: 3 },
     { name: "fileUrl", maxCount: 1 },
@@ -24,7 +24,7 @@ router.post(
 );
 router.put(
   "/update/:id",
-  cloudinaryUpload.fields([
+  upload.fields([
     { name: "imageUrl", maxCount: 5 },
     { name: "videoUrl", maxCount: 3 },
     { name: "fileUrl", maxCount: 1 },

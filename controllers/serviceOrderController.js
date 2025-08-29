@@ -8,7 +8,7 @@ import {
   cancelOrderService,
   getMyOrdersService,
   ordersStatisticsService,
-  deleteMyOrderService
+  deleteMyOrderService,
 } from "../services/serviceOrderService.js";
 import db from "../models/index.js";
 import path from "path";
@@ -17,18 +17,17 @@ import { Sequelize } from "sequelize";
 
 const { Region, Zone, Woreda } = db;
 
-
 // Make sure Cloudinary is already configured in cloudinaryUpload.js
 export const createServiceOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const file = req.file; 
+    const file = req.file;
 
-    
     const data = { ...req.body };
 
     if (file) {
-      data.requirementFile = file.path; 
+      // Use multer local path as URL
+      data.requirementFile = `${req.protocol}://${req.get("host")}/${file.path.replace(/\\/g, "/")}`;
     }
 
     // Create order in DB
@@ -66,10 +65,17 @@ export const createServiceOrder = async (req, res) => {
   }
 };
 
-
 export const getAllOrders = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, status, regionId, zoneId, woredaId } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      status,
+      regionId,
+      zoneId,
+      woredaId,
+    } = req.query;
     const filters = { search, status, regionId, zoneId, woredaId };
 
     const {
@@ -82,7 +88,12 @@ export const getAllOrders = async (req, res) => {
       cancelledOrder,
       completedOrder,
       rows,
-    } = await getAllOrdersService(parseInt(page), parseInt(limit), filters, req.user);
+    } = await getAllOrdersService(
+      parseInt(page),
+      parseInt(limit),
+      filters,
+      req.user
+    );
 
     res.status(200).json({
       success: true,
@@ -108,7 +119,6 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
-
 export const getOrderById = async (req, res) => {
   try {
     const order = await getOrderByIdService(req.params.id);
@@ -122,16 +132,20 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-
 export const updateOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
     const userId = req.user.id;
-    const file = req.file; 
+    const file = req.file;
 
     const data = { ...req.body };
 
-    const order = await updateOrderService(orderId, userId, data, file);
+    // If a new file is uploaded, build its URL here
+    if (file) {
+      data.requirementFile = `${req.protocol}://${req.get("host")}/${file.path.replace(/\\/g, "/")}`;
+    }
+
+    const order = await updateOrderService(orderId, userId, data);
 
     res.status(200).json({
       success: true,
@@ -149,7 +163,6 @@ export const updateOrder = async (req, res) => {
 };
 
 
-
 export const deleteOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -162,7 +175,6 @@ export const deleteOrder = async (req, res) => {
     res.status(400).json({ success: false, error: error.message });
   }
 };
-
 
 export const deleteMyOrder = async (req, res) => {
   try {
@@ -220,14 +232,11 @@ export const getMyOrders = async (req, res) => {
 export const orderStatistics = async (req, res) => {
   try {
     const orderStat = await ordersStatisticsService();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message:
-          "All statistics of order in the company retrieved successfully",
-        orderStat,
-      });
+    res.status(200).json({
+      success: true,
+      message: "All statistics of order in the company retrieved successfully",
+      orderStat,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });

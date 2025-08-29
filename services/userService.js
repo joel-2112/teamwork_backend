@@ -4,8 +4,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import moment from "moment";
 import { sendPasswordResetOtpEmail } from "../utils/sendEmail.js";
-import redisClient from "../config/redisClient.js";
-import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
+import fs from "fs";
+import path from "path";
 
 const {
   User,
@@ -31,7 +31,7 @@ export const getAllUsersService = async ({
   const offset = (parsedPage - 1) * parsedLimit;
 
   // Build filtered query for paginated results
-  const filteredWhere = {isDeleted: false,};
+  const filteredWhere = { isDeleted: false };
   if (status) filteredWhere.status = status;
   if (roleId) filteredWhere.roleId = roleId;
   if (search) {
@@ -42,7 +42,7 @@ export const getAllUsersService = async ({
   }
 
   // Base where for stats (should NOT include search or status filter)
-  const baseWhere = {isDeleted: false};
+  const baseWhere = { isDeleted: false };
 
   // Get all required roles in one query
   const roles = await Role.findAll({
@@ -129,7 +129,7 @@ export const getUserByIdService = async (id) => {
 };
 
 export const updateUserService = async (id, data) => {
-  const user = await User.findOne({where: {id, isDeleted: false}});
+  const user = await User.findOne({ where: { id, isDeleted: false } });
   if (!user) throw new Error("User not found");
 
   return await user.update(data);
@@ -263,7 +263,6 @@ export const createAdminUserService = async (data) => {
   }
 };
 
-
 // Block user
 export const updateUserStatusService = async (id, status) => {
   const user = await User.findByPk(id);
@@ -348,6 +347,7 @@ export const changePasswordService = async (user, data) => {
   };
 };
 
+
 export const updateProfileService = async (user, data) => {
   const userFound = await User.findByPk(user.id);
   if (!userFound) throw new Error("User not found");
@@ -358,29 +358,20 @@ export const updateProfileService = async (user, data) => {
     if (!agentFound) throw new Error("Agent record not found");
   }
 
-  // Delete old profile image if new one is provided
-  if (data.profilePicture) {
-    if (userFound.profilePicture) {
-      const publicIdUser = extractPublicIdFromUrl(userFound.profilePicture);
-      if (publicIdUser) {
-        try {
-          await cloudinary.uploader.destroy(publicIdUser);
-        } catch (err) {
-          console.warn("Failed to delete old user image:", err.message);
-        }
-      }
-    }
+  // Delete old profile picture if a new one is uploaded
+  if (data.profilePicture && userFound.profilePicture) {
+    try {
+      const urlPath = new URL(userFound.profilePicture).pathname; 
+      const localPath = path.join(process.cwd(), urlPath.replace(/^\/+/, ""));
 
-    // Delete from Agent if applicable
-    if (agentFound && agentFound.profilePicture) {
-      const publicIdAgent = extractPublicIdFromUrl(agentFound.profilePicture);
-      if (publicIdAgent) {
-        try {
-          await cloudinary.uploader.destroy(publicIdAgent);
-        } catch (err) {
-          console.warn("Failed to delete old agent image:", err.message);
-        }
+      if (fs.existsSync(localPath)) {
+        fs.unlinkSync(localPath);
+        console.log("Deleted old profile picture:", localPath);
+      } else {
+        console.warn("Old profile picture not found:", localPath);
       }
+    } catch (err) {
+      console.warn("Failed to delete old profile image:", err.message);
     }
   }
 
@@ -393,6 +384,8 @@ export const updateProfileService = async (user, data) => {
 
   return userFound;
 };
+
+
 
 // Step 1: Send OTP for password reset
 export const sendPasswordResetOtpService = async (email) => {

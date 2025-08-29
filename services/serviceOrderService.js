@@ -5,9 +5,8 @@ import {
   sendOrderStatusUpdateEmail,
 } from "../utils/sendEmail.js";
 import moment from "moment";
-import { v2 as cloudinary } from "cloudinary";
-import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
-
+import fs from "fs";
+import path from "path";
 const { ServiceOrder, Region, Zone, Woreda, User, Service } = db;
 
 // To order the service
@@ -183,7 +182,7 @@ export const getOrderByIdService = async (id) => {
 };
 
 // User can update their own order with only pending or reviewed status
-export const updateOrderService = async (orderId, userId, data, file) => {
+export const updateOrderService = async (orderId, userId, data) => {
   const order = await ServiceOrder.findByPk(orderId, {
     include: [
       { model: Region, as: "Region", required: false },
@@ -204,7 +203,25 @@ export const updateOrderService = async (orderId, userId, data, file) => {
     throw new Error("Only pending or reviewed orders can be updated");
   }
 
-  // Location validation
+  //Delete old requirement file if a new one is provided
+  if (data.requirementFile && order.requirementFile) {
+    try {
+      // Extract the local path from the full URL
+      const urlPath = new URL(order.requirementFile).pathname; 
+      const localPath = path.join(process.cwd(), urlPath.replace(/^\/+/, ""));
+
+      if (fs.existsSync(localPath)) {
+        fs.unlinkSync(localPath);
+        console.log("Deleted old requirement file:", localPath);
+      } else {
+        console.warn("Old requirement file not found:", localPath);
+      }
+    } catch (err) {
+      console.warn("Failed to delete old requirement file:", err.message);
+    }
+  }
+
+  // Location validation (unchanged)
   if (data.country && data.country === "Ethiopia") {
     if (data.regionId) {
       const region = await Region.findByPk(data.regionId);
@@ -223,6 +240,7 @@ export const updateOrderService = async (orderId, userId, data, file) => {
     data.manualZone = null;
     data.manualWoreda = null;
   }
+
   if (data.country && data.country !== "Ethiopia") {
     if (!data.manualRegion)
       throw new Error("Manual region is required for non-Ethiopian customers");
@@ -234,23 +252,6 @@ export const updateOrderService = async (orderId, userId, data, file) => {
     data.regionId = null;
     data.zoneId = null;
     data.woredaId = null;
-  }
-
-  if (file) {
-    // Delete old file if it exists
-    if (order.requirementFile) {
-      const publicId = extractPublicIdFromUrl(order.requirementFile);
-      if (publicId) {
-        try {
-          await cloudinary.uploader.destroy(publicId, { resource_type: "raw" });
-        } catch (err) {
-          console.error("Error deleting old Cloudinary file:", err.message);
-        }
-      }
-    }
-
-    // Save new Cloudinary file URL
-    data.requirementFile = file.path;
   }
 
   return await order.update(data);

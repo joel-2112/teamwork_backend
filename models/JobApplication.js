@@ -100,12 +100,6 @@ export default (db, DataTypes) => {
     {
       tableName: "job-applications",
       timestamps: true,
-      indexes: [
-        {
-          unique: true,
-          fields: ["jobId", "applicantEmail"],
-        },
-      ],
     }
   );
 

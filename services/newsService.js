@@ -1,8 +1,8 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
 import moment from "moment";
-import { extractPublicIdFromUrl } from "../utils/cloudinaryHelpers.js";
-import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+import path from "path";
 const { News, User } = db;
 
 // service to create news
@@ -162,44 +162,34 @@ export const updateNews = async (id, data, file, req) => {
   if (!news) throw new Error("News not found");
 
   if (file && file.path) {
-    // Delete old image from Cloudinary if it exists
+    // Delete old image from local storage if it exists
     if (news.imageUrl) {
-      const publicId = extractPublicIdFromUrl(news.imageUrl);
-      if (publicId) {
-        await cloudinary.uploader.destroy(publicId);
+      try {
+        const relativePath = news.imageUrl.replace(
+          `${req.protocol}://${req.get("host")}/`,
+          ""
+        );
+
+        // Build absolute local path
+        const oldFilePath = path.join(process.cwd(), relativePath);
+
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+          console.log("Deleted old news image:", oldFilePath);
+        } else {
+          console.warn("Old news image not found:", oldFilePath);
+        }
+      } catch (err) {
+        console.warn("Failed to delete old news image:", err.message);
       }
     }
 
-    // Save new image (already uploaded to Cloudinary via multer)
-    data.imageUrl = file.path;
+    // Save new image URL
+    data.imageUrl = `${req.protocol}://${req.get("host")}/${file.path.replace(/\\/g, "/")}`;
   }
 
   return await news.update(data);
 };
-
-// Service to delete news by id
-// export const deleteNews = async (id) => {
-//   const news = await News.findOne({ where: { id: id, isDeleted: false } });
-//   if (!news) throw new Error("News not found");
-
-//   // Delete associated image if it exists
-//   if (news.imageUrl) {
-//     const imagePath = path.join(
-//       process.cwd(),
-//       "uploads/assets",
-//       path.basename(news.imageUrl)
-//     );
-//     try {
-//       await fs.promises.unlink(imagePath);
-//       console.log(`Deleted image file: ${imagePath}`);
-//     } catch (err) {
-//       console.error(`Error deleting image file: ${err.message}`);
-//     }
-//   }
-
-//   // Delete the news record from DB
-//   return await news.destroy();
-// };
 
 export const deleteNews = async (newsId, userId) => {
   const user = await User.findByPk(userId);

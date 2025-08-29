@@ -11,11 +11,11 @@ import {
   countApplicationsPerJob,
 } from "../controllers/jobApplicationController.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
+import upload from "../middlewares/upload.js";
 
 router.post(
   "/apply",
-  cloudinaryUpload.fields([
+  upload.fields([
     { name: "document", maxCount: 1 },
     { name: "coverLetter", maxCount: 1 },
   ]),
@@ -59,6 +59,5 @@ router.get(
   countApplicationsPerJob
 );
 router.get("/my-applications", protect, getAllMyJobApplication);
-
 
 export default router;

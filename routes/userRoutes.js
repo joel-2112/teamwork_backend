@@ -21,7 +21,7 @@ import {
 } from "../middlewares/validators/authValidator.js";
 import { validateRequest } from "../middlewares/validators/validateRequest.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
+import upload from "../middlewares/upload.js"
 
 router.post(
   "/create-admin",
@@ -38,7 +38,7 @@ router.put(
 router.put(
   "/update-profile",
   protect,
-  cloudinaryUpload.single("profilePicture"),
+  upload.single("profilePicture"),
   updateProfile
 );
 router.get("/all-users", protect, requireRole("admin"), getAllUsers);

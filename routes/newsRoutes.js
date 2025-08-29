@@ -14,11 +14,11 @@ import {
   createNewsValidator,
   validateParamId,
 } from "../middlewares/validators/authValidator.js";
-import cloudinaryUpload from "../middlewares/cloudinaryUpload.js";
+import upload from "../middlewares/upload.js";
 
 router.post(
   "/create-news",
-  cloudinaryUpload.single("picture"),
+  upload.single("picture"),
   createNewsValidator,
   validateRequest,
   protect,
@@ -27,7 +27,7 @@ router.post(
 );
 router.put(
   "/update-news/:id",
-  cloudinaryUpload.single("picture"),
+  upload.single("picture"),
   protect,
   requireRole("admin"),
   updateNewsController

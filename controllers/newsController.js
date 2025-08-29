@@ -26,7 +26,7 @@ export const createNewsController = async (req, res) => {
 
     let imageUrl = null;
     if (req.file && req.file.path) {
-      imageUrl = req.file.path; // Cloudinary returns public URL
+      imageUrl = `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`;
     }
 
     const news = await createNews(userId, {
@@ -49,6 +49,9 @@ export const createNewsController = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+
+
 
 // Retrieve all news
 export const getAllNewsController = async (req, res) => {
@@ -109,6 +112,7 @@ export const updateNewsController = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 // Delete news
 export const deleteNewsController = async (req, res) => {
