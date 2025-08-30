@@ -14,7 +14,6 @@ const db = new Sequelize({
   dialect: envConfig.dialect,
   logging: false,
   dialectOptions: envConfig.dialectOptions,
-  // logging: envConfig.logging ? console.log : false,
 });
 
 export default db;
