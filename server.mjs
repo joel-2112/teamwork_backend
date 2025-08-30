@@ -172,7 +172,7 @@ const startServer = async () => {
       console.log(`Server running on port ${port}`);
     });
 
-    await db.sequelize.sync({ alter: true });
+    // await db.sequelize.sync({ alter: true });
     console.log("All models synced and tables created/updated");
   } catch (err) {
     console.error("Failed to start server:", err);
