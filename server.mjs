@@ -91,7 +91,7 @@ io.on("connection", (socket) => {
 
     console.log("send Message :", sendMessage);
 
-    // io.to(receiverId).emit("receive_message", { content: replyMessage });
+    // io.to(receiverId).emit("receive_message", ;
     io.to(socket.userId).emit("receive_message", sendMessage.dataValues);
     io.to(sendMessage.dataValues.receiverId).emit(
       "receive_message",
@@ -104,7 +104,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Serve static files from /uploads with CORS headers
+// Serve static files from / with CORS headers
 app.use(
   "/uploads",
   express.static(path.resolve("uploads"), {
@@ -127,7 +127,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Routes for initial view
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to teamwork IT solution PLC",
