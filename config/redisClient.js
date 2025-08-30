@@ -5,7 +5,7 @@ dotenv.config();
 const redisClient = createClient({
   url: process.env.REDIS_URL, 
   socket: {
-    tls: true, // required for Upstash
+    tls: true, 
   },
 });
 
