@@ -64,9 +64,8 @@ io.use(socketProtect);
 
 // Listen for WebSocket connections
 io.on("connection", (socket) => {
-  const userId = socket.userId; // Assume this is set when the user connects
-  socket.join(userId); // User joins their own room
-
+  const userId = socket.userId; 
+  socket.join(userId); 
   // Handle socket events (e.g., receiving messages)
   socket.on("replyMessage", async (data) => {
     const { receiverId, content } = data;
