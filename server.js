@@ -33,7 +33,7 @@ import customerOrderRoutes from "./routes/customerOrderRoute.js";
 import userFeedbackRoutes from "./routes/userFeadbackRoutes.js";
 import aboutRoutes from "./routes/aboutRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
-import roleRoute from "./routes/roleRoute.js"; // Fixed typo
+import roleRoute from "./routes/roleRoute.js"; 
 import reportRoute from "./routes/reportRoute.js";
 import messageRoute from "./routes/messageRoutes.js";
 import contactUsRoute from "./routes/countactUsRoute.js";
