@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import cors from "cors";
@@ -10,7 +10,6 @@ import { Server } from "socket.io";
 import db from "./models/index.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import "./utils/scheduledTask.js";
-dotenv.config();
 // import { protect } from "./middlewares/protect.js"; 
 import { socketProtect } from "./middlewares/authMiddleware.js"; 
 
