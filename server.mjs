@@ -40,7 +40,7 @@ import {
   sendMessageService,
 } from "./services/messageService.js";
 
-// Initialize Express
+// Initialize Express cors
 const app = express();
 const port = process.env.PORT || 5000;
 
