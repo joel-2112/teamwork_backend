@@ -161,12 +161,10 @@ Event.hasMany(Image, {
   onDelete: "CASCADE",
 });
 Image.belongsTo(Event, { foreignKey: "eventId" });
-User.hasMany(Agent, {
-  foreignKey: "deletedBy",
-});
-Agent.belongsTo(User, {
-  foreignKey: "deletedBy",
-});
+
+// 2. Agent deleted by a User
+User.hasMany(Agent, { foreignKey: "deletedBy", as: "DeletedAgents" });
+Agent.belongsTo(User, { foreignKey: "deletedBy", as: "DeletedByUser" });
 
 Service.hasMany(ServiceOrder, {
   foreignKey: "serviceId",
@@ -229,7 +227,7 @@ User.hasMany(News, { foreignKey: "deletedBy" });
 News.belongsTo(User, { foreignKey: "deletedBy" });
 
 User.hasOne(Agent, { foreignKey: "userId", as: "agents" });
-Agent.belongsTo(User, { foreignKey: "userId" });
+Agent.belongsTo(User, { foreignKey: "userId", as: "users" });
 
 User.hasMany(JobApplication, { foreignKey: "userId" });
 JobApplication.belongsTo(User, { foreignKey: "userId" });

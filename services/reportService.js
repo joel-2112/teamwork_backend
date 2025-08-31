@@ -72,7 +72,7 @@ export const getAllReportsService = async (
           ? { "$reportedBy.Role.name$": { [Op.in]: roleFilter } }
           : null,
         agentTypeFilter
-          ? { "$reportedBy.Agent.agentType$": agentTypeFilter }
+          ? { "$reportedBy.agents.agentType$": agentTypeFilter }
           : null,
       ].filter(Boolean),
     };
@@ -101,7 +101,7 @@ export const getAllReportsService = async (
         ],
         include: [
           { model: Role, as: "Role", attributes: ["id", "name"] },
-          { model: Agent, as: "Agent", attributes: ["id", "agentType"] },
+          { model: Agent, as: "agents", attributes: ["id", "agentType"] },
         ],
         required: true,
       },
