@@ -132,7 +132,7 @@ export const deleteJobService = async (jobId, userId) => {
   const job = await Job.findOne({ where: { id: jobId, isDeleted: false } });
   if (!job) throw new Error("Job not found or already deleted.");
   const applicationCount = await JobApplication.count({
-    where: { jobId: jobId },
+    where: { jobId: jobId, isDeleted: false },
   });
   if (applicationCount > 0)
     throw new Error("Cannot delete job with associated applications");
