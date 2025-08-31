@@ -28,7 +28,7 @@ export default (db, DataTypes) => {
         allowNull: false,
       },
       salary: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       requirements: {
