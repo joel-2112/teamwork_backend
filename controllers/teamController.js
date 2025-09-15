@@ -74,40 +74,54 @@ export const getTeamById = async (req, res) => {
   }
 };
 
+
 export const updateTeam = async (req, res) => {
   try {
-    const teamId = req.params.id;
-
-    const team = await Team.findOne({
-      where: { id: teamId, isDeleted: false },
-    });
-    if (!team) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Team not found." });
-    }
-
-    let imageUrl = team.imageUrl;
-
-    if (req.file) {
-      imageUrl = `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`;
-    }
-
-    const updatedTeam = await updateTeamService(teamId, {
-      ...req.body,
-      imageUrl,
-    });
-
-    return res.status(200).json({
+    const team = await updateTeamService(req.params.id, req.body, req.file, req);
+    res.status(200).json({
       success: true,
-      message: "Team updated successfully.",
-      data: updatedTeam,
+      message: `Team with id ${req.params.id} is successfully updated.`,
+      team,
     });
   } catch (error) {
-    console.error("Update team error:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
+
+// async (req, res) => {
+//   try {
+//     const teamId = req.params.id;
+
+//     const team = await Team.findOne({
+//       where: { id: teamId, isDeleted: false },
+//     });
+//     if (!team) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Team not found." });
+//     }
+
+//     let imageUrl = team.imageUrl;
+
+//     if (req.file) {
+//       imageUrl = `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`;
+//     }
+
+//     const updatedTeam = await updateTeamService(teamId, {
+//       ...req.body,
+//       imageUrl,
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Team updated successfully.",
+//       data: updatedTeam,
+//     });
+//   } catch (error) {
+//     console.error("Update team error:", error);
+//     return res.status(500).json({ success: false, message: error.message });
+//   }
+// };
 
 export const deleteTeam = async (req, res) => {
   try {

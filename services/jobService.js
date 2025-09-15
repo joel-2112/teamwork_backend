@@ -8,17 +8,6 @@ const { Job, JobApplication, User } = db;
 export const createJobService = async (userId, data) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
-
-  const job = await Job.findOne({
-    where: {
-      title: data.title,
-      companyName: data.companyName,
-      location: data.location,
-    },
-  });
-
-  if (job) throw new Error("Job already exist.");
-
   return await Job.create({
     ...data,
     postedBy: user.id,

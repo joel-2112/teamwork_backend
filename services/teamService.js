@@ -49,30 +49,64 @@ export const getTeamByIdService = async (id) => {
   return team;
 };
 
-export const updateTeamService = async (id, data) => {
-  const team = await Team.findOne({ where: { id, isDeleted: false } });
-  if (!team) throw new Error("Team not found.");
+export const updateTeamService = async (id, data, file, req) => {
+  const team = await Team.findOne({ where: { id: id, isDeleted: false } });
+  if (!team) throw new Error("Team not found");
 
-  // Delete old image if a new one is provided
-  if (data.imageUrl && team.imageUrl) {
-    try {
-      const urlPath = new URL(team.imageUrl).pathname; 
-      const localPath = path.join(process.cwd(), urlPath.replace(/^\/+/, ""));
+  if (file && file.path) {
+    // Delete old image from local storage if it exists
+    if (team.imageUrl) {
+      try {
+        const relativePath = team.imageUrl.replace(
+          `${req.protocol}://${req.get("host")}/`,
+          ""
+        );
 
-      if (fs.existsSync(localPath)) {
-        fs.unlinkSync(localPath);
-        console.log("Deleted old team image:", localPath);
-      } else {
-        console.warn("Old team image not found:", localPath);
+        // Build absolute local path
+        const oldFilePath = path.join(process.cwd(), relativePath);
+
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+          console.log("Deleted old news image:", oldFilePath);
+        } else {
+          console.warn("Old news image not found:", oldFilePath);
+        }
+      } catch (err) {
+        console.warn("Failed to delete old news image:", err.message);
       }
-    } catch (err) {
-      console.warn("Failed to delete old team image:", err.message);
     }
+
+    // Save new image URL
+    data.imageUrl = `${req.protocol}://${req.get("host")}/${file.path.replace(/\\/g, "/")}`;
   }
 
-  await team.update(data);
-  return team;
+  return await team.update(data);
 };
+
+// async (id, data) => {
+//   const team = await Team.findOne({ where: { id, isDeleted: false } });
+//   if (!team) throw new Error("Team not found.");
+
+//   // Delete old image if a new one is provided
+//   if (data.imageUrl && team.imageUrl) {
+//     try {
+//       const urlPath = new URL(team.imageUrl).pathname; 
+//       const localPath = path.join(process.cwd(), urlPath.replace(/^\/+/, ""));
+
+//       if (fs.existsSync(localPath)) {
+//         fs.unlinkSync(localPath);
+//         console.log("Deleted old team image:", localPath);
+//       } else {
+//         console.warn("Old team image not found:", localPath);
+//       }
+//     } catch (err) {
+//       console.warn("Failed to delete old team image:", err.message);
+//     }
+//   }
+
+//   await team.update(data);
+//   return team;
+// };
 
 export const deleteTeamService = async (userId, id) => {
   const team = await Team.findOne({ where: { id, isDeleted: false } });
