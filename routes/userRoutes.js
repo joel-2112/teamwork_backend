@@ -14,6 +14,7 @@ import {
   verifyPasswordResetOtp,
   resetPassword,
   updateProfile,
+  checkUserExistence,
 } from "../controllers/userController.js";
 import {
   createUserValidator,
@@ -22,7 +23,7 @@ import {
 import { validateRequest } from "../middlewares/validators/validateRequest.js";
 import { protect, requireRole } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/upload.js"
-
+router.post('/exist', checkUserExistence);
 router.post(
   "/create-admin",
   protect,

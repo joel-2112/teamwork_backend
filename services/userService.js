@@ -19,6 +19,11 @@ const {
   ServiceOrder,
 } = db;
 
+export const getUserByEmailService = async (email) => {
+  const user = await User.findOne({ where: { email, isDeleted: false } });
+  return user;
+};
+
 export const getAllUsersService = async ({
   page = 1,
   limit = 10,

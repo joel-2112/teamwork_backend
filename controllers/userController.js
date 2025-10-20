@@ -11,7 +11,30 @@ import {
   verifyPasswordResetOtpService,
   resetPasswordService,
   updateProfileService,
+  getUserByEmailService,
 } from "../services/userService.js";
+
+export const checkUserExistence = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const userExists = await getUserByEmailService(email);
+    if (userExists) {
+      return res.status(200).json({
+        success: true,
+        message: "User exists.",
+        exists: true,
+      });
+    } else {
+      return res.status(200).json({
+        success: false,  
+        message: "User does not exist.",
+        exists: false,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 
 export const getAllUsers = async (req, res) => {
