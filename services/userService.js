@@ -20,8 +20,15 @@ const {
 } = db;
 
 export const getUserByEmailService = async (email) => {
-  const user = await User.findOne({ where: { email, isDeleted: false } });
-  return user;
+  try {
+    const user = await User.findOne({
+      where: { email, isDeleted: false },
+    });
+    return user;
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    throw error;
+  }
 };
 
 export const getAllUsersService = async ({

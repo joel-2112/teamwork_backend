@@ -13,26 +13,59 @@ import {
   updateProfileService,
   getUserByEmailService,
 } from "../services/userService.js";
-
+import bcrypt from "bcryptjs";
 export const checkUserExistence = async (req, res) => {
   try {
-    const { email } = req.body;
-    const userExists = await getUserByEmailService(email);
-    if (userExists) {
-      return res.status(200).json({
-        success: true,
-        message: "User exists.",
-        exists: true,
-      });
-    } else {
-      return res.status(200).json({
-        success: false,  
-        message: "User does not exist.",
-        exists: false,
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required.",
       });
     }
+
+    // Find user by email
+    const user = await getUserByEmailService(email);
+
+    // If user not found
+    if (!user) {
+      return res.status(200).json({
+        success: false,
+        exists: false,
+        message: "User does not exist.",
+      });
+    }
+
+    // Compare passwords
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
+      return res.status(200).json({
+        success: false,
+        exists: true,
+        message: "Incorrect password.",
+      });
+    }
+
+    // If both email and password are valid
+    return res.status(200).json({
+      success: true,
+      exists: true,
+      message: "User authenticated successfully.",
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Error checking user existence:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+      error: error.message,
+    });
   }
 };
 
