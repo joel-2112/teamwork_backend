@@ -14,6 +14,7 @@ import {
   getUserByEmailService,
 } from "../services/userService.js";
 import bcrypt from "bcryptjs";
+
 export const checkUserExistence = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -53,11 +54,6 @@ export const checkUserExistence = async (req, res) => {
       success: true,
       exists: true,
       message: "User authenticated successfully.",
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      },
     });
   } catch (error) {
     console.error("Error checking user existence:", error);
