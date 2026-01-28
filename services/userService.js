@@ -6,6 +6,7 @@ import moment from "moment";
 import { sendPasswordResetOtpEmail } from "../utils/sendEmail.js";
 import fs from "fs";
 import path from "path";
+import redisClient from "../config/redisClient.js";
 
 const {
   User,
@@ -194,7 +195,7 @@ export const createAdminUserService = async (data) => {
 
     if (!allowedRoles.includes(adminRole.name)) {
       throw new Error(
-        "Please enter a valid role: admin, assistant, regionAdmin, zoneAdmin, or woredaAdmin"
+        "Please enter a valid role: admin, assistant, regionAdmin, zoneAdmin, or woredaAdmin",
       );
     }
 
@@ -206,7 +207,7 @@ export const createAdminUserService = async (data) => {
     });
     if (checkPartner)
       throw new Error(
-        "User has already submitted a partnership request, so cannot be admin."
+        "User has already submitted a partnership request, so cannot be admin.",
       );
 
     const checkAgent = await Agent.findOne({
@@ -217,7 +218,7 @@ export const createAdminUserService = async (data) => {
     });
     if (checkAgent)
       throw new Error(
-        "User has already submitted an agent request, so cannot be admin."
+        "User has already submitted an agent request, so cannot be admin.",
       );
 
     if (data.regionId) {
@@ -230,7 +231,7 @@ export const createAdminUserService = async (data) => {
       if (!zone) throw new Error("Invalid Zone");
       if (data.regionId != zone.regionId) {
         throw new Error(
-          `Zone ${zone.name} is not in region ${region.name}, please enter correct zone.`
+          `Zone ${zone.name} is not in region ${region.name}, please enter correct zone.`,
         );
       }
     }
@@ -240,7 +241,7 @@ export const createAdminUserService = async (data) => {
       if (!woreda) throw new Error("Invalid Woreda");
       if (data.zoneId != woreda.zoneId)
         throw new Error(
-          `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`
+          `Woreda ${woreda.name} is not in zone ${zone.name}, please enter correct woreda.`,
         );
     }
 
@@ -307,7 +308,7 @@ export const changePasswordService = async (user, data) => {
 
   const isMatch = await bcrypt.compare(
     data.currentPassword,
-    foundUser.password
+    foundUser.password,
   );
   if (!isMatch)
     throw new Error("Invalid current password, please enter the correct one.");
@@ -315,7 +316,7 @@ export const changePasswordService = async (user, data) => {
   const checkPrev = await bcrypt.compare(data.newPassword, foundUser.password);
   if (checkPrev)
     throw new Error(
-      "You can not use the previous password please use new password."
+      "You can not use the previous password please use new password.",
     );
 
   if (data.newPassword !== data.confirmNewPassword)
@@ -359,7 +360,6 @@ export const changePasswordService = async (user, data) => {
   };
 };
 
-
 export const updateProfileService = async (user, data) => {
   const userFound = await User.findByPk(user.id);
   if (!userFound) throw new Error("User not found");
@@ -373,7 +373,7 @@ export const updateProfileService = async (user, data) => {
   // Delete old profile picture if a new one is uploaded
   if (data.profilePicture && userFound.profilePicture) {
     try {
-      const urlPath = new URL(userFound.profilePicture).pathname; 
+      const urlPath = new URL(userFound.profilePicture).pathname;
       const localPath = path.join(process.cwd(), urlPath.replace(/^\/+/, ""));
 
       if (fs.existsSync(localPath)) {
@@ -397,8 +397,6 @@ export const updateProfileService = async (user, data) => {
   return userFound;
 };
 
-
-
 // Step 1: Send OTP for password reset
 export const sendPasswordResetOtpService = async (email) => {
   const user = await db.User.findOne({ where: { email } });
@@ -408,6 +406,7 @@ export const sendPasswordResetOtpService = async (email) => {
 
   await redisClient.set(`resetOtp:${email}`, OTP, "EX", 300); // 5 minutes expiry
   await sendPasswordResetOtpEmail(OTP, email);
+  console.log(`Password reset OTP for ${email}: ${OTP}`);
 
   return { message: "OTP sent to your email for password reset" };
 };
@@ -430,7 +429,7 @@ export const verifyPasswordResetOtpService = async (email, inputOtp) => {
 export const resetPasswordService = async (
   email,
   newPassword,
-  confirmNewPassword
+  confirmNewPassword,
 ) => {
   const otpVerified = await redisClient.get(`otpVerified:${email}`);
   if (!otpVerified)
