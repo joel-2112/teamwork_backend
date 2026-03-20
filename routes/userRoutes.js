@@ -15,6 +15,7 @@ import {
   resetPassword,
   updateProfile,
   checkUserExistence,
+  updateRole
 } from "../controllers/userController.js";
 import {
   createUserValidator,
@@ -52,5 +53,6 @@ router.put("/change-password", protect, changePassword);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/verify-reset-otp", verifyPasswordResetOtp);
+router.put("/update-role/:id", protect, requireRole("admin"), updateRole);
 
 export default router;

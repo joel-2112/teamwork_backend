@@ -32,6 +32,8 @@ export const getUserByEmailService = async (email) => {
   }
 };
 
+
+
 export const getAllUsersService = async ({
   page = 1,
   limit = 10,
@@ -43,10 +45,11 @@ export const getAllUsersService = async ({
   const parsedLimit = Math.min(100, parseInt(limit) || 10);
   const offset = (parsedPage - 1) * parsedLimit;
 
-  // Build filtered query for paginated results
   const filteredWhere = { isDeleted: false };
+
   if (status) filteredWhere.status = status;
   if (roleId) filteredWhere.roleId = roleId;
+
   if (search) {
     filteredWhere[Op.or] = [
       { name: { [Op.iLike]: `%${search}%` } },
@@ -54,21 +57,22 @@ export const getAllUsersService = async ({
     ];
   }
 
-  // Base where for stats (should NOT include search or status filter)
   const baseWhere = { isDeleted: false };
 
-  // Get all required roles in one query
   const roles = await Role.findAll({
-    where: { name: ["admin", "user", "agent", "partner"] },
+    where: {
+      name: {
+        [Op.in]: ["admin", "user", "agent", "partner"],
+      },
+    },
     attributes: ["id", "name"],
   });
 
   const roleMap = {};
-  for (const role of roles) {
+  roles.forEach((role) => {
     roleMap[role.name] = role.id;
-  }
+  });
 
-  // Parallelize counts (based on full DB, not filtered query)
   const [
     totalUser,
     blockedUser,
@@ -80,12 +84,20 @@ export const getAllUsersService = async ({
     User.count({ where: baseWhere }),
     User.count({ where: { ...baseWhere, status: "blocked" } }),
     User.count({ where: { ...baseWhere, status: "active" } }),
-    User.count({ where: { ...baseWhere, roleId: roleMap.admin } }),
-    User.count({ where: { ...baseWhere, roleId: roleMap.agent } }),
-    User.count({ where: { ...baseWhere, roleId: roleMap.partner } }),
+
+    roleMap.admin
+      ? User.count({ where: { ...baseWhere, roleId: roleMap.admin } })
+      : 0,
+
+    roleMap.agent
+      ? User.count({ where: { ...baseWhere, roleId: roleMap.agent } })
+      : 0,
+
+    roleMap.partner
+      ? User.count({ where: { ...baseWhere, roleId: roleMap.partner } })
+      : 0,
   ]);
 
-  // Get paginated, filtered users
   const { count, rows } = await User.findAndCountAll({
     where: filteredWhere,
     include: [
@@ -110,6 +122,8 @@ export const getAllUsersService = async ({
     blockedUser,
     page: parsedPage,
     limit: parsedLimit,
+    totalFiltered: count,
+    totalPages: Math.ceil(count / parsedLimit),
     users: rows,
   };
 };
@@ -447,6 +461,19 @@ export const resetPasswordService = async (
   await redisClient.del(`otpVerified:${email}`);
 
   return { message: "Password has been reset successfully" };
+};
+
+export const updateRoleService = async (userId, roleId) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
+
+  const role = await Role.findByPk(roleId);
+  if (!role) throw new Error("Role not found");
+
+  user.roleId = roleId;
+  await user.save();
+
+  return user;
 };
 
 // To send user statistics of the company

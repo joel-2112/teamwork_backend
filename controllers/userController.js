@@ -12,6 +12,7 @@ import {
   resetPasswordService,
   updateProfileService,
   getUserByEmailService,
+  updateRoleService,
 } from "../services/userService.js";
 import bcrypt from "bcryptjs";
 
@@ -69,6 +70,7 @@ export const checkUserExistence = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const { page, limit, status, search, roleId } = req.query;
+
     const users = await getAllUsersService({
       page,
       limit,
@@ -76,13 +78,19 @@ export const getAllUsers = async (req, res) => {
       search,
       roleId,
     });
-    res.status(200).json({
+
+    return res.status(200).json({
       success: true,
-      message: "All user successfully retrieved.",
-      users: users,
+      message: "All users successfully retrieved.",
+      data: users,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Get all users error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
   }
 };
 
@@ -232,6 +240,21 @@ export const userStatistics = async (req, res) => {
       success: true,
       message: "User statistics is successfully sent.",
       userData: stats,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateRole = async (req, res) => {
+  try {
+    const { roleId } = req.body;
+    const user = await updateRoleService(req.params.id, roleId);
+    res.status(200).json({
+      success: true,
+      message: `User with id ${req.params.id} role has been updated successfully.`,
+      user: user,
     });
   } catch (error) {
     console.log(error);
