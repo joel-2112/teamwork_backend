@@ -32,8 +32,6 @@ export const getUserByEmailService = async (email) => {
   }
 };
 
-
-
 export const getAllUsersService = async ({
   page = 1,
   limit = 10,
@@ -262,21 +260,27 @@ export const createAdminUserService = async (data) => {
     const existingUser = await User.findOne({ where: { email: data.email } });
 
     if (existingUser) {
-      const currentRole = await Role.findByPk(existingUser.roleId);
-
-      // Prevent updating if user is already one of the allowed admin roles
-      if (currentRole && allowedRoles.includes(currentRole.name)) {
-        throw new Error(`User is already an ${currentRole.name}`);
-      }
-
-      // Otherwise, update role to new admin role
-      existingUser.roleId = adminRole.id;
-      existingUser.regionId = data.regionId;
-      existingUser.zoneId = data.zoneId;
-      existingUser.woredaId = data.woredaId;
-      await existingUser.save();
-      return existingUser;
+      throw new Error(
+        "User with this email already exists, Please update this user role in ussers page.",
+      );
     }
+
+    // if (existingUser) {
+    //   const currentRole = await Role.findByPk(existingUser.roleId);
+
+    //   // Prevent updating if user is already one of the allowed admin roles
+    //   if (currentRole && allowedRoles.includes(currentRole.name)) {
+    //     throw new Error(`User is already an ${currentRole.name}`);
+    //   }
+
+    //   // Otherwise, update role to new admin role
+    //   existingUser.roleId = adminRole.id;
+    //   existingUser.regionId = data.regionId;
+    //   existingUser.zoneId = data.zoneId;
+    //   existingUser.woredaId = data.woredaId;
+    //   await existingUser.save();
+    //   return existingUser;
+    // }
 
     // Create a new admin user
     const newUser = await User.create({
