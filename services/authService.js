@@ -5,7 +5,7 @@ import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpEMail } from "../utils/sendOTP.js";
 import redisClient from "../config/redisClient.js";
 import dotenv from "dotenv";
-import { where } from "sequelize";
+import { Op } from "sequelize";
 const { User, RefreshToken, Role, Partnership, Agent, Region, Zone, Woreda } =
   db;
 dotenv.config();
@@ -34,7 +34,7 @@ export const sendOtpService = async ({
     throw new Error("Email already exists");
   if (existingUser && existingUser.isDeleted === true)
     throw new Error(
-      "User with this email is banned, please report or register by other email"
+      "User with this email is banned, please report or register by other email",
     );
 
   // Check if phone number is exist
@@ -109,17 +109,32 @@ export const verifyOtpService = async (email, inputOtp) => {
 };
 
 // Service to log in the user
-export const loginService = async ({ email, password }) => {
-  if (!email) throw new Error("Missing required field: email");
-  if (!password) throw new Error("Missing required field: password");
+import { Op } from "sequelize";
+import jwt from "jsonwebtoken";
 
-  // validate email format if provided
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+export const loginService = async ({ phoneNumber, email, password }) => {
+  // Require at least one identifier
+  if (!email && !phoneNumber) {
+    throw new Error("Email or phone number is required");
+  }
+
+  if (!password) {
+    throw new Error("Missing required field: password");
+  }
+
+  // Validate email only if provided
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new Error("Invalid email format");
+  }
 
-  // Fetch user and include their role
+  // Fetch user by email OR phone number
   const user = await User.findOne({
-    where: { email },
+    where: {
+      [Op.or]: [
+        email ? { email } : null,
+        phoneNumber ? { phoneNumber } : null,
+      ].filter(Boolean),
+    },
     include: [
       {
         model: Role,
@@ -140,39 +155,65 @@ export const loginService = async ({ email, password }) => {
     ],
   });
 
-  if (!user)
-    throw new Error(
-      "User not registered with this email, please register first."
-    );
+  // User not found handling
+  if (!user) {
+    if (phoneNumber) {
+      throw new Error(
+        "User not registered with this phone number, please register first."
+      );
+    }
+    if (email) {
+      throw new Error(
+        "User not registered with this email, please register first."
+      );
+    }
+  }
 
-  if (user.status === "blocked")
+  // Status checks
+  if (user.status === "blocked") {
     throw new Error("You have been blocked, so you can not login.");
+  }
 
-  if (user && user.isDeleted === true)
-    throw new Error("User with this email is banned, please report or register by other email");
+  if (user.isDeleted === true) {
+    throw new Error(
+      "User is banned, please report or register with another account"
+    );
+  }
 
+  // Password validation
   const isValid = await user.validatePassword(password);
-  if (!isValid) throw new Error("Invalid email or password");
+  if (!isValid) {
+    throw new Error("Invalid credentials");
+  }
 
+  // Agent logic
   let agentType = null;
-  if (user.Role.name === "agent") {
+  if (user.Role?.name === "agent") {
     const agent = await Agent.findOne({
       where: { userId: user.id, isDeleted: false },
     });
-    if (!agent) throw new Error("Agent not found or deleted");
+
+    if (!agent) {
+      throw new Error("Agent not found or deleted");
+    }
+
     agentType = agent.agentType;
   }
 
   // Generate tokens
   const accessToken = generateToken({ userId: user.id });
+
   const refreshToken = jwt.sign(
     { userId: user.id },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: "7d" }
   );
 
-  // Save refresh token (optional)
-  await RefreshToken.create({ token: refreshToken, userId: user.id });
+  // Save refresh token
+  await RefreshToken.create({
+    token: refreshToken,
+    userId: user.id,
+  });
 
   return {
     message: "Login successful",
@@ -180,14 +221,14 @@ export const loginService = async ({ email, password }) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.Role.name,
+      role: user.Role?.name,
       profilePicture: user.profilePicture,
       phoneNumber: user.phoneNumber,
       status: user.status,
       region: user.Region?.name,
       zone: user.Zone?.name,
       woreda: user.Woreda?.name,
-      agentType: agentType,
+      agentType,
     },
     accessToken,
     refreshToken,
