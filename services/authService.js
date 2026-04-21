@@ -108,10 +108,6 @@ export const verifyOtpService = async (email, inputOtp) => {
   };
 };
 
-// Service to log in the user
-import { Op } from "sequelize";
-import jwt from "jsonwebtoken";
-
 export const loginService = async ({ phoneNumber, email, password }) => {
   // Require at least one identifier
   if (!email && !phoneNumber) {
