@@ -34,8 +34,8 @@ export const verifyOtp = async (req, res) => {
 // User log in
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const result = await loginService({ email, password });
+    const { email, password, phoneNumber } = req.body;
+    const result = await loginService({ phoneNumber, email, password });
     res.status(200).json({ success: true, ...result });
   } catch (error) {
     console.error("Login error:", error.message);
