@@ -108,6 +108,31 @@ export const verifyOtpService = async (email, inputOtp) => {
   };
 };
 
+// Helper function to normalize Ethiopian phone numbers
+const normalizePhoneNumber = (phone) => {
+  if (!phone) return phone;
+
+  // Remove spaces
+  phone = phone.replace(/\s+/g, "");
+
+  // Convert 09xxxxxxxx → +2519xxxxxxxx
+  if (phone.startsWith("0")) {
+    return "+251" + phone.slice(1);
+  }
+
+  // Convert 2519xxxxxxxx → +2519xxxxxxxx
+  if (phone.startsWith("251") && !phone.startsWith("+")) {
+    return "+" + phone;
+  }
+
+  // Already correct format
+  if (phone.startsWith("+251")) {
+    return phone;
+  }
+
+  return phone;
+};
+
 export const loginService = async ({ phoneNumber, email, password }) => {
   // Require at least one identifier
   if (!email && !phoneNumber) {
@@ -123,12 +148,17 @@ export const loginService = async ({ phoneNumber, email, password }) => {
     throw new Error("Invalid email format");
   }
 
-  // Fetch user by email OR phone number
+  // Normalize phone number BEFORE querying
+  const normalizedPhone = phoneNumber
+    ? normalizePhoneNumber(phoneNumber)
+    : null;
+
+  // Fetch user by email OR normalized phone number
   const user = await User.findOne({
     where: {
       [Op.or]: [
         email ? { email } : null,
-        phoneNumber ? { phoneNumber } : null,
+        normalizedPhone ? { phoneNumber: normalizedPhone } : null,
       ].filter(Boolean),
     },
     include: [
@@ -155,12 +185,12 @@ export const loginService = async ({ phoneNumber, email, password }) => {
   if (!user) {
     if (phoneNumber) {
       throw new Error(
-        "User not registered with this phone number, please register first."
+        "User not registered with this phone number, please register first.",
       );
     }
     if (email) {
       throw new Error(
-        "User not registered with this email, please register first."
+        "User not registered with this email, please register first.",
       );
     }
   }
@@ -172,7 +202,7 @@ export const loginService = async ({ phoneNumber, email, password }) => {
 
   if (user.isDeleted === true) {
     throw new Error(
-      "User is banned, please report or register with another account"
+      "User is banned, please report or register with another account",
     );
   }
 
@@ -202,7 +232,7 @@ export const loginService = async ({ phoneNumber, email, password }) => {
   const refreshToken = jwt.sign(
     { userId: user.id },
     process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
 
   // Save refresh token

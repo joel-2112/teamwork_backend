@@ -69,8 +69,6 @@ export const logout = async (req, res) => {
   }
 };
 
-
-
 // To check signed in user authentication
 export const checkAuth = async (req, res) => {
   try {
